@@ -6,4 +6,8 @@ This is not for application developers, but for async-library developers.
 ## Async-libraries who use this
 
 - [asynckivy](https://github.com/gottadiveintopython/asynckivy)
-- [asynctkinter](https://github.com/gottadiveintopython/asynckivy)
+- [asynctkinter](https://github.com/gottadiveintopython/asynctkinter)
+
+## TODO
+
+- `and_()`, `or_()` が中斷/完了のどちらか片方だけを待てるようにする
