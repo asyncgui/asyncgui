@@ -1,0 +1,10 @@
+__pycache__/
+bin/
+*.pyc
+*.pyo
+/.venv/
+/asyncgui.egg-info/
+/.pytest_cache/
+/Pipfile.lock
+/poetry.lock
+/dist
