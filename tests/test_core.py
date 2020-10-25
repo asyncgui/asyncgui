@@ -1,12 +1,12 @@
 import pytest
 
 
-def test__get_step_coro():
+def test_get_step_coro():
     import asyncgui as ag
     done = False
     async def job():
-        from asyncgui._core import _get_step_coro
-        step_coro = await _get_step_coro()
+        from asyncgui._core import get_step_coro
+        step_coro = await get_step_coro()
         assert callable(step_coro)
         nonlocal done;done = True
     ag.start(job())

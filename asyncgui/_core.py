@@ -1,6 +1,6 @@
 __all__ = (
     'start', 'sleep_forever', 'or_', 'and_', 'Event', 'Task', 'TaskState',
-    'get_current_task',
+    'get_current_task', 'get_step_coro',
 )
 
 import itertools
@@ -284,8 +284,8 @@ class Event:
 
 
 @types.coroutine
-def _get_step_coro():
-    '''(internal)'''
+def get_step_coro():
+    '''Returns the task-runner'''
     return (yield lambda step_coro: step_coro(step_coro))[0][0]
 
 
