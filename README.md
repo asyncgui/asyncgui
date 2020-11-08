@@ -10,4 +10,6 @@ This is not for application developers, but for async-library developers.
 
 ## TODO
 
-- `and_()`, `or_()` が中斷/完了のどちらか片方だけを待てるようにする
+- `or_()` が中斷/完了のどちらか片方だけを待てるようにする
+- `Trio` -> `asyncgui` 方向へのadaptor
+
