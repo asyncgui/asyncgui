@@ -1,6 +1,6 @@
 __all__ = (
     'start', 'sleep_forever', 'or_', 'and_', 'Event', 'Task', 'TaskState',
-    'get_current_task', 'get_step_coro',
+    'get_current_task', 'get_step_coro', 'aclosing',
 )
 
 import itertools
@@ -11,6 +11,7 @@ from inspect import (
     isawaitable,
 )
 import enum
+from contextlib import asynccontextmanager
 
 from asyncgui.exceptions import CancelledError, InvalidStateError
 
@@ -293,3 +294,13 @@ def get_step_coro():
 def get_current_task() -> typing.Optional[Task]:
     '''Returns the task currently running. None if no Task is associated.'''
     return (yield lambda step_coro: step_coro(step_coro._task))[0][0]
+
+
+@asynccontextmanager
+async def aclosing(aiter):
+    '''async version of 'contextlib.closing()'
+    '''
+    try:
+        yield aiter
+    finally:
+        await aiter.aclose()
