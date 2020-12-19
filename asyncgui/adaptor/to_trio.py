@@ -2,16 +2,14 @@
 '''
 
 __all__ = ('run_awaitable', 'callable_to_asyncfn', 'awaitable_to_coro', )
-import warnings
-from inspect import iscoroutinefunction, isawaitable
-from functools import wraps
+from inspect import isawaitable
 import trio
 import asyncgui
 from asyncgui.exceptions import CancelledError
 
 
 async def _ag_awaitable_wrapper(
-        outcome:dict, end_signal:trio.Event, ag_awaitable):
+        outcome: dict, end_signal: trio.Event, ag_awaitable):
     try:
         outcome['return_value'] = await ag_awaitable
     except GeneratorExit:
@@ -64,6 +62,7 @@ def callable_to_asyncfn(ag_callable):
     '''
     if not callable(ag_callable):
         raise ValueError(f"{ag_callable} is not callable")
+
     async def trio_asyncfn(*args, **kwargs):
         task_status = kwargs.pop('task_status', trio.TASK_STATUS_IGNORED)
         return await run_awaitable(

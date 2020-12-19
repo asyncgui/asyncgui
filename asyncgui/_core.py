@@ -64,7 +64,7 @@ class Task:
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
-        self.name:str = name
+        self.name: str = name
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._event = Event()
@@ -132,7 +132,7 @@ class Task:
     def cancel(self):
         self._root_coro.close()
 
-    async def wait(self, wait_for:TaskState=TaskState.DONE):
+    async def wait(self, wait_for: TaskState=TaskState.DONE):
         '''Wait for the Task to be cancelled or done.
 
         'wait_for' must be one of the following:
@@ -152,7 +152,7 @@ class Task:
 Coro_or_Task = typing.Union[typing.Coroutine, Task]
 
 
-def start(coro_or_task:Coro_or_Task) -> Coro_or_Task:
+def start(coro_or_task: Coro_or_Task) -> Coro_or_Task:
     '''Starts a asyncgui-flavored coroutine or a Task. It is recommended to
     pass a Task instead of a coroutine if a coroutine is going to live long
     time, as Task is flexibler and has information that may be useful for
@@ -196,7 +196,7 @@ Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
 @types.coroutine
-def gather(aws_and_tasks:typing.Iterable[Awaitable_or_Task], *, n:int=None) \
+def gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
         -> typing.Sequence[Task]:
     '''(internal)'''
     tasks = tuple(
@@ -205,11 +205,13 @@ def gather(aws_and_tasks:typing.Iterable[Awaitable_or_Task], *, n:int=None) \
 
     def step_coro():
         pass
+
     def done_callback(__):
         nonlocal n_left
         n_left -= 1
         if n_left == 0:
             step_coro()
+
     for task in tasks:
         task._event.add_callback(done_callback)
         start(task)
