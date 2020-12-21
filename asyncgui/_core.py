@@ -236,16 +236,11 @@ async def and_(*coros):
 
 
 class Event:
-    '''Similar to 'trio.Event'. The difference is this one allows the user to
-    pass value:
+    '''
+    Event
+    =====
 
-        import asyncgui as ag
-
-        e = ag.Event()
-        async def task():
-            assert await e.wait() == 'A'
-        ag.start(task())
-        e.set('A')
+    Similar to 'trio.Event'.
     '''
     __slots__ = ('_value', '_flag', '_step_coro_list', )
 
@@ -257,17 +252,17 @@ class Event:
     def is_set(self):
         return self._flag
 
-    def set(self, value=None):
+    def set(self, *args, **kwargs):
         if self._flag:
             return
         self._flag = True
-        self._value = value
+        self._value = (args, kwargs)
         step_coro_list = self._step_coro_list
         self._step_coro_list = []
         for step_coro in step_coro_list:
-            step_coro(value)
+            step_coro(*args, **kwargs)
 
-    def clear(self):
+    def clear(self, *args, **kwargs):
         self._flag = False
 
     @types.coroutine
@@ -276,12 +271,13 @@ class Event:
             yield lambda step_coro: step_coro()
             return self._value
         else:
-            return (yield self._step_coro_list.append)[0][0]
+            return (yield self._step_coro_list.append)
 
     def add_callback(self, callback):
         '''(internal)'''
         if self._flag:
-            callback(self._value)
+            args, kwargs = self._value
+            callback(*args, **kwargs)
         else:
             self._step_coro_list.append(callback)
 
