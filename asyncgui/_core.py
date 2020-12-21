@@ -127,7 +127,7 @@ class Task:
         else:
             self._state = TaskState.DONE
         finally:
-            self._event.set(self)
+            self._event.set()
 
     def cancel(self):
         self._root_coro.close()
@@ -206,7 +206,7 @@ def gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
     def step_coro():
         pass
 
-    def done_callback(__):
+    def done_callback():
         nonlocal n_left
         n_left -= 1
         if n_left == 0:
@@ -236,52 +236,40 @@ async def and_(*coros):
 
 
 class Event:
-    '''Similar to 'trio.Event'. The difference is this one allows the user to
-    pass value:
+    '''Similar to 'trio.Event'. The difference is this one is resettable. '''
 
-        import asyncgui as ag
-
-        e = ag.Event()
-        async def task():
-            assert await e.wait() == 'A'
-        ag.start(task())
-        e.set('A')
-    '''
-    __slots__ = ('_value', '_flag', '_step_coro_list', )
+    __slots__ = ('_flag', '_step_coro_list', )
 
     def __init__(self):
-        self._value = None
         self._flag = False
         self._step_coro_list = []
 
     def is_set(self):
         return self._flag
 
-    def set(self, value=None):
+    def set(self, *args, **kwargs):
         if self._flag:
             return
         self._flag = True
-        self._value = value
         step_coro_list = self._step_coro_list
         self._step_coro_list = []
         for step_coro in step_coro_list:
-            step_coro(value)
+            step_coro()
 
-    def clear(self):
+    def clear(self, *args, **kwargs):
         self._flag = False
 
     @types.coroutine
     def wait(self):
         if self._flag:
             yield lambda step_coro: step_coro()
-            return self._value
         else:
-            return (yield self._step_coro_list.append)[0][0]
+            yield self._step_coro_list.append
 
     def add_callback(self, callback):
         '''(internal)'''
         if self._flag:
-            callback(self._value)
+            callback()
         else:
             self._step_coro_list.append(callback)
 
