@@ -247,7 +247,7 @@ class Event:
     def is_set(self):
         return self._flag
 
-    def set(self):
+    def set(self, *args, **kwargs):
         if self._flag:
             return
         self._flag = True
@@ -256,7 +256,7 @@ class Event:
         for step_coro in step_coro_list:
             step_coro()
 
-    def clear(self):
+    def clear(self, *args, **kwargs):
         self._flag = False
 
     @types.coroutine
