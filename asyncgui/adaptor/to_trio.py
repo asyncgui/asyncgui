@@ -54,7 +54,7 @@ async def run_awaitable(
 
 def callable_to_asyncfn(ag_callable):
     '''(experimental)
-    Convert a callable that returns a asyncgui-flavored awaitable to
+    Convert a callable that returns an asyncgui-flavored awaitable to
     a Trio-flavored async function.
 
     Usage:

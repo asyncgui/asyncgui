@@ -18,10 +18,18 @@ from asyncgui.exceptions import CancelledError, InvalidStateError
 
 
 class TaskState(enum.Flag):
-    CREATED = enum.auto()  # CORO_CREATED
-    STARTED = enum.auto()  # CORO_RUNNING or CORO_SUSPENDED
-    CANCELLED = enum.auto()  # CORO_CLOSED by task.cancel() or some exception
-    DONE = enum.auto()  # CORO_CLOSED (coroutine was completed)
+    CREATED = enum.auto()
+    '''CORO_CREATED'''
+
+    STARTED = enum.auto()
+    '''CORO_RUNNING or CORO_SUSPENDED'''
+
+    CANCELLED = enum.auto()
+    '''CORO_CLOSED by 'Task.cancel()' or an uncaught exception'''
+
+    DONE = enum.auto()
+    '''CORO_CLOSED (coroutine was completed)'''
+
     ENDED = CANCELLED | DONE
 
 
@@ -55,10 +63,7 @@ class Task:
                 print(task.result)
     '''
 
-    __slots__ = (
-        'name', '_uid', '_root_coro', '_state', '_result', '_event',
-        'surpresses_exception', '_exception',
-    )
+    __slots__ = ('name', '_uid', '_root_coro', '_state', '_result', '_event')
 
     _uid_iter = itertools.count()
 
@@ -70,8 +75,6 @@ class Task:
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._event = Event()
-        self._exception = None
-        self.surpresses_exception = surpresses_exception
 
     def __str__(self):
         return f'Task(uid={self._uid}, name={self.name!r})'
@@ -97,10 +100,6 @@ class Task:
         return self._state is TaskState.CANCELLED
 
     @property
-    def exception(self):
-        return self._exception
-
-    @property
     def result(self):
         '''Equivalent of asyncio.Future.result()'''
         state = self._state
@@ -115,17 +114,9 @@ class Task:
         try:
             self._state = TaskState.STARTED
             self._result = await awaitable
-        except GeneratorExit:
+        except:  # noqa: E722
             self._state = TaskState.CANCELLED
             raise
-        except Exception as e:
-            self._state = TaskState.CANCELLED
-            self._exception = e
-            if not self.surpresses_exception:
-                from asyncgui.utils import get_logger
-                logger = get_logger(__name__)
-                logger.critical('Uncaught exception on ' + str(self))
-                raise
         else:
             self._state = TaskState.DONE
         finally:
