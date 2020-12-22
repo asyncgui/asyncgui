@@ -41,13 +41,14 @@ class Task:
             ...
 
             # case #1 wait for the completion of the task.
-            await task.wait()
+            await task.wait(ag.TaskState.DONE)
             print(task.result)
 
             # case #2 wait for the cancellation of the task.
             await task.wait(ag.TaskState.CANCELLED)
 
-            # case #3 wait for both completion and cancellation of the task.
+            # case #3 wait for either of completion or cancellation of the
+            # task.
             await task.wait(ag.TaskState.ENDED)
             if task.done:
                 print(task.result)
@@ -132,14 +133,14 @@ class Task:
     def cancel(self):
         self._root_coro.close()
 
-    async def wait(self, wait_for: TaskState=TaskState.DONE):
+    async def wait(self, wait_for: TaskState=TaskState.ENDED):
         '''Wait for the Task to be cancelled or done.
 
         'wait_for' must be one of the following:
 
-            TaskState.DONE (default)
+            TaskState.DONE
             TaskState.CANCELLED
-            TaskState.ENDED
+            TaskState.ENDED (default)
         '''
         if wait_for & (~TaskState.ENDED):
             raise ValueError("'wait_for' is incorrect:", wait_for)
