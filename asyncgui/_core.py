@@ -1,6 +1,7 @@
 __all__ = (
     'start', 'sleep_forever', 'or_', 'and_', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing',
+    'and_from_iterable', 'or_from_iterable',
 )
 
 import itertools
@@ -197,7 +198,7 @@ Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
 @types.coroutine
-def gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
+def _gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
         -> typing.Sequence[Task]:
     '''(internal)'''
     tasks = tuple(
@@ -207,7 +208,7 @@ def gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
     def step_coro():
         pass
 
-    def done_callback(__):
+    def done_callback(*args, **kwargs):
         nonlocal n_left
         n_left -= 1
         if n_left == 0:
@@ -228,12 +229,20 @@ def gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
     return tasks
 
 
-async def or_(*coros):
-    return await gather(coros, n=1)
+async def or_(*aws_and_tasks):
+    return await _gather(aws_and_tasks, n=1)
 
 
-async def and_(*coros):
-    return await gather(coros)
+async def or_from_iterable(aws_and_tasks):
+    return await _gather(aws_and_tasks, n=1)
+
+
+async def and_(*aws_and_tasks):
+    return await _gather(aws_and_tasks)
+
+
+async def and_from_iterable(aws_and_tasks):
+    return await _gather(aws_and_tasks)
 
 
 class Event:

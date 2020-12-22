@@ -36,10 +36,10 @@ def test__get_current_task():
 
 def test_gather():
     import asyncgui as ag
-    from asyncgui._core import gather
+    from asyncgui._core import _gather
     events = [ag.Event() for __ in range(3)]
     async def _test():
-        tasks = await gather(
+        tasks = await _gather(
             (event.wait() for event in events),
             n=2,
         )
@@ -63,7 +63,8 @@ class Test_or_:
         import asyncgui as ag
         events = [ag.Event() for __ in range(3)]
         async def _test():
-            tasks = await ag.or_(*(event.wait() for event in events))
+            tasks = await ag.or_from_iterable(
+                event.wait() for event in events)
             assert not tasks[0].done
             assert tasks[1].done
             assert not tasks[2].done
@@ -75,7 +76,7 @@ class Test_or_:
         assert done
 
     @pytest.mark.parametrize("n_do_nothing", range(1, 4))
-    def test_some_coroutines_immediately_end(self, n_do_nothing):
+    def test_some_tasks_immediately_end(self, n_do_nothing):
         '''github issue #3'''
         import asyncgui as ag
         async def do_nothing():
@@ -100,7 +101,8 @@ class Test_and_:
         import asyncgui as ag
         events = [ag.Event() for __ in range(3)]
         async def _test():
-            tasks = await ag.and_(*(event.wait() for event in events))
+            tasks = await ag.and_from_iterable(
+                event.wait() for event in events)
             assert tasks[0].done
             assert tasks[1].done
             assert tasks[2].done
@@ -116,13 +118,14 @@ class Test_and_:
         assert done
 
     @pytest.mark.parametrize("n_coros", range(1, 4))
-    def test_all_coroutines_immediately_end(self, n_coros):
+    def test_all_tasks_immediately_end(self, n_coros):
         '''github issue #3'''
         import asyncgui as ag
         async def do_nothing():
             pass
         async def _test():
-            tasks = await ag.and_(*(do_nothing() for __ in range(n_coros)))
+            tasks = await ag.and_from_iterable(
+                do_nothing() for __ in range(n_coros))
             for task in tasks:
                 assert task.done
             nonlocal done; done = True
