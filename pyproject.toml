@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asyncgui"
-version = "0.1.3"
+version = "0.2.0"
 description = "An async library that works on top of an existing gui event loop"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
@@ -14,6 +14,8 @@ classifiers=[
     'Intended Audience :: Developers',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
     'Topic :: Software Development :: Libraries',
     'Operating System :: OS Independent',
 ]

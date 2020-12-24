@@ -16,7 +16,6 @@ This is not for application developers, but for async-library developers.
 
 ## TODO
 
-- `or_()` が中斷/完了のどちらか片方だけを待てるようにする
 - `Trio` -> `asyncgui` 方向へのadaptor
 - implement `asyncio.Queue` equivalent
 - implement `trio.Semaphore` equivalent`
