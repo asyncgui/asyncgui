@@ -14,7 +14,7 @@ from inspect import (
 import enum
 from contextlib import asynccontextmanager
 
-from asyncgui.exceptions import CancelledError, InvalidStateError
+from asyncgui.exceptions import InvalidStateError
 
 
 class TaskState(enum.Flag):
@@ -106,7 +106,7 @@ class Task:
         if state is TaskState.DONE:
             return self._result
         elif state is TaskState.CANCELLED:
-            raise CancelledError(f"{self} was cancelled")
+            raise InvalidStateError(f"{self} was cancelled")
         else:
             raise InvalidStateError(f"Result of {self} is not ready")
 
