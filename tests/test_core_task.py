@@ -63,7 +63,7 @@ def test_the_state_and_the_result__ver_cancel():
     assert task.state is TS.CANCELLED
     assert not task.done
     assert task.cancelled
-    with pytest.raises(ag.CancelledError):
+    with pytest.raises(ag.InvalidStateError):
         task.result
 
 
@@ -96,7 +96,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
     job_state = 'C'
     assert not task.done
     assert task.cancelled
-    with pytest.raises(ag.CancelledError):
+    with pytest.raises(ag.InvalidStateError):
         task.result
 
 
@@ -128,7 +128,7 @@ def test_the_state_and_the_result__ver_uncaught_exception2():
     job_state = 'B'
     assert not task.done
     assert task.cancelled
-    with pytest.raises(ag.CancelledError):
+    with pytest.raises(ag.InvalidStateError):
         task.result
 
 
