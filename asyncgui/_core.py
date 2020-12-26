@@ -125,6 +125,10 @@ class Task:
     def cancel(self):
         self._root_coro.close()
 
+    # give 'cancel()' an alias so that we can cancel a Task like we close a
+    # coroutine.
+    close = cancel
+
     async def wait(self, wait_for: TaskState=TaskState.ENDED):
         '''Wait for the Task to be cancelled or done.
 
