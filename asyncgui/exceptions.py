@@ -1,7 +1,4 @@
-'''Took from asyncio'''
-
-
-__all__ = ('CancelledError', 'InvalidStateError', )
+__all__ = ('CancelledError', 'InvalidStateError', 'CancelRequest', )
 
 
 class CancelledError(BaseException):
@@ -10,3 +7,9 @@ class CancelledError(BaseException):
 
 class InvalidStateError(Exception):
     """The operation is not allowed in the current state."""
+
+
+class CancelRequest(BaseException):
+    """(internal) Not an actual exception. Used for flow control.
+    We should not catch this exception.
+    """

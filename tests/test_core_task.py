@@ -249,3 +249,22 @@ def test_multiple_tasks_wait_for_the_same_task_to_be_cancelled(
     task1.cancel()
     assert task2a.state is expected_a
     assert task2b.state is expected_b
+
+
+def test_cancel_task_while_it_is_running():
+    from asyncgui import CancelRequest
+
+    async def root_job(ctx):
+        await child_job(ctx)
+        nonlocal done; done = True  # This won't be excuted
+
+    async def child_job(ctx):
+        assert not ctx['root_task'].is_cancellable
+        raise CancelRequest
+
+    ctx = {}
+    done = False
+    ctx['root_task'] = root_task = ag.Task(root_job(ctx))
+    ag.start(root_task)
+    assert root_task.state == TS.CANCELLED
+    assert not done
