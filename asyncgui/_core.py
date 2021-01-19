@@ -8,13 +8,13 @@ import itertools
 import types
 import typing
 from inspect import (
-    getcoroutinestate, CORO_CLOSED, CORO_CREATED,
+    getcoroutinestate, CORO_CLOSED, CORO_CREATED, CORO_RUNNING,
     isawaitable,
 )
 import enum
 from contextlib import asynccontextmanager
 
-from asyncgui.exceptions import InvalidStateError
+from asyncgui.exceptions import InvalidStateError, CancelRequest
 
 
 class TaskState(enum.Flag):
@@ -34,33 +34,54 @@ class TaskState(enum.Flag):
 
 
 class Task:
-    '''(experimental)
+    '''
+    Task
+    ====
+
+    (experimental)
     Similar to `asyncio.Task`. The main difference is that this one is not
     awaitable.
 
-    Usage:
+    .. code-block:: python
 
-        import asyncgui as ag
+       import asyncgui as ag
 
-        async def async_fn():
-            task = ag.Task(some_awaitable, name='my_sub_task')
-            ag.start(task)
-            ...
-            ...
-            ...
+       async def async_fn():
+           task = ag.Task(some_awaitable, name='my_sub_task')
+           ag.start(task)
+           ...
+           ...
+           ...
 
-            # case #1 wait for the completion of the task.
-            await task.wait(ag.TaskState.DONE)
-            print(task.result)
+           # case #1 wait for the completion of the task.
+           await task.wait(ag.TaskState.DONE)
+           print(task.result)
 
-            # case #2 wait for the cancellation of the task.
-            await task.wait(ag.TaskState.CANCELLED)
+           # case #2 wait for the cancellation of the task.
+           await task.wait(ag.TaskState.CANCELLED)
 
-            # case #3 wait for either of completion or cancellation of the
-            # task.
-            await task.wait(ag.TaskState.ENDED)
-            if task.done:
-                print(task.result)
+           # case #3 wait for either of completion or cancellation of the
+           # task.
+           await task.wait(ag.TaskState.ENDED)
+           if task.done:
+               print(task.result)
+
+    Cancellation
+    ------------
+
+    Since coroutines aren't always cancellable, ``Task.cancel()`` may or may
+    not fail depending on the internal coroutine's state. If you want to deal
+    with it properly, ``Task.is_cancellable`` is what you want.
+
+    .. code-block:: python
+
+       if task.is_cancellable:
+           task.cancel()
+       elif if_you_want_to_cancel_immediately:
+           raise CancelRequest
+       else: Cancels at the next frame
+           # in Kivy
+           Clock.schedule_once(lambda __: task.cancel())
     '''
 
     __slots__ = ('name', '_uid', '_root_coro', '_state', '_result', '_event')
@@ -114,6 +135,8 @@ class Task:
         try:
             self._state = TaskState.STARTED
             self._result = await awaitable
+        except CancelRequest:
+            self._state = TaskState.CANCELLED
         except:  # noqa: E722
             self._state = TaskState.CANCELLED
             raise
@@ -128,6 +151,10 @@ class Task:
     # give 'cancel()' an alias so that we can cancel a Task like we close a
     # coroutine.
     close = cancel
+
+    @property
+    def is_cancellable(self) -> bool:
+        return getcoroutinestate(self._root_coro) != CORO_RUNNING
 
     async def wait(self, wait_for: TaskState=TaskState.ENDED):
         '''Wait for the Task to be cancelled or done.
