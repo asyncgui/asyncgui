@@ -63,8 +63,8 @@ class Test_or_:
         import asyncgui as ag
         events = [ag.Event() for __ in range(3)]
         async def _test():
-            tasks = await ag.or_from_iterable(
-                event.wait() for event in events)
+            tasks = await ag.unstructured_or(*(
+                event.wait() for event in events))
             assert not tasks[0].done
             assert tasks[1].done
             assert not tasks[2].done
@@ -82,7 +82,7 @@ class Test_or_:
         async def do_nothing():
             pass
         async def _test():
-            tasks = await ag.or_(
+            tasks = await ag.unstructured_or(
                 *(do_nothing() for __ in range(n_do_nothing)),
                 *(ag.Event().wait() for __ in range(3 - n_do_nothing)),
             )
@@ -101,8 +101,8 @@ class Test_and_:
         import asyncgui as ag
         events = [ag.Event() for __ in range(3)]
         async def _test():
-            tasks = await ag.and_from_iterable(
-                event.wait() for event in events)
+            tasks = await ag.unstructured_and(*(
+                event.wait() for event in events))
             assert tasks[0].done
             assert tasks[1].done
             assert tasks[2].done
@@ -124,8 +124,8 @@ class Test_and_:
         async def do_nothing():
             pass
         async def _test():
-            tasks = await ag.and_from_iterable(
-                do_nothing() for __ in range(n_coros))
+            tasks = await ag.unstructured_and(*(
+                do_nothing() for __ in range(n_coros)))
             for task in tasks:
                 assert task.done
             nonlocal done; done = True

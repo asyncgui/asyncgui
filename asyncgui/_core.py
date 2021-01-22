@@ -1,7 +1,7 @@
 __all__ = (
-    'start', 'sleep_forever', 'or_', 'and_', 'Event', 'Task', 'TaskState',
+    'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
-    'and_from_iterable', 'or_from_iterable',
+    'unstructured_or', 'unstructured_and',
 )
 
 import itertools
@@ -225,10 +225,10 @@ def sleep_forever():
 
 @types.coroutine
 def _gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
-        -> typing.Sequence[Task]:
+        -> typing.List[Task]:
     '''(internal)'''
-    tasks = tuple(
-        v if isinstance(v, Task) else Task(v) for v in aws_and_tasks)
+    tasks = [
+        v if isinstance(v, Task) else Task(v) for v in aws_and_tasks]
     n_left = n if n is not None else len(tasks)
 
     def step_coro():
@@ -255,19 +255,11 @@ def _gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
     return tasks
 
 
-async def or_(*aws_and_tasks):
+async def unstructured_or(*aws_and_tasks):
     return await _gather(aws_and_tasks, n=1)
 
 
-async def or_from_iterable(aws_and_tasks):
-    return await _gather(aws_and_tasks, n=1)
-
-
-async def and_(*aws_and_tasks):
-    return await _gather(aws_and_tasks)
-
-
-async def and_from_iterable(aws_and_tasks):
+async def unstructured_and(*aws_and_tasks):
     return await _gather(aws_and_tasks)
 
 
