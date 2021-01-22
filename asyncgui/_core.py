@@ -227,9 +227,9 @@ def sleep_forever():
 def _gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
         -> typing.List[Task]:
     '''(internal)'''
-    tasks = [
-        v if isinstance(v, Task) else Task(v) for v in aws_and_tasks]
-    n_left = n if n is not None else len(tasks)
+    tasks = [v if isinstance(v, Task) else Task(v) for v in aws_and_tasks]
+    n_tasks = len(tasks)
+    n_left = n_tasks if n is None else min(n, n_tasks)
 
     def step_coro():
         pass

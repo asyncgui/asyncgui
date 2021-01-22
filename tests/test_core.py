@@ -95,6 +95,15 @@ class Test_or_:
         ag.start(_test())
         assert done
 
+    def test_zero_task(self):
+        import asyncgui as ag
+        async def _test():
+            tasks = await ag.unstructured_or()
+            nonlocal done;done = True
+        done = False
+        ag.start(_test())
+        assert done
+
 
 class Test_and_:
     def test_normal(self):
@@ -129,6 +138,15 @@ class Test_and_:
             for task in tasks:
                 assert task.done
             nonlocal done; done = True
+        done = False
+        ag.start(_test())
+        assert done
+
+    def test_zero_task(self):
+        import asyncgui as ag
+        async def _test():
+            tasks = await ag.unstructured_and()
+            nonlocal done;done = True
         done = False
         ag.start(_test())
         assert done
