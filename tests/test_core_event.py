@@ -3,22 +3,15 @@ import pytest
 
 def test_multiple_tasks():
     import asyncgui as ag
+    TS = ag.TaskState
     e = ag.Event()
-    async def _task1():
-        await e.wait()
-        nonlocal task1_done; task1_done = True
-    async def _task2():
-        await e.wait()
-        nonlocal task2_done; task2_done = True
-    task1_done = False
-    task2_done = False
-    ag.start(_task1())
-    ag.start(_task2())
-    assert not task1_done
-    assert not task2_done
+    task1 = ag.start(e.wait())
+    task2 = ag.start(e.wait())
+    assert task1.state == TS.STARTED
+    assert task2.state == TS.STARTED
     e.set()
-    assert task1_done
-    assert task2_done
+    assert task1.state == TS.DONE
+    assert task2.state == TS.DONE
 
 
 def test_set_before_task_starts():
@@ -123,3 +116,13 @@ def test_callback():
     assert not done
     e.add_callback(callback)
     assert done
+
+
+def test_regular_gen():
+    import asyncgui as ag
+
+    def regular_gen():
+        yield 1
+
+    with pytest.raises(ValueError):
+        ag.start(regular_gen())
