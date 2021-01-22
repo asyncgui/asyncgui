@@ -1,6 +1,6 @@
 __all__ = (
     'start', 'sleep_forever', 'or_', 'and_', 'Event', 'Task', 'TaskState',
-    'get_current_task', 'get_step_coro', 'aclosing',
+    'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
     'and_from_iterable', 'or_from_iterable',
 )
 
@@ -9,7 +9,7 @@ import types
 import typing
 from inspect import (
     getcoroutinestate, CORO_CLOSED, CORO_CREATED, CORO_RUNNING,
-    isawaitable,
+    isawaitable, iscoroutine,
 )
 import enum
 from contextlib import asynccontextmanager
@@ -88,7 +88,7 @@ class Task:
 
     _uid_iter = itertools.count()
 
-    def __init__(self, awaitable, *, name='', surpresses_exception=False):
+    def __init__(self, awaitable, *, name=''):
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
@@ -173,16 +173,17 @@ class Task:
         await sleep_forever()
 
 
-Coro_or_Task = typing.Union[typing.Coroutine, Task]
+Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
-def start(coro_or_task: Coro_or_Task) -> Coro_or_Task:
-    '''Starts a asyncgui-flavored coroutine or a Task. It is recommended to
-    pass a Task instead of a coroutine if a coroutine is going to live long
+def start(awaitable_or_task: Awaitable_or_Task) -> Awaitable_or_Task:  # noqa: C901, E501
+    '''Starts a asyncgui-flavored awaitable or a Task. It is recommended to
+    pass a Task instead of a coroutine if the coroutine is going to live long
     time, as Task is flexibler and has information that may be useful for
     debugging.
 
-    Returns the argument itself.
+    Returns the argument itself if it's a Task or a coroutine. Otherwise, the
+    argument will be wrapped in a Task, and it will be returned instead.
     '''
     def step_coro(*args, **kwargs):
         try:
@@ -191,32 +192,35 @@ def start(coro_or_task: Coro_or_Task) -> Coro_or_Task:
         except StopIteration:
             pass
 
-    if isinstance(coro_or_task, Task):
-        task = coro_or_task
-        if task._state is not TaskState.CREATED:
-            raise ValueError(f"{task} was already started")
-        step_coro._task = task
-        coro = task.root_coro
-    else:
-        coro = coro_or_task
+    if iscoroutine(awaitable_or_task):
+        coro = r = awaitable_or_task
         if getcoroutinestate(coro) != CORO_CREATED:
             raise ValueError("Coroutine was already started")
         step_coro._task = None
+    else:
+        if isawaitable(awaitable_or_task):
+            task = Task(awaitable_or_task)
+        elif isinstance(awaitable_or_task, Task):
+            task = awaitable_or_task
+            if task._state is not TaskState.CREATED:
+                raise ValueError(f"{task} was already started")
+        else:
+            raise ValueError("Argument must be either of Task or awaitable.")
+        step_coro._task = task
+        coro = task.root_coro
+        r = task
 
     try:
         coro.send(None)(step_coro)
     except StopIteration:
         pass
 
-    return coro_or_task
+    return r
 
 
 @types.coroutine
 def sleep_forever():
     yield lambda step_coro: None
-
-
-Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
 @types.coroutine
