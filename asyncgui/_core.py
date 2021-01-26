@@ -1,15 +1,14 @@
 __all__ = (
     'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
-    'unstructured_or', 'unstructured_and',
+    'unstructured_or', 'unstructured_and', 'raw_start',
 )
 
 import itertools
 import types
 import typing
 from inspect import (
-    getcoroutinestate, CORO_CLOSED, CORO_CREATED, CORO_RUNNING,
-    isawaitable, iscoroutine,
+    getcoroutinestate, CORO_CLOSED, CORO_RUNNING, isawaitable,
 )
 import enum
 from contextlib import asynccontextmanager
@@ -176,14 +175,11 @@ class Task:
 Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
-def start(awaitable_or_task: Awaitable_or_Task) -> Awaitable_or_Task:  # noqa: C901, E501
-    '''Starts a asyncgui-flavored awaitable or a Task. It is recommended to
-    pass a Task instead of a coroutine if the coroutine is going to live long
-    time, as Task is flexibler and has information that may be useful for
-    debugging.
+def start(awaitable_or_task: Awaitable_or_Task) -> Task:
+    '''Starts a asyncgui-flavored awaitable or a Task.
 
-    Returns the argument itself if it's a Task or a coroutine. Otherwise, the
-    argument will be wrapped in a Task, and it will be returned instead.
+    If the argument is a Task, itself will be returned. If it's an awaitable,
+    it will be wrapped in a Task, and the Task will be returned.
     '''
     def step_coro(*args, **kwargs):
         try:
@@ -192,30 +188,46 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Awaitable_or_Task:  # noqa: C
         except StopIteration:
             pass
 
-    if iscoroutine(awaitable_or_task):
-        coro = r = awaitable_or_task
-        if getcoroutinestate(coro) != CORO_CREATED:
-            raise ValueError("Coroutine was already started")
-        step_coro._task = None
+    if isawaitable(awaitable_or_task):
+        task = Task(awaitable_or_task)
+    elif isinstance(awaitable_or_task, Task):
+        task = awaitable_or_task
+        if task._state is not TaskState.CREATED:
+            raise ValueError(f"{task} was already started")
     else:
-        if isawaitable(awaitable_or_task):
-            task = Task(awaitable_or_task)
-        elif isinstance(awaitable_or_task, Task):
-            task = awaitable_or_task
-            if task._state is not TaskState.CREATED:
-                raise ValueError(f"{task} was already started")
-        else:
-            raise ValueError("Argument must be either of Task or awaitable.")
-        step_coro._task = task
-        coro = task.root_coro
-        r = task
+        raise ValueError("Argument must be either of a Task or an awaitable.")
+    step_coro._task = task
+    coro = task.root_coro
 
     try:
         coro.send(None)(step_coro)
     except StopIteration:
         pass
 
-    return r
+    return task
+
+
+def raw_start(coro: typing.Coroutine) -> typing.Coroutine:
+    '''Starts a asyncgui-flavored coroutine.
+
+    Unlike ``start()``, the argument will not be wrapped in a Task, and will
+    not be validated at all.
+    '''
+    def step_coro(*args, **kwargs):
+        try:
+            if getcoroutinestate(coro) != CORO_CLOSED:
+                coro.send((args, kwargs, ))(step_coro)
+        except StopIteration:
+            pass
+
+    step_coro._task = None
+
+    try:
+        coro.send(None)(step_coro)
+    except StopIteration:
+        pass
+
+    return coro
 
 
 @types.coroutine

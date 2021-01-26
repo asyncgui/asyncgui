@@ -1,36 +1,37 @@
 import pytest
 
 
-def test_get_step_coro():
+@pytest.mark.parametrize('raw', (True, False))
+def test__get_step_coro(raw):
     import asyncgui as ag
     done = False
+
     async def job():
-        from asyncgui._core import get_step_coro
-        step_coro = await get_step_coro()
+        step_coro = await ag.get_step_coro()
         assert callable(step_coro)
         nonlocal done;done = True
-    ag.start(job())
+
+    if raw:
+        ag.raw_start(job())
+    else:
+        ag.start(job())
     assert done
 
 
-def test__get_current_task__without_task():
+@pytest.mark.parametrize('raw', (True, False))
+def test__get_current_task(raw):
     import asyncgui as ag
     done = False
-    async def job():
-        assert await ag.get_current_task() is None
-        nonlocal done;done = True
-    ag.start(job())
-    assert done
 
-
-def test__get_current_task():
-    import asyncgui as ag
-    done = False
     async def job():
-        assert await ag.get_current_task() is task
+        task = await ag.get_current_task()
+        assert (task is None) if raw else isinstance(task, ag.Task)
         nonlocal done;done = True
-    task = ag.Task(job())
-    ag.start(task)
+
+    if raw:
+        ag.raw_start(job())
+    else:
+        ag.start(job())
     assert done
 
 
