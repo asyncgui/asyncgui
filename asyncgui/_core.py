@@ -13,7 +13,7 @@ from inspect import (
 import enum
 from contextlib import asynccontextmanager
 
-from asyncgui.exceptions import InvalidStateError, CancelRequest
+from asyncgui.exceptions import InvalidStateError
 
 
 class TaskState(enum.Flag):
@@ -76,8 +76,6 @@ class Task:
 
        if task.is_cancellable:
            task.cancel()
-       elif if_you_want_to_cancel_immediately:
-           raise CancelRequest
        else: Cancels at the next frame
            # in Kivy
            Clock.schedule_once(lambda __: task.cancel())
@@ -134,8 +132,6 @@ class Task:
         try:
             self._state = TaskState.STARTED
             self._result = await awaitable
-        except CancelRequest:
-            self._state = TaskState.CANCELLED
         except:  # noqa: E722
             self._state = TaskState.CANCELLED
             raise
