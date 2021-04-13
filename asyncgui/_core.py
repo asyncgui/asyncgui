@@ -69,16 +69,8 @@ class Task:
     ------------
 
     Since coroutines aren't always cancellable, ``Task.cancel()`` may or may
-    not fail depending on the internal coroutine's state. If you want to deal
-    with it properly, ``Task.is_cancellable`` is what you want.
-
-    .. code-block:: python
-
-       if task.is_cancellable:
-           task.cancel()
-       else: Cancels at the next frame
-           # in Kivy
-           Clock.schedule_once(lambda __: task.cancel())
+    not fail depending on the internal state. If you don't have any specific
+    reason to use it, use ``Task.safe_cancel()`` instead.
     '''
 
     __slots__ = ('name', '_uid', '_root_coro', '_state', '_result', '_event')
@@ -141,7 +133,15 @@ class Task:
             self._event.set(self)
 
     def cancel(self):
+        '''Cancel the task immediately'''
         self._root_coro.close()
+
+    def safe_cancel(self):
+        '''Cancel the task immediately if possible, otherwise cancel soon'''
+        if self.is_cancellable:
+            self.cancel()
+        else:
+            _close_soon(self._root_coro)
 
     # give 'cancel()' an alias so that we can cancel a Task like we close a
     # coroutine.

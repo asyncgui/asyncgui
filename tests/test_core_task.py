@@ -249,3 +249,42 @@ def test_multiple_tasks_wait_for_the_same_task_to_be_cancelled(
     task1.cancel()
     assert task2a.state is expected_a
     assert task2b.state is expected_b
+
+
+def test_safe_cancel():
+    from asyncgui.testing.scheduler import open_scheduler
+
+    state = None
+
+    async def main_task(sleep):
+        nonlocal state
+        try:
+            task = await ag.get_current_task()
+            await sleep(.1)
+            with pytest.raises(ValueError):
+                task.cancel()
+            task.safe_cancel()
+            await sleep(.1)
+            state = 'done'
+        except GeneratorExit:
+            state = 'cancelled'
+            raise
+
+    with open_scheduler() as (schedulr, sleep):
+        ag.start(main_task(sleep))
+    assert state == 'cancelled'
+
+
+def test_safe_cancel_without_installing_nothing():
+    import asyncgui as ag
+
+    async def main_task(ctx):
+        with pytest.raises(NotImplementedError):
+            ctx['task'].safe_cancel()
+        nonlocal done;done = True
+
+    done = False
+    ctx = {}
+    ctx['task'] = ag.Task(main_task(ctx))
+    ag.start(ctx['task'])
+    assert done
