@@ -171,6 +171,33 @@ class Task:
 Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
+def _default_close_soon(coro: typing.Coroutine):
+    raise NotImplementedError
+
+
+_close_soon = _default_close_soon
+
+
+def install(*, close_soon):
+    '''(internal)'''
+    global _close_soon
+    if _close_soon is not _default_close_soon:
+        raise InvalidStateError("There is already one installed")
+    if not callable(close_soon):
+        raise ValueError(f"{close_soon!r} must be callable")
+    _close_soon = close_soon
+
+
+def uninstall(*, close_soon):
+    '''(internal)'''
+    global _close_soon
+    if _close_soon is _default_close_soon:
+        raise InvalidStateError("Nothing is installed")
+    if _close_soon is not close_soon:
+        raise ValueError(f"{close_soon!r} is not installed")
+    _close_soon = _default_close_soon
+
+
 def start(awaitable_or_task: Awaitable_or_Task) -> Task:
     '''Starts a asyncgui-flavored awaitable or a Task.
 
