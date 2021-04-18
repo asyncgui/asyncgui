@@ -75,16 +75,17 @@ class Task:
 
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_event',
-        '_needs_to_cancel',
+        '_needs_to_cancel', 'userdata',
     )
 
     _uid_iter = itertools.count()
 
-    def __init__(self, awaitable, *, name=''):
+    def __init__(self, awaitable, *, name='', userdata=None):
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
         self.name: str = name
+        self.userdata = userdata
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._event = Event()
