@@ -1,4 +1,5 @@
-__all__ = ('CancelledError', 'InvalidStateError', )
+__all__ = ('CancelledError', 'InvalidStateError', 'MultiError', )
+from ._multierror import MultiError
 
 
 class CancelledError(BaseException):
