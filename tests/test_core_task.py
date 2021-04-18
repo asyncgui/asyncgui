@@ -19,12 +19,14 @@ def test_the_state_and_the_result():
     task = ag.Task(job())
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -32,6 +34,7 @@ def test_the_state_and_the_result():
     with pytest.raises(StopIteration):
         root_coro.send(None)
     assert task.state is TS.DONE
+    assert task._exception is None
     assert task.done
     assert not task.cancelled
     assert task.result == 'result'
@@ -49,18 +52,21 @@ def test_the_state_and_the_result__ver_cancel():
     task = ag.Task(job(), name='pytest')
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     root_coro.close()
     assert task.state is TS.CANCELLED
+    assert task._exception is None
     assert not task.done
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
@@ -80,12 +86,14 @@ def test_the_state_and_the_result__ver_uncaught_exception():
     task = ag.Task(job(), name='pytest')
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -93,6 +101,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
     with pytest.raises(ZeroDivisionError):
         root_coro.send(None)
     assert task.state is TS.CANCELLED
+    assert task._exception is None
     job_state = 'C'
     assert not task.done
     assert task.cancelled
@@ -112,12 +121,14 @@ def test_the_state_and_the_result__ver_uncaught_exception2():
     task = ag.Task(job(), name='pytest')
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -125,11 +136,28 @@ def test_the_state_and_the_result__ver_uncaught_exception2():
     with pytest.raises(ZeroDivisionError):
         root_coro.throw(ZeroDivisionError)
     assert task.state is TS.CANCELLED
+    assert task._exception is None
     job_state = 'B'
     assert not task.done
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
         task.result
+
+
+@pytest.mark.parametrize('do_suppress', (True, False, ), )
+def test_suppress_exception(do_suppress):
+    async def job():
+        raise ZeroDivisionError
+    task = ag.Task(job(), name='pytest')
+    task._suppresses_exception = do_suppress
+    if do_suppress:
+        ag.start(task)
+        assert type(task._exception) is ZeroDivisionError
+    else:
+        with pytest.raises(ZeroDivisionError):
+            ag.start(task)
+        assert task._exception is None
+    assert task.state is TS.CANCELLED
 
 
 @pytest.mark.parametrize(

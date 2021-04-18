@@ -75,7 +75,7 @@ class Task:
 
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_event',
-        '_needs_to_cancel', 'userdata',
+        '_needs_to_cancel', 'userdata', '_exception', '_suppresses_exception',
     )
 
     _uid_iter = itertools.count()
@@ -90,6 +90,8 @@ class Task:
         self._state = TaskState.CREATED
         self._event = Event()
         self._needs_to_cancel = False
+        self._exception = None
+        self._suppresses_exception = False
 
     def __str__(self):
         return f'Task(uid={self._uid}, name={self.name!r})'
@@ -129,6 +131,12 @@ class Task:
         try:
             self._state = TaskState.STARTED
             self._result = await awaitable
+        except Exception as e:
+            self._state = TaskState.CANCELLED
+            if self._suppresses_exception:
+                self._exception = e
+            else:
+                raise
         except:  # noqa: E722
             self._state = TaskState.CANCELLED
             raise
