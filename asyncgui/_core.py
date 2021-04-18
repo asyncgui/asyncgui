@@ -1,7 +1,7 @@
 __all__ = (
     'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
-    'unstructured_or', 'unstructured_and', 'raw_start',
+    'raw_start',
 )
 
 import itertools
@@ -229,46 +229,6 @@ def raw_start(coro: typing.Coroutine) -> typing.Coroutine:
 @types.coroutine
 def sleep_forever():
     yield lambda step_coro: None
-
-
-@types.coroutine
-def _gather(aws_and_tasks: typing.Iterable[Awaitable_or_Task], *, n: int=None) \
-        -> typing.List[Task]:
-    '''(internal)'''
-    tasks = [v if isinstance(v, Task) else Task(v) for v in aws_and_tasks]
-    n_tasks = len(tasks)
-    n_left = n_tasks if n is None else min(n, n_tasks)
-
-    def step_coro():
-        pass
-
-    def done_callback(*args, **kwargs):
-        nonlocal n_left
-        n_left -= 1
-        if n_left == 0:
-            step_coro()
-
-    for task in tasks:
-        task._event.add_callback(done_callback)
-        start(task)
-
-    if n_left <= 0:
-        return tasks
-
-    def callback(step_coro_):
-        nonlocal step_coro
-        step_coro = step_coro_
-    yield callback
-
-    return tasks
-
-
-async def unstructured_or(*aws_and_tasks):
-    return await _gather(aws_and_tasks, n=1)
-
-
-async def unstructured_and(*aws_and_tasks):
-    return await _gather(aws_and_tasks)
 
 
 class Event:
