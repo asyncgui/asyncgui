@@ -69,19 +69,14 @@ class Task:
     ------------
 
     Since coroutines aren't always cancellable, ``Task.cancel()`` may or may
-    not fail depending on the internal coroutine's state. If you want to deal
-    with it properly, ``Task.is_cancellable`` is what you want.
-
-    .. code-block:: python
-
-       if task.is_cancellable:
-           task.cancel()
-       else: Cancels at the next frame
-           # in Kivy
-           Clock.schedule_once(lambda __: task.cancel())
+    not fail depending on the internal state. If you don't have any specific
+    reason to use it, use ``Task.safe_cancel()`` instead.
     '''
 
-    __slots__ = ('name', '_uid', '_root_coro', '_state', '_result', '_event')
+    __slots__ = (
+        'name', '_uid', '_root_coro', '_state', '_result', '_event',
+        '_needs_to_cancel',
+    )
 
     _uid_iter = itertools.count()
 
@@ -93,6 +88,7 @@ class Task:
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._event = Event()
+        self._needs_to_cancel = False
 
     def __str__(self):
         return f'Task(uid={self._uid}, name={self.name!r})'
@@ -141,10 +137,18 @@ class Task:
             self._event.set(self)
 
     def cancel(self):
+        '''Cancel the task immediately'''
         self._root_coro.close()
 
-    # give 'cancel()' an alias so that we can cancel a Task like we close a
-    # coroutine.
+    def safe_cancel(self):
+        '''Cancel the task immediately if possible, otherwise cancel soon'''
+        if self.is_cancellable:
+            self.cancel()
+        else:
+            self._needs_to_cancel = True
+
+    # give 'cancel()' an alias so that we can cancel tasks just like we close
+    # coroutines.
     close = cancel
 
     @property
@@ -167,6 +171,17 @@ class Task:
             return
         await sleep_forever()
 
+    def _step_coro(self, *args, **kwargs):
+        coro = self._root_coro
+        try:
+            if getcoroutinestate(coro) != CORO_CLOSED:
+                coro.send((args, kwargs, ))(self._step_coro)
+        except StopIteration:
+            pass
+        else:
+            if self._needs_to_cancel:
+                coro.close()
+
 
 Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
@@ -177,13 +192,6 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
     If the argument is a Task, itself will be returned. If it's an awaitable,
     it will be wrapped in a Task, and the Task will be returned.
     '''
-    def step_coro(*args, **kwargs):
-        try:
-            if getcoroutinestate(coro) != CORO_CLOSED:
-                coro.send((args, kwargs, ))(step_coro)
-        except StopIteration:
-            pass
-
     if isawaitable(awaitable_or_task):
         task = Task(awaitable_or_task)
     elif isinstance(awaitable_or_task, Task):
@@ -192,13 +200,15 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
             raise ValueError(f"{task} was already started")
     else:
         raise ValueError("Argument must be either of a Task or an awaitable.")
-    step_coro._task = task
-    coro = task.root_coro
 
+    coro = task._root_coro
     try:
-        coro.send(None)(step_coro)
+        coro.send(None)(task._step_coro)
     except StopIteration:
         pass
+    else:
+        if task._needs_to_cancel:
+            coro.close()
 
     return task
 
@@ -284,10 +294,9 @@ def get_step_coro():
     return (yield lambda step_coro: step_coro(step_coro))[0][0]
 
 
-@types.coroutine
-def get_current_task() -> typing.Optional[Task]:
+async def get_current_task():
     '''Returns the task currently running. None if no Task is associated.'''
-    return (yield lambda step_coro: step_coro(step_coro._task))[0][0]
+    return getattr(await get_step_coro(), '__self__', None)
 
 
 @asynccontextmanager

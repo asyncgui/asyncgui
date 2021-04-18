@@ -249,3 +249,29 @@ def test_multiple_tasks_wait_for_the_same_task_to_be_cancelled(
     task1.cancel()
     assert task2a.state is expected_a
     assert task2b.state is expected_b
+
+
+def test_safe_cancel():
+    import asyncgui as ag
+
+    async def job1(e):
+        await e.wait()
+        assert not task1.is_cancellable
+        assert not task2.is_cancellable
+        task1.safe_cancel()
+        task2.safe_cancel()
+        await ag.sleep_forever()
+
+    async def job2(e):
+        assert task1.is_cancellable
+        assert not task2.is_cancellable
+        e.set()
+        await ag.sleep_forever()
+
+    e = ag.Event()
+    task1 = ag.Task(job1(e))
+    task2 = ag.Task(job2(e))
+    ag.start(task1)
+    ag.start(task2)
+    assert task1.cancelled
+    assert task2.cancelled
