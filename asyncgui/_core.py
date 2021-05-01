@@ -37,34 +37,6 @@ class Task:
     Task
     ====
 
-    (experimental)
-    Similar to `asyncio.Task`. The main difference is that this one is not
-    awaitable.
-
-    .. code-block:: python
-
-       import asyncgui as ag
-
-       async def async_fn():
-           task = ag.Task(some_awaitable, name='my_sub_task')
-           ag.start(task)
-           ...
-           ...
-           ...
-
-           # case #1 wait for the completion of the task.
-           await task.wait(ag.TaskState.DONE)
-           print(task.result)
-
-           # case #2 wait for the cancellation of the task.
-           await task.wait(ag.TaskState.CANCELLED)
-
-           # case #3 wait for either of completion or cancellation of the
-           # task.
-           await task.wait(ag.TaskState.ENDED)
-           if task.done:
-               print(task.result)
-
     Cancellation
     ------------
 
@@ -163,22 +135,6 @@ class Task:
     @property
     def is_cancellable(self) -> bool:
         return getcoroutinestate(self._root_coro) != CORO_RUNNING
-
-    async def wait(self, wait_for: TaskState=TaskState.ENDED):
-        '''Wait for the Task to be cancelled or done.
-
-        'wait_for' must be one of the following:
-
-            TaskState.DONE
-            TaskState.CANCELLED
-            TaskState.ENDED (default)
-        '''
-        if wait_for & (~TaskState.ENDED):
-            raise ValueError("'wait_for' is incorrect:", wait_for)
-        await self._event.wait()
-        if self.state & wait_for:
-            return
-        await sleep_forever()
 
     def _step_coro(self, *args, **kwargs):
         coro = self._root_coro
