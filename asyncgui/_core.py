@@ -24,10 +24,10 @@ class TaskState(enum.Flag):
     '''CORO_RUNNING or CORO_SUSPENDED'''
 
     CANCELLED = enum.auto()
-    '''CORO_CLOSED by 'Task.cancel()' or an uncaught exception'''
+    '''CORO_CLOSED by 'coroutine.close()' or an uncaught exception'''
 
     DONE = enum.auto()
-    '''CORO_CLOSED (coroutine was completed)'''
+    '''CORO_CLOSED (completed)'''
 
     ENDED = CANCELLED | DONE
 
@@ -50,7 +50,7 @@ class Task:
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
-        self.name: str = name
+        self.name = name
         self.userdata = userdata
         self._cancel_protection = 0
         self._root_coro = self._wrapper(awaitable)
@@ -85,7 +85,9 @@ class Task:
 
     @property
     def result(self):
-        '''Equivalent of asyncio.Future.result()'''
+        '''Result of the task. If the task hasn't finished yet,
+        InvalidStateError will be rased.
+        '''
         state = self._state
         if state is TaskState.DONE:
             return self._result
@@ -169,7 +171,7 @@ Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
 def start(awaitable_or_task: Awaitable_or_Task) -> Task:
-    '''Starts a asyncgui-flavored awaitable or a Task.
+    '''Starts an asyncgui-flavored awaitable or a Task.
 
     If the argument is a Task, itself will be returned. If it's an awaitable,
     it will be wrapped in a Task, and the Task will be returned.
@@ -196,10 +198,7 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
 
 
 def raw_start(coro: typing.Coroutine) -> typing.Coroutine:
-    '''Starts a asyncgui-flavored coroutine.
-
-    Unlike ``start()``, the argument will not be wrapped in a Task, and will
-    not be validated at all.
+    '''(internal) Starts an asyncgui-flavored coroutine.
     '''
     def step_coro(*args, **kwargs):
         try:
@@ -277,7 +276,8 @@ def get_step_coro():
 
 
 async def get_current_task():
-    '''Returns the task currently running. None if no Task is associated.'''
+    '''Returns the task currently running. None if no Task is associated,
+    which happens when ``raw_start()`` is used.'''
     return getattr(await get_step_coro(), '__self__', None)
 
 

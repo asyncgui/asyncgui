@@ -74,6 +74,7 @@ def test_the_state_and_the_result__ver_cancel():
 
 
 def test_the_state_and_the_result__ver_uncaught_exception():
+    '''例外が自然発生した場合'''
     job_state = 'A'
     async def job():
         nonlocal job_state
@@ -109,7 +110,8 @@ def test_the_state_and_the_result__ver_uncaught_exception():
         task.result
 
 
-def test_the_state_and_the_result__ver_uncaught_exception2():
+def test_the_state_and_the_result__ver_uncaught_exception_2():
+    '''coro.throw()によって例外を起こした場合'''
     job_state = 'A'
     async def job():
         nonlocal job_state
@@ -165,7 +167,7 @@ def test_cancel_protection():
 
     async def async_fn(e):
         async with ag.cancel_protection():
-        await e.wait()
+            await e.wait()
         await ag.sleep_forever()
         pytest.fail("Failed to cancel")
 
@@ -176,7 +178,7 @@ def test_cancel_protection():
     assert task._cancel_protection == 1
     assert not task.cancelled
     assert not task._is_cancellable
-        e.set()
+    e.set()
     assert task._cancel_protection == 0
     assert task.cancelled
 
