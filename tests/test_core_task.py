@@ -160,27 +160,100 @@ def test_suppress_exception(do_suppress):
     assert task.state is TS.CANCELLED
 
 
-def test_safe_cancel():
+def test_cancel_protection():
     import asyncgui as ag
 
-    async def job1(e):
+    async def async_fn(e):
+        async with ag.cancel_protection():
         await e.wait()
-        assert not task1._is_cancellable
-        assert not task2._is_cancellable
-        task1.safe_cancel()
-        task2.safe_cancel()
         await ag.sleep_forever()
-
-    async def job2(e):
-        assert task1._is_cancellable
-        assert not task2._is_cancellable
-        e.set()
-        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
 
     e = ag.Event()
-    task1 = ag.Task(job1(e))
-    task2 = ag.Task(job2(e))
-    ag.start(task1)
-    ag.start(task2)
-    assert task1.cancelled
-    assert task2.cancelled
+    task = ag.Task(async_fn(e))
+    ag.start(task)
+    task.cancel()
+    assert task._cancel_protection == 1
+    assert not task.cancelled
+    assert not task._is_cancellable
+        e.set()
+    assert task._cancel_protection == 0
+    assert task.cancelled
+
+
+def test_nested_cancel_protection():
+    import asyncgui as ag
+
+    async def outer_fn(e):
+        async with ag.cancel_protection():
+            await inner_fn(e)
+        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
+
+    async def inner_fn(e):
+        assert task._cancel_protection == 1
+        async with ag.cancel_protection():
+            assert task._cancel_protection == 2
+            await e.wait()
+        assert task._cancel_protection == 1
+
+    e = ag.Event()
+    task = ag.Task(outer_fn(e))
+    assert task._cancel_protection == 0
+    ag.start(task)
+    assert task._cancel_protection == 2
+    task.cancel()
+    assert not task.cancelled
+    assert not task._is_cancellable
+    e.set()
+    assert task._cancel_protection == 0
+    assert task.cancelled
+    
+
+def test_cancel_protected_self():
+    import asyncgui as ag
+
+    async def async_fn():
+        task = await ag.get_current_task()
+        async with ag.cancel_protection():
+            task.cancel()
+            await ag.sleep_forever()
+        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
+
+    task = ag.Task(async_fn())
+    ag.start(task)
+    assert not task.cancelled
+    assert not task._is_cancellable
+    assert task._cancel_protection == 1
+    task._step_coro()
+    assert task.cancelled
+    assert task._cancel_protection == 0
+
+
+def test_cancel_self():
+    import asyncgui as ag
+
+    async def async_fn():
+        assert not task._is_cancellable
+        task.cancel()
+        assert task._cancel_called
+        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
+
+    task = ag.Task(async_fn())
+    ag.start(task)
+    assert task.cancelled
+    assert task._exception is None
+
+
+def test_try_to_cancel_self_but_no_opportunity_for_that():
+    import asyncgui as ag
+
+    async def async_fn():
+        assert not task._is_cancellable
+        task.cancel()
+
+    task = ag.Task(async_fn())
+    ag.start(task)
+    assert task.done

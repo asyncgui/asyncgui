@@ -1,7 +1,7 @@
 __all__ = (
     'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
-    'raw_start',
+    'raw_start', 'cancel_protection',
 )
 
 import itertools
@@ -36,18 +36,12 @@ class Task:
     '''
     Task
     ====
-
-    Cancellation
-    ------------
-
-    Since coroutines aren't always cancellable, ``Task.cancel()`` may or may
-    not fail depending on the internal state. If you don't have any specific
-    reason to use it, use ``Task.safe_cancel()`` instead.
     '''
 
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_event',
-        '_needs_to_cancel', 'userdata', '_exception', '_suppresses_exception',
+        '_cancel_called', 'userdata', '_exception', '_suppresses_exception',
+        '_cancel_protection',
     )
 
     _uid_iter = itertools.count()
@@ -58,10 +52,11 @@ class Task:
         self._uid = next(self._uid_iter)
         self.name: str = name
         self.userdata = userdata
+        self._cancel_protection = 0
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._event = Event()
-        self._needs_to_cancel = False
+        self._cancel_called = False
         self._exception = None
         self._suppresses_exception = False
 
@@ -118,15 +113,13 @@ class Task:
             self._event.set(self)
 
     def cancel(self):
-        '''Cancel the task immediately'''
-        self._root_coro.close()
-
-    def safe_cancel(self):
-        '''Cancel the task immediately if possible, otherwise cancel soon'''
+        '''Cancel the task as soon as possible'''
+        self._cancel_called = True
         if self._is_cancellable:
-            self.cancel()
-        else:
-            self._needs_to_cancel = True
+            self._actual_cancel()
+
+    def _actual_cancel(self):
+        self._root_coro.close()
 
     # give 'cancel()' an alias so that we can cancel tasks just like we close
     # coroutines.
@@ -137,7 +130,8 @@ class Task:
         '''
         Indicates whether the task can be immediately cancellable.
         '''
-        return getcoroutinestate(self._root_coro) != CORO_RUNNING
+        return (not self._cancel_protection) and \
+            getcoroutinestate(self._root_coro) != CORO_RUNNING
 
     def _step_coro(self, *args, **kwargs):
         coro = self._root_coro
@@ -147,8 +141,28 @@ class Task:
         except StopIteration:
             pass
         else:
-            if self._needs_to_cancel:
-                coro.close()
+            if self._cancel_called and self._is_cancellable:
+                self._actual_cancel()
+
+
+@asynccontextmanager
+async def cancel_protection():
+    '''
+    (experimental) Async context manager that protects the code-block from
+    cancellation even if it contains 'await'.
+
+    .. code-block:: python
+
+       async with asyncgui.cancel_protection():
+           await something1()
+           await something2()
+    '''
+    task = await get_current_task()
+    task._cancel_protection += 1
+    try:
+        yield
+    finally:
+        task._cancel_protection -= 1
 
 
 Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
@@ -175,8 +189,8 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
     except StopIteration:
         pass
     else:
-        if task._needs_to_cancel:
-            coro.close()
+        if task._cancel_called and task._is_cancellable:
+            task._actual_cancel()
 
     return task
 
