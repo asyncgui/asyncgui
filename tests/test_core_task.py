@@ -165,15 +165,15 @@ def test_safe_cancel():
 
     async def job1(e):
         await e.wait()
-        assert not task1.is_cancellable
-        assert not task2.is_cancellable
+        assert not task1._is_cancellable
+        assert not task2._is_cancellable
         task1.safe_cancel()
         task2.safe_cancel()
         await ag.sleep_forever()
 
     async def job2(e):
-        assert task1.is_cancellable
-        assert not task2.is_cancellable
+        assert task1._is_cancellable
+        assert not task2._is_cancellable
         e.set()
         await ag.sleep_forever()
 

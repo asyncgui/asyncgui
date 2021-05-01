@@ -123,7 +123,7 @@ class Task:
 
     def safe_cancel(self):
         '''Cancel the task immediately if possible, otherwise cancel soon'''
-        if self.is_cancellable:
+        if self._is_cancellable:
             self.cancel()
         else:
             self._needs_to_cancel = True
@@ -133,7 +133,10 @@ class Task:
     close = cancel
 
     @property
-    def is_cancellable(self) -> bool:
+    def _is_cancellable(self) -> bool:
+        '''
+        Indicates whether the task can be immediately cancellable.
+        '''
         return getcoroutinestate(self._root_coro) != CORO_RUNNING
 
     def _step_coro(self, *args, **kwargs):
