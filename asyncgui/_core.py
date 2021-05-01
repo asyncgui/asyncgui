@@ -13,7 +13,9 @@ from inspect import (
 import enum
 from contextlib import asynccontextmanager
 
-from asyncgui.exceptions import InvalidStateError
+from asyncgui.exceptions import (
+    InvalidStateError, EndOfConcurrency,
+)
 
 
 class TaskState(enum.Flag):
@@ -41,7 +43,7 @@ class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_event',
         '_cancel_called', 'userdata', '_exception', '_suppresses_exception',
-        '_cancel_protection',
+        '_cancel_protection', '_has_children',
     )
 
     _uid_iter = itertools.count()
@@ -53,6 +55,7 @@ class Task:
         self.name = name
         self.userdata = userdata
         self._cancel_protection = 0
+        self._has_children = False
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._event = Event()
@@ -121,7 +124,17 @@ class Task:
             self._actual_cancel()
 
     def _actual_cancel(self):
-        self._root_coro.close()
+        coro = self._root_coro
+        if self._has_children:
+            try:
+                coro.throw(EndOfConcurrency)(self._step_coro)
+            except StopIteration:
+                pass
+            else:
+                if not self._cancel_protection:
+                    coro.close()
+        else:
+            coro.close()
 
     # give 'cancel()' an alias so that we can cancel tasks just like we close
     # coroutines.
