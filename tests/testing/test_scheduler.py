@@ -3,11 +3,9 @@ import pytest
 
 def test_concurrency():
     import asyncgui as ag
-    from asyncgui.testing.scheduler import open_scheduler
+    from asyncgui.testing import open_scheduler
 
     state = 'started'
-    done1 = False
-    done2 = False
 
     async def state_changer(sleep):
         nonlocal state
@@ -17,7 +15,6 @@ def test_concurrency():
         state = 'B'
         await sleep(0.1)
         state = 'C'
-        nonlocal done1; done1 = True
 
     async def state_watcher(sleep):
         await sleep(0.05)
@@ -28,11 +25,10 @@ def test_concurrency():
         assert state == 'B'
         await sleep(0.1)
         assert state == 'C'
-        nonlocal done2; done2 = True
 
 
     with open_scheduler() as (schedulr, sleep):
-        ag.start(state_changer(sleep))
-        ag.start(state_watcher(sleep))
-    assert done1
-    assert done2
+        task1 = ag.start(state_changer(sleep))
+        task2 = ag.start(state_watcher(sleep))
+    assert task1.done
+    assert task2.done
