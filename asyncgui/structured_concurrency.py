@@ -162,6 +162,48 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
 
     Possibility of multiple tasks to complete
     -----------------------------------------
+
+    .. warning::
+
+        ``or_from_iterable()``が正常に終了した時に常に一つだけ子taskが完了しているとは
+        限らない事に注意されたし。例えば次のように即座に完了する子が複数ある場合はその全てが
+        完了する。
+
+        .. code-blobk::
+
+           async def f():
+               pass
+
+           tasks = await or_from_iterable([f(), f(), ])
+           assert tasks[0].done
+           assert tasks[1].done
+
+        また次の例も両方の子が完了する。
+
+        .. code-blobk::
+
+           async def f_1(e):
+               await e.wait()
+
+           async def f_2(e):
+               e.set()
+
+           e = asyncgui.Event()
+           tasks = await or_from_iterable([f_1(e), f_2(e), ])
+           assert tasks[0].done
+           assert tasks[1].done
+
+        これは``e.set()``が呼ばれた事で``f_1()``が完了するが、その後``f_2()``が中断可能
+        な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
+
+        * 中断に対する保護がかかっていない(保護は`async with cancel_protection()`でか
+        かる)
+        * Taskが停まっている(await式の地点で基本的に停まる。停まらない例としては
+          ``await get_current_task()``, ``await get_step_coro()``,
+          ``await set済のEvent.wait()`` がある)
+
+        の両方を満たしている状態の事で、上のcodeでは``f_2``が``e.set()``を呼んだ後に停止
+        する事が無かったため中断される事なく完了する事になった。
     '''
     from ._core import start, get_current_task, Task, sleep_forever
     from .exceptions import MultiError, EndOfConcurrency, NoChildLeft
