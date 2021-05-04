@@ -37,14 +37,15 @@ def test__get_current_task(raw):
 
 def test_aclosing():
     import asyncgui as ag
-    done = False
     agen_closed = False
+
     async def agen_func():
         try:
             for i in range(10):
                 yield i
         finally:
             nonlocal agen_closed;agen_closed = True
+
     async def job():
         async with ag.aclosing(agen_func()) as agen:
             async for i in agen:
@@ -52,6 +53,6 @@ def test_aclosing():
                     break
             assert not agen_closed
         assert agen_closed
-        nonlocal done;done = True
-    ag.start(job())
-    assert done
+
+    task = ag.start(job())
+    assert task.done

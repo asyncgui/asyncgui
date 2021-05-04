@@ -7,30 +7,31 @@ def test_multiple_tasks():
     e = ag.Event()
     task1 = ag.start(e.wait())
     task2 = ag.start(e.wait())
-    assert task1.state == TS.STARTED
-    assert task2.state == TS.STARTED
+    assert task1.state is TS.STARTED
+    assert task2.state is TS.STARTED
     e.set()
-    assert task1.state == TS.DONE
-    assert task2.state == TS.DONE
+    assert task1.state is TS.DONE
+    assert task2.state is TS.DONE
 
 
 def test_set_before_task_starts():
     import asyncgui as ag
     e = ag.Event()
     e.set()
-    async def _task():
+
+    async def main():
         await e.wait()
-        nonlocal done; done = True
-    done = False
-    ag.start(_task())
-    assert done
+
+    task = ag.start(main())
+    assert task.done
 
 
 def test_clear():
     import asyncgui as ag
     e1 = ag.Event()
     e2 = ag.Event()
-    async def _task():
+
+    async def main():
         nonlocal task_state
         task_state = 'A'
         await e1.wait()
@@ -39,8 +40,9 @@ def test_clear():
         task_state = 'C'
         await e1.wait()
         task_state = 'D'
+
     task_state = None
-    ag.start(_task())
+    ag.start(main())
     assert task_state == 'A'
     e1.set()
     assert task_state == 'B'
@@ -54,43 +56,36 @@ def test_clear():
 def test_pass_argument():
     import asyncgui as ag
     e = ag.Event()
-    async def task(e):
+
+    async def main(e):
         assert await e.wait() == 'A'
-        nonlocal done; done = True
-    done = False
-    ag.start(task(e))
-    assert not done
+
+    task = ag.start(main(e))
+    assert not task.done
     e.set('A')
-    assert done
-    done = False
-    ag.start(task(e))
-    assert done
+    assert task.done
 
 
-def test_reset_argument_while_resuming_awaited_coroutines():
+def test_reset_value():
     import asyncgui as ag
     e = ag.Event()
 
-    async def task1(e):
+    async def job1(e):
         assert await e.wait() == 'A'
         e.clear()
         e.set('B')
-        nonlocal done1; done1 = True
 
-    async def task2(e):
+    async def job2(e):
         assert await e.wait() == 'A'
         assert await e.wait() == 'B'
-        nonlocal done2; done2 = True
 
-    done1 = False
-    done2 = False
-    ag.start(task1(e))
-    ag.start(task2(e))
-    assert not done1
-    assert not done2
+    task1 = ag.start(job1(e))
+    task2 = ag.start(job2(e))
+    assert not task1.done
+    assert not task2.done
     e.set('A')
-    assert done1
-    assert done2
+    assert task1.done
+    assert task2.done
 
 
 def test_callback():
