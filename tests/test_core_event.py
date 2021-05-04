@@ -55,12 +55,12 @@ def test_pass_argument():
     import asyncgui as ag
     e = ag.Event()
     async def task(e):
-        assert await e.wait() == ((1, 2, ), {'python': 'awesome', }, )
+        assert await e.wait() == 'A'
         nonlocal done; done = True
     done = False
     ag.start(task(e))
     assert not done
-    e.set(1, 2, python='awesome')
+    e.set('A')
     assert done
     done = False
     ag.start(task(e))
@@ -72,14 +72,14 @@ def test_reset_argument_while_resuming_awaited_coroutines():
     e = ag.Event()
 
     async def task1(e):
-        assert await e.wait() == (('A', ), {}, )
+        assert await e.wait() == 'A'
         e.clear()
         e.set('B')
         nonlocal done1; done1 = True
 
     async def task2(e):
-        assert await e.wait() == (('A', ), {}, )
-        assert await e.wait() == (('B', ), {}, )
+        assert await e.wait() == 'A'
+        assert await e.wait() == 'B'
         nonlocal done2; done2 = True
 
     done1 = False
@@ -97,22 +97,21 @@ def test_callback():
     import asyncgui as ag
     e = ag.Event()
 
-    def callback(*args, **kwargs):
-        assert args == (1, 2, )
-        assert kwargs == {'python': 'awesome', }
+    def callback(value):
+        assert value == 'A'
         nonlocal done; done = True
 
     # set after a callback is registered
     done = False
     e.add_callback(callback)
     assert not done
-    e.set(1, 2, python='awesome')
+    e.set('A')
     assert done
     e.clear()
 
     # set before a callback is registered
     done = False
-    e.set(1, 2, python='awesome')
+    e.set('A')
     assert not done
     e.add_callback(callback)
     assert done

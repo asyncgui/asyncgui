@@ -236,11 +236,16 @@ def sleep_forever():
 
 
 class Event:
-    '''
-    Event
-    =====
+    '''Similar to 'trio.Event'. The difference is this one allows the user to
+    pass value:
 
-    Similar to 'trio.Event'.
+        import asyncgui as ag
+
+        e = ag.Event()
+        async def task():
+            assert await e.wait() == 'A'
+        ag.start(task())
+        e.set('A')
     '''
     __slots__ = ('_value', '_flag', '_step_coro_list', )
 
@@ -252,17 +257,17 @@ class Event:
     def is_set(self):
         return self._flag
 
-    def set(self, *args, **kwargs):
+    def set(self, value=None):
         if self._flag:
             return
         self._flag = True
-        self._value = (args, kwargs)
+        self._value = value
         step_coro_list = self._step_coro_list
         self._step_coro_list = []
         for step_coro in step_coro_list:
-            step_coro(*args, **kwargs)
+            step_coro(value)
 
-    def clear(self, *args, **kwargs):
+    def clear(self):
         self._flag = False
 
     @types.coroutine
@@ -271,13 +276,12 @@ class Event:
             yield lambda step_coro: step_coro()
             return self._value
         else:
-            return (yield self._step_coro_list.append)
+            return (yield self._step_coro_list.append)[0][0]
 
     def add_callback(self, callback):
         '''(internal)'''
         if self._flag:
-            args, kwargs = self._value
-            callback(*args, **kwargs)
+            callback(self._value)
         else:
             self._step_coro_list.append(callback)
 
