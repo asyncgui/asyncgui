@@ -19,12 +19,14 @@ def test_the_state_and_the_result():
     task = ag.Task(job())
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -32,6 +34,7 @@ def test_the_state_and_the_result():
     with pytest.raises(StopIteration):
         root_coro.send(None)
     assert task.state is TS.DONE
+    assert task._exception is None
     assert task.done
     assert not task.cancelled
     assert task.result == 'result'
@@ -49,18 +52,21 @@ def test_the_state_and_the_result__ver_cancel():
     task = ag.Task(job(), name='pytest')
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     root_coro.close()
     assert task.state is TS.CANCELLED
+    assert task._exception is None
     assert not task.done
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
@@ -68,6 +74,7 @@ def test_the_state_and_the_result__ver_cancel():
 
 
 def test_the_state_and_the_result__ver_uncaught_exception():
+    '''例外が自然発生した場合'''
     job_state = 'A'
     async def job():
         nonlocal job_state
@@ -80,12 +87,14 @@ def test_the_state_and_the_result__ver_uncaught_exception():
     task = ag.Task(job(), name='pytest')
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -93,6 +102,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
     with pytest.raises(ZeroDivisionError):
         root_coro.send(None)
     assert task.state is TS.CANCELLED
+    assert task._exception is None
     job_state = 'C'
     assert not task.done
     assert task.cancelled
@@ -100,7 +110,8 @@ def test_the_state_and_the_result__ver_uncaught_exception():
         task.result
 
 
-def test_the_state_and_the_result__ver_uncaught_exception2():
+def test_the_state_and_the_result__ver_uncaught_exception_2():
+    '''coro.throw()によって例外を起こした場合'''
     job_state = 'A'
     async def job():
         nonlocal job_state
@@ -112,12 +123,14 @@ def test_the_state_and_the_result__ver_uncaught_exception2():
     task = ag.Task(job(), name='pytest')
     root_coro = task.root_coro
     assert task.state is TS.CREATED
+    assert task._exception is None
     assert job_state == 'A'
     with pytest.raises(ag.InvalidStateError):
         task.result
 
     ag.start(task)
     assert task.state is TS.STARTED
+    assert task._exception is None
     assert job_state == 'B'
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -125,6 +138,7 @@ def test_the_state_and_the_result__ver_uncaught_exception2():
     with pytest.raises(ZeroDivisionError):
         root_coro.throw(ZeroDivisionError)
     assert task.state is TS.CANCELLED
+    assert task._exception is None
     job_state = 'B'
     assert not task.done
     assert task.cancelled
@@ -132,146 +146,116 @@ def test_the_state_and_the_result__ver_uncaught_exception2():
         task.result
 
 
-@pytest.mark.parametrize(
-    'wait_for, should_raise', [
-        (TS.CREATED, True, ),
-        (TS.STARTED, True, ),
-        (TS.DONE, False, ),
-        (TS.CANCELLED, False, ),
-        (TS.ENDED, False, ),
-        (TS.ENDED | TS.STARTED, True, ),
-        (TS.DONE | TS.STARTED, True, ),
-    ])
-def test_various_wait_flag(wait_for, should_raise):
-    task = ag.Task(ag.sleep_forever())
-    ag.start(task)  # just for suppressing a warning
-    coro = task.wait(wait_for)
-    if should_raise:
-        with pytest.raises(ValueError):
-            coro.send(None)
+@pytest.mark.parametrize('do_suppress', (True, False, ), )
+def test_suppress_exception(do_suppress):
+    async def job():
+        raise ZeroDivisionError
+    task = ag.Task(job(), name='pytest')
+    task._suppresses_exception = do_suppress
+    if do_suppress:
+        ag.start(task)
+        assert type(task._exception) is ZeroDivisionError
     else:
-        coro.send(None)
+        with pytest.raises(ZeroDivisionError):
+            ag.start(task)
+        assert task._exception is None
+    assert task.state is TS.CANCELLED
 
 
-@pytest.mark.parametrize(
-    'wait_for, expected',[
-        (TS.DONE, TS.STARTED, ),
-        (TS.CANCELLED, TS.DONE, ),
-        (TS.ENDED, TS.DONE, ),
-    ])
-def test_wait_for_an_already_cancelled_task(wait_for, expected):
-    task1 = ag.Task(ag.sleep_forever())
-    ag.start(task1)
-    task1.cancel()
-    assert task1.cancelled
-    task2 = ag.Task(task1.wait(wait_for))
-    ag.start(task2)
-    assert task2.state is expected
-
-
-@pytest.mark.parametrize(
-    'wait_for, expected',[
-        (TS.DONE, TS.DONE, ),
-        (TS.CANCELLED, TS.STARTED, ),
-        (TS.ENDED, TS.DONE, ),
-    ])
-def test_wait_for_an_already_finished_task(wait_for, expected):
-    task1 = ag.Task(ag.sleep_forever())
-    ag.start(task1)
-    with pytest.raises(StopIteration):
-        task1.root_coro.send(None)
-    assert task1.done
-    task2 = ag.Task(task1.wait(wait_for))
-    ag.start(task2)
-    assert task2.state is expected
-
-
-def test_cancel_the_waiter_before_the_awaited():
-    task1 = ag.Task(ag.sleep_forever())
-    task2 = ag.Task(task1.wait())
-    ag.start(task1)
-    ag.start(task2)
-    task2.cancel()
-    assert task1.state is TS.STARTED
-    assert task2.state is TS.CANCELLED
-    with pytest.raises(StopIteration):
-        task1.root_coro.send(None)
-    assert task1.state is TS.DONE
-    assert task2.state is TS.CANCELLED
-
-
-@pytest.mark.parametrize(
-    'wait_for_a, expected_a',[
-        (TS.DONE, TS.DONE, ),
-        (TS.CANCELLED, TS.STARTED, ),
-        (TS.ENDED, TS.DONE, ),
-    ])
-@pytest.mark.parametrize(
-    'wait_for_b, expected_b',[
-        (TS.DONE, TS.DONE, ),
-        (TS.CANCELLED, TS.STARTED, ),
-        (TS.ENDED, TS.DONE, ),
-    ])
-def test_multiple_tasks_wait_for_the_same_task_to_complete(
-        wait_for_a, expected_a, wait_for_b, expected_b, ):
-    task1 = ag.Task(ag.sleep_forever())
-    task2a = ag.Task(task1.wait(wait_for_a))
-    task2b = ag.Task(task1.wait(wait_for_b))
-    ag.start(task1)
-    ag.start(task2a)
-    ag.start(task2b)
-    with pytest.raises(StopIteration):
-        task1.root_coro.send(None)
-    assert task2a.state is expected_a
-    assert task2b.state is expected_b
-
-
-@pytest.mark.parametrize(
-    'wait_for_a, expected_a',[
-        (TS.DONE, TS.STARTED, ),
-        (TS.CANCELLED, TS.DONE, ),
-        (TS.ENDED, TS.DONE, ),
-    ])
-@pytest.mark.parametrize(
-    'wait_for_b, expected_b',[
-        (TS.DONE, TS.STARTED, ),
-        (TS.CANCELLED, TS.DONE, ),
-        (TS.ENDED, TS.DONE, ),
-    ])
-def test_multiple_tasks_wait_for_the_same_task_to_be_cancelled(
-        wait_for_a, expected_a, wait_for_b, expected_b, ):
-    task1 = ag.Task(ag.sleep_forever())
-    task2a = ag.Task(task1.wait(wait_for_a))
-    task2b = ag.Task(task1.wait(wait_for_b))
-    ag.start(task1)
-    ag.start(task2a)
-    ag.start(task2b)
-    task1.cancel()
-    assert task2a.state is expected_a
-    assert task2b.state is expected_b
-
-
-def test_safe_cancel():
+def test_cancel_protection():
     import asyncgui as ag
 
-    async def job1(e):
-        await e.wait()
-        assert not task1.is_cancellable
-        assert not task2.is_cancellable
-        task1.safe_cancel()
-        task2.safe_cancel()
+    async def async_fn(e):
+        async with ag.cancel_protection():
+            await e.wait()
         await ag.sleep_forever()
-
-    async def job2(e):
-        assert task1.is_cancellable
-        assert not task2.is_cancellable
-        e.set()
-        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
 
     e = ag.Event()
-    task1 = ag.Task(job1(e))
-    task2 = ag.Task(job2(e))
-    ag.start(task1)
-    ag.start(task2)
-    assert task1.cancelled
-    assert task2.cancelled
+    task = ag.Task(async_fn(e))
+    ag.start(task)
+    task.cancel()
+    assert task._cancel_protection == 1
+    assert not task.cancelled
+    assert not task._is_cancellable
+    e.set()
+    assert task._cancel_protection == 0
+    assert task.cancelled
+
+
+def test_nested_cancel_protection():
+    import asyncgui as ag
+
+    async def outer_fn(e):
+        async with ag.cancel_protection():
+            await inner_fn(e)
+        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
+
+    async def inner_fn(e):
+        assert task._cancel_protection == 1
+        async with ag.cancel_protection():
+            assert task._cancel_protection == 2
+            await e.wait()
+        assert task._cancel_protection == 1
+
+    e = ag.Event()
+    task = ag.Task(outer_fn(e))
+    assert task._cancel_protection == 0
+    ag.start(task)
+    assert task._cancel_protection == 2
+    task.cancel()
+    assert not task.cancelled
+    assert not task._is_cancellable
+    e.set()
+    assert task._cancel_protection == 0
+    assert task.cancelled
+    
+
+def test_cancel_protected_self():
+    import asyncgui as ag
+
+    async def async_fn():
+        task = await ag.get_current_task()
+        async with ag.cancel_protection():
+            task.cancel()
+            await ag.sleep_forever()
+        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
+
+    task = ag.Task(async_fn())
+    ag.start(task)
+    assert not task.cancelled
+    assert not task._is_cancellable
+    assert task._cancel_protection == 1
+    task._step_coro()
+    assert task.cancelled
+    assert task._cancel_protection == 0
+
+
+def test_cancel_self():
+    import asyncgui as ag
+
+    async def async_fn():
+        assert not task._is_cancellable
+        task.cancel()
+        assert task._cancel_called
+        await ag.sleep_forever()
+        pytest.fail("Failed to cancel")
+
+    task = ag.Task(async_fn())
+    ag.start(task)
+    assert task.cancelled
+    assert task._exception is None
+
+
+def test_try_to_cancel_self_but_no_opportunity_for_that():
+    import asyncgui as ag
+
+    async def async_fn():
+        assert not task._is_cancellable
+        task.cancel()
+
+    task = ag.Task(async_fn())
+    ag.start(task)
+    assert task.done

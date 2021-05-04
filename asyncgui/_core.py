@@ -1,7 +1,7 @@
 __all__ = (
     'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
-    'raw_start',
+    'raw_start', 'cancel_protection',
 )
 
 import itertools
@@ -13,7 +13,9 @@ from inspect import (
 import enum
 from contextlib import asynccontextmanager
 
-from asyncgui.exceptions import InvalidStateError
+from asyncgui.exceptions import (
+    InvalidStateError, EndOfConcurrency,
+)
 
 
 class TaskState(enum.Flag):
@@ -24,10 +26,10 @@ class TaskState(enum.Flag):
     '''CORO_RUNNING or CORO_SUSPENDED'''
 
     CANCELLED = enum.auto()
-    '''CORO_CLOSED by 'Task.cancel()' or an uncaught exception'''
+    '''CORO_CLOSED by 'coroutine.close()' or an uncaught exception'''
 
     DONE = enum.auto()
-    '''CORO_CLOSED (coroutine was completed)'''
+    '''CORO_CLOSED (completed)'''
 
     ENDED = CANCELLED | DONE
 
@@ -36,46 +38,12 @@ class Task:
     '''
     Task
     ====
-
-    (experimental)
-    Similar to `asyncio.Task`. The main difference is that this one is not
-    awaitable.
-
-    .. code-block:: python
-
-       import asyncgui as ag
-
-       async def async_fn():
-           task = ag.Task(some_awaitable, name='my_sub_task')
-           ag.start(task)
-           ...
-           ...
-           ...
-
-           # case #1 wait for the completion of the task.
-           await task.wait(ag.TaskState.DONE)
-           print(task.result)
-
-           # case #2 wait for the cancellation of the task.
-           await task.wait(ag.TaskState.CANCELLED)
-
-           # case #3 wait for either of completion or cancellation of the
-           # task.
-           await task.wait(ag.TaskState.ENDED)
-           if task.done:
-               print(task.result)
-
-    Cancellation
-    ------------
-
-    Since coroutines aren't always cancellable, ``Task.cancel()`` may or may
-    not fail depending on the internal state. If you don't have any specific
-    reason to use it, use ``Task.safe_cancel()`` instead.
     '''
 
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_event',
-        '_needs_to_cancel', 'userdata',
+        '_cancel_called', 'userdata', '_exception', '_suppresses_exception',
+        '_cancel_protection', '_has_children',
     )
 
     _uid_iter = itertools.count()
@@ -84,12 +52,16 @@ class Task:
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
-        self.name: str = name
+        self.name = name
         self.userdata = userdata
+        self._cancel_protection = 0
+        self._has_children = False
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._event = Event()
-        self._needs_to_cancel = False
+        self._cancel_called = False
+        self._exception = None
+        self._suppresses_exception = False
 
     def __str__(self):
         return f'Task(uid={self._uid}, name={self.name!r})'
@@ -116,7 +88,9 @@ class Task:
 
     @property
     def result(self):
-        '''Equivalent of asyncio.Future.result()'''
+        '''Result of the task. If the task hasn't finished yet,
+        InvalidStateError will be rased.
+        '''
         state = self._state
         if state is TaskState.DONE:
             return self._result
@@ -129,6 +103,12 @@ class Task:
         try:
             self._state = TaskState.STARTED
             self._result = await awaitable
+        except Exception as e:
+            self._state = TaskState.CANCELLED
+            if self._suppresses_exception:
+                self._exception = e
+            else:
+                raise
         except:  # noqa: E722
             self._state = TaskState.CANCELLED
             raise
@@ -138,39 +118,35 @@ class Task:
             self._event.set(self)
 
     def cancel(self):
-        '''Cancel the task immediately'''
-        self._root_coro.close()
+        '''Cancel the task as soon as possible'''
+        self._cancel_called = True
+        if self._is_cancellable:
+            self._actual_cancel()
 
-    def safe_cancel(self):
-        '''Cancel the task immediately if possible, otherwise cancel soon'''
-        if self.is_cancellable:
-            self.cancel()
+    def _actual_cancel(self):
+        coro = self._root_coro
+        if self._has_children:
+            try:
+                coro.throw(EndOfConcurrency)(self._step_coro)
+            except StopIteration:
+                pass
+            else:
+                if not self._cancel_protection:
+                    coro.close()
         else:
-            self._needs_to_cancel = True
+            coro.close()
 
     # give 'cancel()' an alias so that we can cancel tasks just like we close
     # coroutines.
     close = cancel
 
     @property
-    def is_cancellable(self) -> bool:
-        return getcoroutinestate(self._root_coro) != CORO_RUNNING
-
-    async def wait(self, wait_for: TaskState=TaskState.ENDED):
-        '''Wait for the Task to be cancelled or done.
-
-        'wait_for' must be one of the following:
-
-            TaskState.DONE
-            TaskState.CANCELLED
-            TaskState.ENDED (default)
+    def _is_cancellable(self) -> bool:
         '''
-        if wait_for & (~TaskState.ENDED):
-            raise ValueError("'wait_for' is incorrect:", wait_for)
-        await self._event.wait()
-        if self.state & wait_for:
-            return
-        await sleep_forever()
+        Indicates whether the task can be immediately cancellable.
+        '''
+        return (not self._cancel_protection) and \
+            getcoroutinestate(self._root_coro) != CORO_RUNNING
 
     def _step_coro(self, *args, **kwargs):
         coro = self._root_coro
@@ -180,15 +156,35 @@ class Task:
         except StopIteration:
             pass
         else:
-            if self._needs_to_cancel:
-                coro.close()
+            if self._cancel_called and self._is_cancellable:
+                self._actual_cancel()
+
+
+@asynccontextmanager
+async def cancel_protection():
+    '''
+    (experimental) Async context manager that protects the code-block from
+    cancellation even if it contains 'await'.
+
+    .. code-block:: python
+
+       async with asyncgui.cancel_protection():
+           await something1()
+           await something2()
+    '''
+    task = await get_current_task()
+    task._cancel_protection += 1
+    try:
+        yield
+    finally:
+        task._cancel_protection -= 1
 
 
 Awaitable_or_Task = typing.Union[typing.Awaitable, Task]
 
 
 def start(awaitable_or_task: Awaitable_or_Task) -> Task:
-    '''Starts a asyncgui-flavored awaitable or a Task.
+    '''Starts an asyncgui-flavored awaitable or a Task.
 
     If the argument is a Task, itself will be returned. If it's an awaitable,
     it will be wrapped in a Task, and the Task will be returned.
@@ -208,17 +204,14 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
     except StopIteration:
         pass
     else:
-        if task._needs_to_cancel:
-            coro.close()
+        if task._cancel_called and task._is_cancellable:
+            task._actual_cancel()
 
     return task
 
 
 def raw_start(coro: typing.Coroutine) -> typing.Coroutine:
-    '''Starts a asyncgui-flavored coroutine.
-
-    Unlike ``start()``, the argument will not be wrapped in a Task, and will
-    not be validated at all.
+    '''(internal) Starts an asyncgui-flavored coroutine.
     '''
     def step_coro(*args, **kwargs):
         try:
@@ -296,7 +289,8 @@ def get_step_coro():
 
 
 async def get_current_task():
-    '''Returns the task currently running. None if no Task is associated.'''
+    '''Returns the task currently running. None if no Task is associated,
+    which happens when ``raw_start()`` is used.'''
     return getattr(await get_step_coro(), '__self__', None)
 
 
