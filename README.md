@@ -1,7 +1,11 @@
 # AsyncGui
 
-An async library that works on top of an existing gui event loop.
+Async library that works on top of an existing event loop.
 This is not for application developers, but for async-library developers.
+
+## Pin the minor version
+
+If you use this module, it's recommended to pin the minor version, because if it changed, it usually means some breaking changes occurred.
 
 ## Test Environment
 
