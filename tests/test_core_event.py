@@ -120,3 +120,10 @@ def test_regular_gen():
 
     with pytest.raises(ValueError):
         ag.start(regular_gen())
+
+
+def test_weakref():
+    import weakref
+    from asyncgui import Event
+    e = Event()
+    weakref.ref(e)

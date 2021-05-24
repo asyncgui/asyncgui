@@ -43,7 +43,7 @@ class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_event',
         '_cancel_called', 'userdata', '_exception', '_suppresses_exception',
-        '_cancel_protection', '_has_children',
+        '_cancel_protection', '_has_children', '__weakref__',
     )
 
     _uid_iter = itertools.count()
@@ -247,7 +247,7 @@ class Event:
         ag.start(task())
         e.set('A')
     '''
-    __slots__ = ('_value', '_flag', '_step_coro_list', )
+    __slots__ = ('_value', '_flag', '_step_coro_list', '__weakref__', )
 
     def __init__(self):
         self._value = None
