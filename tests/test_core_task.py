@@ -259,3 +259,10 @@ def test_try_to_cancel_self_but_no_opportunity_for_that():
     task = ag.Task(async_fn())
     ag.start(task)
     assert task.done
+
+
+def test_weakref():
+    import weakref
+    import asyncgui as ag
+    task = ag.Task(ag.sleep_forever())
+    weakref.ref(task)
