@@ -1,12 +1,8 @@
 __all__ = (
     'InvalidStateError', 'MultiError', 'EndOfConcurrency',
-    'CancelledError', 'NoChildLeft',
+    'NoChildLeft',
 )
 from ._multierror import MultiError
-
-
-class CancelledError(BaseException):
-    """The Task was cancelled."""
 
 
 class InvalidStateError(Exception):
