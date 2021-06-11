@@ -20,6 +20,4 @@ If you use this module, it's recommended to pin the minor version, because if it
 
 ## TODO
 
-- `Trio` -> `asyncgui` 方向へのadaptor
-- implement `asyncio.Queue` equivalent
 - implement `trio.Semaphore` equivalent`
