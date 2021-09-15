@@ -98,3 +98,4 @@ def test_complicated_case(
         assert main_task.state is TS.DONE
     else:
         assert main_task.state is TS.STARTED
+        main_task.cancel()
