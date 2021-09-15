@@ -249,6 +249,16 @@ def test_cancel_self():
     assert task._exception is None
 
 
+def test_cancel_without_start():
+    from inspect import getcoroutinestate, CORO_CLOSED
+    import asyncgui as ag
+    task = ag.Task(ag.sleep_forever())
+    task.cancel()
+    assert task.cancelled
+    assert task._exception is None
+    assert getcoroutinestate(task.root_coro) == CORO_CLOSED
+
+
 def test_try_to_cancel_self_but_no_opportunity_for_that():
     import asyncgui as ag
 

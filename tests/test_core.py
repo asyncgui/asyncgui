@@ -56,3 +56,8 @@ def test_aclosing():
 
     task = ag.start(job())
     assert task.done
+
+
+def test_dummy_task():
+    from asyncgui import dummy_task
+    assert dummy_task.cancelled

@@ -1,7 +1,7 @@
 __all__ = (
     'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
-    'raw_start', 'cancel_protection',
+    'raw_start', 'cancel_protection', 'dummy_task',
 )
 
 import itertools
@@ -135,6 +135,8 @@ class Task:
                     coro.close()
         else:
             coro.close()
+            if self._state is TaskState.CREATED:
+                self._state = TaskState.CANCELLED
 
     # give 'cancel()' an alias so that we can cancel tasks just like we close
     # coroutines.
@@ -306,3 +308,7 @@ async def aclosing(aiter):
         yield aiter
     finally:
         await aiter.aclose()
+
+
+dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')
+dummy_task.cancel()
