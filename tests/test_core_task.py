@@ -276,3 +276,4 @@ def test_weakref():
     import asyncgui as ag
     task = ag.Task(ag.sleep_forever())
     weakref.ref(task)
+    task.cancel()
