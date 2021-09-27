@@ -61,3 +61,26 @@ def test_aclosing():
 def test_dummy_task():
     from asyncgui import dummy_task
     assert dummy_task.cancelled
+
+
+@pytest.mark.parametrize('call_cancel', (True, False))
+@pytest.mark.parametrize('protect', (True, False))
+def test_checkpoint(call_cancel, protect):
+    import asyncgui as ag
+
+    async def async_func(ctx):
+        if call_cancel:
+            ctx['task'].cancel()
+        if protect:
+            async with ag.cancel_protection():
+                await ag.checkpoint()
+        else:
+            await ag.checkpoint()
+
+    ctx = {}
+    ctx['task'] = task = ag.Task(async_func(ctx))
+    ag.start(task)
+    if (not protect) and call_cancel:
+        assert task.cancelled
+    else:
+        assert task.done
