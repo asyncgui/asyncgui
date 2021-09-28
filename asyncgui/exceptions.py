@@ -15,7 +15,7 @@ class EndOfConcurrency(BaseException):
 
 
 class NoChildLeft(Exception):
-    """There is no child to wait for"""
+    """(no longer used)"""
 
 
 class WouldBlock(Exception):

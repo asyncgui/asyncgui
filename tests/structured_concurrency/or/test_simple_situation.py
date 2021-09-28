@@ -186,8 +186,9 @@ def test_cancel_all_children():
     TS = ag.TaskState
 
     async def main():
-        with pytest.raises(ag.NoChildLeft):
-            await or_(child1, child2)
+        tasks = await or_(child1, child2)
+        for task in tasks:
+            assert task.cancelled
 
     child1 = ag.Task(ag.sleep_forever())
     child2 = ag.Task(ag.sleep_forever())
