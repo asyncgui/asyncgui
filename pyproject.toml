@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "asyncgui"
 version = "0.5.1"
-description = "Async library that works on top of an existing event loop"
+description = "Async library that works with an existing event loop"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
 readme = 'README.md'

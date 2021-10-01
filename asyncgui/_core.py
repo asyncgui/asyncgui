@@ -144,9 +144,7 @@ class Task:
 
     @property
     def _is_cancellable(self) -> bool:
-        '''
-        Indicates whether the task can be immediately cancellable.
-        '''
+        '''Whether the task can immediately be cancelled.'''
         return (not self._cancel_protection) and \
             getcoroutinestate(self._root_coro) != CORO_RUNNING
 
