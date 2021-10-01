@@ -154,14 +154,32 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
     while there are still ones that haven't started yet, they still will
     start, (and will be cancelled soon).
 
-    NoChildLeft
-    -----------
+    Chance of zero tasks to complete
+    --------------------------------
 
-    In case that all tasks are cancelled explicitly, ``Task.cancel()``, and
-    there is no exception to propagate, ``NoChildLeft`` will be raised.
+    When all the tasks are cancelled, and there are no exceptions to
+    propagate, it would happen.
 
-    Possibility of multiple tasks to complete
-    -----------------------------------------
+    .. code-block::
+
+       def test_cancel_all_children():
+           import asyncgui as ag
+           from asyncgui.structured_concurrency import or_
+
+           async def main():
+               tasks = await or_(child1, child2)
+               for task in tasks:
+                   assert task.cancelled  # NO TASKS HAVE COMPLETED
+
+           child1 = ag.Task(ag.sleep_forever())
+           child2 = ag.Task(ag.sleep_forever())
+           main_task = ag.start(main())
+           child1.cancel()
+           child2.cancel()
+           assert main_task.done
+
+    Chance of multiple tasks to complete
+    ------------------------------------
 
     .. warning::
 
@@ -197,7 +215,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
         な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
 
         * 中断に対する保護がかかっていない(保護は`async with cancel_protection()`でか
-        かる)
+          かる)
         * Taskが停まっている(await式の地点で基本的に停まる。停まらない例としては
           ``await get_current_task()``, ``await get_step_coro()``,
           ``await set済のEvent.wait()`` がある)
@@ -206,7 +224,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
         する事が無かったため中断される事なく完了する事になった。
     '''
     from ._core import start, get_current_task, Task, sleep_forever
-    from .exceptions import MultiError, EndOfConcurrency, NoChildLeft
+    from .exceptions import MultiError, EndOfConcurrency
 
     children = [v if isinstance(v, Task) else Task(v) for v in aws]
     if not children:
@@ -247,9 +265,9 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
         # (2) 親には中断はかけられていない
         # (3) 例外が全く起こらなかった
         #
-        # の３つを同時に満たした事を意味する。この場合は待つべき子が居ないことを示す
-        # NoChildLeft を起こす
-        raise NoChildLeft
+        # の３つを同時に満たした事を意味する。この場合は一つも子taskが完了していな
+        # い状態で関数が返る。
+        return children
     except EndOfConcurrency:
         resume_parent = do_nothing
         for child in children:
