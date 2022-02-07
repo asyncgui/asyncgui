@@ -310,13 +310,14 @@ async def get_current_task() -> typing.Optional[Task]:
 
 
 @asynccontextmanager
-async def aclosing(aiter):
-    '''async version of 'contextlib.closing()'
+async def aclosing(agen):
+    '''(experimental)
+    async version of 'contextlib.closing()'.
     '''
     try:
-        yield aiter
+        yield agen
     finally:
-        await aiter.aclose()
+        await agen.aclose()
 
 
 dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')
