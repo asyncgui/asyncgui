@@ -89,7 +89,7 @@ class Task:
     @property
     def result(self):
         '''Result of the task. If the task hasn't finished yet,
-        InvalidStateError will be rased.
+        InvalidStateError will be raised.
         '''
         state = self._state
         if state is TaskState.DONE:
@@ -250,13 +250,15 @@ class Event:
     '''Similar to 'trio.Event'. The difference is this one allows the user to
     pass value:
 
-        import asyncgui as ag
+    .. code-block:: python
 
-        e = ag.Event()
-        async def task():
-            assert await e.wait() == 'A'
-        ag.start(task())
-        e.set('A')
+       import asyncgui as ag
+
+       e = ag.Event()
+       async def task():
+           assert await e.wait() == 'A'
+       ag.start(task())
+       e.set('A')
     '''
     __slots__ = ('_value', '_flag', '_step_coro_list', '__weakref__', )
 
@@ -299,7 +301,7 @@ class Event:
 
 @types.coroutine
 def get_step_coro():
-    '''Returns the task-runner'''
+    '''Returns the method that resumes the current task'''
     return (yield lambda step_coro: step_coro(step_coro))[0][0]
 
 
