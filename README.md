@@ -94,7 +94,7 @@ You already witnessed that even a simple feature like `sleep` requires an event-
 ## So, this is not usefull
 
 There is at least one situation where `asyncgui` shines.
-When you are creating a gui app, you probably want the app to quickly react to the gui events, like pressing a button.
+When you are creating a gui app, you probably want the app to quickly react to the gui events, like pressing a mouse button.
 This is problematic for `asyncio` because it cannot immediately start/resume a task.
 It schedules a task to *eventually* start/resume but not *immediate*,
 which causes to [spill gui events](https://github.com/gottadiveintopython/asynckivy/blob/main/examples/misc/why_asyncio_is_not_suitable_for_handling_touch_events.py).
@@ -103,7 +103,7 @@ As a result, you need to use callback-based api for that, and thus you cannot fu
 If you use `asyncgui`, that never happens:
 
 - `asyncgui.start()` immediately starts a task.
-- `asyncgui.Event.set()` immediately resume the tasks that are waiting for it to happen.
+- `asyncgui.Event.set()` immediately resumes the tasks waiting for it to happen.
 
 In summary, if your program needs to react to something immediately, `asyncgui` is for you.
 Otherwise, it's probably not worth it.
