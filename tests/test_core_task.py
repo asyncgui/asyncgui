@@ -146,6 +146,51 @@ def test_the_state_and_the_result__ver_uncaught_exception_2():
         task.result
 
 
+def test_throw_exc_to_unstarted_task():
+    import asyncgui as ag
+    task = ag.Task(ag.sleep_forever(), name='pytest')
+    assert task.state is ag.TaskState.CREATED
+    with pytest.raises(ag.InvalidStateError):
+        task._throw_exc(ZeroDivisionError)
+    task.cancel()  # to avoid RuntimeWarning: coroutine 'xxx' was never awaited
+
+
+def test_throw_exc_to_cancelled_task():
+    import asyncgui as ag
+    task = ag.start(ag.Event().wait())
+    assert task.state is ag.TaskState.STARTED
+    task.cancel()
+    assert task.state is ag.TaskState.CANCELLED
+    with pytest.raises(ag.InvalidStateError):
+        task._throw_exc(ZeroDivisionError)
+
+
+def test_throw_exc_to_finished_task():
+    import asyncgui as ag
+    e = ag.Event()
+    task = ag.start(e.wait())
+    assert task.state is ag.TaskState.STARTED
+    e.set()
+    assert task.state is ag.TaskState.DONE
+    with pytest.raises(ag.InvalidStateError):
+        task._throw_exc(ZeroDivisionError)
+
+
+def test_throw_exc_to_started_task_and_get_caught():
+    import asyncgui as ag
+    async def job():
+        try:
+            await ag.sleep_forever()
+        except ZeroDivisionError:
+            pass
+        else:
+            assert False
+    task = ag.start(job())
+    assert task.state is ag.TaskState.STARTED
+    task._throw_exc(ZeroDivisionError)
+    assert task.state is ag.TaskState.DONE
+
+
 @pytest.mark.parametrize('do_suppress', (True, False, ), )
 def test_suppress_exception(do_suppress):
     async def job():
