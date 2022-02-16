@@ -159,6 +159,18 @@ class Task:
             if self._cancel_called and self._is_cancellable:
                 self._actual_cancel()
 
+    def _throw_exc(self, exc):
+        coro = self._root_coro
+        if self._state is not TaskState.STARTED:
+            raise InvalidStateError("Throwing an exception to an unstarted/finished/cancelled task is not allowed.")
+        try:
+            coro.throw(exc)(self._step_coro)
+        except StopIteration:
+            pass
+        else:
+            if self._cancel_called and self._is_cancellable:
+                self._actual_cancel()
+
 
 @asynccontextmanager
 async def cancel_protection():
