@@ -82,16 +82,16 @@ But in a read-world situation, that might not be an option:
 Kivy required [massive changes](https://github.com/kivy/kivy/pull/6368) in order to adapt to `asyncio` and `Trio`,
 [asyncio-tkinter](https://github.com/fluentpython/asyncio-tkinter)'s codebase is quite big as well.
 
-On the other hand, `asyncgui` doesn't require a lot of work as shown in the above example **because it doesn't have an event-loop**.
+On the other hand, `asyncgui` doesn't require a lot of work as shown above **because it doesn't have an event-loop**.
 `asyncgui` can live with other event-loop in the same thread seemlessly because of it.
 
 ## So, is asyncgui superior to asyncio ?
 
 No, it is not.
 For `asyncgui`, many features that exist in `asyncio` are either impossible or hard to implement because of the lack of event-loop.
-You already witnessed that even a simple feature like `sleep` requires an event-loop.
+You already witnessed one, the `sleep`.
 
-## So, this is not usefull
+## This is not usefull then.
 
 There is at least one situation where `asyncgui` shines.
 When you are creating a gui app, you probably want the app to quickly react to the gui events, like pressing a mouse button.
@@ -100,7 +100,7 @@ It schedules a task to *eventually* start/resume but not *immediate*,
 which causes to [spill gui events](https://github.com/gottadiveintopython/asynckivy/blob/main/examples/misc/why_asyncio_is_not_suitable_for_handling_touch_events.py).
 As a result, you need to use callback-based api for that, and thus you cannot fully receive the benefits of async/await.
 
-If you use `asyncgui`, that never happens:
+If you use `asyncgui`, that never happens because:
 
 - `asyncgui.start()` immediately starts a task.
 - `asyncgui.Event.set()` immediately resumes the tasks waiting for it to happen.
@@ -113,10 +113,7 @@ Otherwise, it's probably not worth it.
 If you use this module, it's recommended to pin the minor version, because if it changed, it means some *important* breaking changes occurred.
 
 ```
-# example of pinning the minor version using poetry
 poetry add asyncgui@~0.5
-
-# example of pinning the minor version using pip
 pip install "asyncgui>=0.5,<0.6"
 ```
 
