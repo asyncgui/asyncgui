@@ -103,7 +103,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
         root_coro.send(None)
     assert task.state is TS.CANCELLED
     assert task._exception is None
-    job_state = 'C'
+    assert job_state == 'C'
     assert not task.done
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
@@ -139,7 +139,7 @@ def test_the_state_and_the_result__ver_uncaught_exception_2():
         root_coro.throw(ZeroDivisionError)
     assert task.state is TS.CANCELLED
     assert task._exception is None
-    job_state = 'B'
+    assert job_state == 'B'
     assert not task.done
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
