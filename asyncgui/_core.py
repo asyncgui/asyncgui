@@ -64,7 +64,7 @@ class Task:
         self._suppresses_exception = False
 
     def __str__(self):
-        return f'Task(uid={self._uid}, name={self.name!r})'
+        return f'Task(state={self._state.name}, uid={self._uid}, name={self.name!r})'
 
     @property
     def uid(self) -> int:
