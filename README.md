@@ -83,7 +83,7 @@ Kivy required [massive changes](https://github.com/kivy/kivy/pull/6368) in order
 [asyncio-tkinter](https://github.com/fluentpython/asyncio-tkinter)'s codebase is quite big as well.
 
 On the other hand, `asyncgui` doesn't require a lot of work as shown above **because it doesn't have an event-loop**.
-`asyncgui` can live with other event-loop in the same thread seemlessly because of it.
+`asyncgui` and a library who has event-loop can live in the same thread seemlessly because of it.
 
 ## So, is asyncgui superior to asyncio ?
 
