@@ -5,10 +5,10 @@ A thin layer that helps to build an async/await-based api on top of a callback-b
 ## How to use
 
 Despite its name, `asyncgui` has nothing to do with gui.
-You can build an async/await-based api on top of any kind of callback-based api.
+You can wrap any kind of callback-based api in it.
 The simplest example of it would be [sched](https://docs.python.org/3/library/sched.html),
-whose the whole feature is timer.
-You can wrap it with just few lines of code:
+whose the whole feature is a timer.
+All you need is just few lines of code:
 
 ```python
 import types
@@ -83,7 +83,7 @@ Kivy required [massive changes](https://github.com/kivy/kivy/pull/6368) in order
 [asyncio-tkinter](https://github.com/fluentpython/asyncio-tkinter)'s codebase is quite big as well.
 
 On the other hand, `asyncgui` doesn't require a lot of work as shown above **because it doesn't have an event-loop**.
-`asyncgui` and a library who has event-loop can live in the same thread seemlessly because of it.
+`asyncgui` and a library running an event-loop can live in the same thread seemlessly because of it.
 
 ## So, is asyncgui superior to asyncio ?
 
@@ -94,7 +94,7 @@ You already witnessed one, the `sleep`.
 ## This is not usefull then.
 
 There is at least one situation where `asyncgui` shines.
-When you are creating a gui app, you probably want the app to quickly react to the gui events, like pressing a mouse button.
+When you are creating a gui app, you probably want the app to quickly react to the gui events, like pressing a button.
 This is problematic for `asyncio` because it cannot immediately start/resume a task.
 It schedules a task to *eventually* start/resume but not *immediate*,
 which causes to [spill gui events](https://github.com/gottadiveintopython/asynckivy/blob/main/examples/misc/why_asyncio_is_not_suitable_for_handling_touch_events.py).
