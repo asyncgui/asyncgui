@@ -243,7 +243,7 @@ def raw_start(coro: typing.Coroutine) -> typing.Coroutine:
 
 @types.coroutine
 def sleep_forever():
-    yield lambda step_coro: None
+    return (yield lambda step_coro: None)
 
 
 class Event:

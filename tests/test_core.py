@@ -84,3 +84,17 @@ def test_checkpoint(call_cancel, protect):
         assert task.cancelled
     else:
         assert task.done
+
+
+def test_sleep_forever():
+    import asyncgui as ag
+
+    async def main():
+        args, kwargs = await ag.sleep_forever()
+        assert args == (1, 2, )
+        assert kwargs == {'python': 'awesome', 'rust': 'awesome', }
+
+    task = ag.start(main())
+    assert not task.done
+    task._step_coro(1, 2, python='awesome', rust='awesome')
+    assert task.done
