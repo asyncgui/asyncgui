@@ -108,11 +108,11 @@ If you use `asyncgui`, that never happens because:
 In summary, if your program needs to react to something immediately, `asyncgui` is for you.
 Otherwise, it's probably not worth it.
 
-## Pin the minor version
+## Installation
 
 If you use this module, it's recommended to pin the minor version, because if it changed, it means some *important* breaking changes occurred.
 
-```
+```text
 poetry add asyncgui@~0.5
 pip install "asyncgui>=0.5,<0.6"
 ```
