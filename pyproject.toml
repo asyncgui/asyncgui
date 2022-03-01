@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "asyncgui"
-version = "0.5.2"
-description = "Async library that works with an existing event loop"
+version = "0.5.3"
+description = "async/await without event-loop"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
 readme = 'README.md'
@@ -16,6 +16,7 @@ classifiers=[
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
     'Topic :: Software Development :: Libraries',
     'Operating System :: OS Independent',
 ]
