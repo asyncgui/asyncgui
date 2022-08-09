@@ -14,7 +14,6 @@ Structured Concurrency
 __all__ = ('and_from_iterable', 'and_', 'or_from_iterable', 'or_', )
 
 from typing import Iterable, List, Awaitable
-from contextlib import contextmanager
 from ._core import Task, Awaitable_or_Task
 
 
@@ -22,17 +21,22 @@ def do_nothing():
     pass
 
 
-@contextmanager
-def _raw_cancel_protection(task):
+class _raw_cancel_protection:
     '''
     taskが実行中である時のみ使える非async版の ``asyncgui.cancel_protection()``。
     少し速くなることを期待しているが その成果は不明。
     '''
-    task._cancel_protection += 1
-    try:
-        yield
-    finally:
-        task._cancel_protection -= 1
+
+    __slots__ = ('_task', )
+
+    def __init__(self, task):
+        self._task = task
+
+    def __enter__(self):
+        self._task._cancel_protection += 1
+
+    def __exit__(self, *__):
+        self._task._cancel_protection -= 1
 
 
 async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) \
