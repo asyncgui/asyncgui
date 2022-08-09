@@ -298,7 +298,6 @@ class Event:
     @types.coroutine
     def wait(self):
         if self._flag:
-            yield lambda step_coro: step_coro()
             return self._value
         else:
             return (yield self._step_coro_list.append)[0][0]
