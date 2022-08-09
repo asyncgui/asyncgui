@@ -11,7 +11,6 @@ from inspect import (
     getcoroutinestate, CORO_CLOSED, CORO_RUNNING, isawaitable,
 )
 import enum
-from contextlib import asynccontextmanager
 
 from asyncgui.exceptions import (
     InvalidStateError, EndOfConcurrency,
@@ -172,8 +171,7 @@ class Task:
                 self._actual_cancel()
 
 
-@asynccontextmanager
-async def cancel_protection():
+class cancel_protection:
     '''
     (experimental) Async context manager that protects the code-block from
     cancellation even if it contains 'await'.
@@ -184,12 +182,15 @@ async def cancel_protection():
            await something1()
            await something2()
     '''
-    task = await get_current_task()
-    task._cancel_protection += 1
-    try:
-        yield
-    finally:
-        task._cancel_protection -= 1
+
+    __slots__ = ('_task', )
+
+    async def __aenter__(self):
+        self._task = task = await get_current_task()
+        task._cancel_protection += 1
+
+    async def __aexit__(self, *__):
+        self._task._cancel_protection -= 1
 
 
 async def checkpoint():
@@ -322,15 +323,21 @@ async def get_current_task() -> typing.Optional[Task]:
     return getattr(await get_step_coro(), '__self__', None)
 
 
-@asynccontextmanager
-async def aclosing(agen):
+class aclosing:
     '''(experimental)
     async version of 'contextlib.closing()'.
     '''
-    try:
-        yield agen
-    finally:
-        await agen.aclose()
+
+    __slots__ = ('_agen', )
+
+    def __init__(self, agen):
+        self._agen = agen
+
+    async def __aenter__(self):
+        return self._agen
+
+    async def __aexit__(self, *__):
+        await self._agen.aclose()
 
 
 dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')
