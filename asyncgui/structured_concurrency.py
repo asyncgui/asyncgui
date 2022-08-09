@@ -293,3 +293,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
 def or_(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     """See ``or_from_iterable``'s doc"""
     return or_from_iterable(aws)
+
+
+and_.__doc__ = and_from_iterable.__doc__
+or_.__doc__ = or_from_iterable.__doc__
