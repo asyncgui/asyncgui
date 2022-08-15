@@ -17,7 +17,7 @@ import asyncgui
 
 s = sched.scheduler()
 
-# wrapping the timer api takes only three lines
+# wrapping 'scheduler.enter()' takes only three lines
 @types.coroutine
 def sleep(duration):
     yield lambda step_coro: s.enter(duration, 10, step_coro)
@@ -34,7 +34,7 @@ asyncgui.start(main())
 s.run()
 ```
 
-And you already have a structured concurrency api as well:
+And you already have structured concurrency apis as well:
 
 ```python
 async def print_numbers():
@@ -85,8 +85,7 @@ Kivy required [massive changes](https://github.com/kivy/kivy/pull/6368) in order
 
 The reason they needed lots of work is that they had to merge two event-loops into one.
 One is from the gui libraries. The other one is from async libraries.
-You cannot just simply run multiple event-loops simultaneously in one thread...
-maybe.
+You cannot just simply run multiple event-loops simultaneously in one thread.
 
 On the other hand, `asyncgui` doesn't require a lot of work as shown above **because it doesn't have an event-loop**.
 `asyncgui` and a library who has an event-loop can live in the same thread seemlessly because of it.
@@ -95,17 +94,17 @@ On the other hand, `asyncgui` doesn't require a lot of work as shown above **bec
 
 No, it is not.
 For `asyncgui`, many features that exist in `asyncio` are either impossible or hard to implement because of the lack of event-loop.
-Thus those features need to be specific to each event-loop you are using.
+The implementation of those features need to be specific to the event-loop you are using.
 You've already witnessed one, the `sleep`.
 
 ## asyncgui is not usefull then.
 
-There is at least one situation where `asyncgui` shines.
+There is at least one situation that `asyncgui` shines.
 When you are creating a gui app, you probably want the app to quickly react to the gui events, like pressing a button.
 This is problematic for `asyncio` because it cannot immediately start/resume a task.
 It can schedule a task to *eventually* start/resume but not *immediate*,
 which causes to [spill gui events](https://github.com/gottadiveintopython/asynckivy/blob/main/examples/misc/why_asyncio_is_not_suitable_for_handling_touch_events.py).
-As a result, you need to use callback-based api for that, and thus you cannot fully receive the benefits of async/await.
+As a result, you need to use callback-based apis for that, and thus you cannot fully receive the benefits of async/await.
 
 If you use `asyncgui`, that never happens because:
 
@@ -117,7 +116,7 @@ Otherwise, it's probably not worth it.
 
 ## Installation
 
-If you use this module, it's recommended to pin the minor version, because if it changed, it means some *important* breaking changes occurred.
+It's recommended to pin the minor version, because if it changed, it means some *important* breaking changes occurred.
 
 ```text
 poetry add asyncgui@~0.5
