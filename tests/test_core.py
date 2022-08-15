@@ -24,8 +24,10 @@ def test__get_current_task(raw):
     done = False
 
     async def async_fn():
-        task = await ag.get_current_task()
-        assert (task is None) if raw else isinstance(task, ag.Task)
+        from contextlib import nullcontext
+        with pytest.raises(AttributeError) if raw else nullcontext():
+            task = await ag.get_current_task()
+            assert isinstance(task, ag.Task)
         nonlocal done;done = True
 
     if raw:
