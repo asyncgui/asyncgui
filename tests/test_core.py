@@ -6,15 +6,15 @@ def test__get_step_coro(raw):
     import asyncgui as ag
     done = False
 
-    async def job():
+    async def async_fn():
         step_coro = await ag.get_step_coro()
         assert callable(step_coro)
         nonlocal done;done = True
 
     if raw:
-        ag.raw_start(job())
+        ag.raw_start(async_fn())
     else:
-        ag.start(job())
+        ag.start(async_fn())
     assert done
 
 
@@ -23,15 +23,15 @@ def test__get_current_task(raw):
     import asyncgui as ag
     done = False
 
-    async def job():
+    async def async_fn():
         task = await ag.get_current_task()
         assert (task is None) if raw else isinstance(task, ag.Task)
         nonlocal done;done = True
 
     if raw:
-        ag.raw_start(job())
+        ag.raw_start(async_fn())
     else:
-        ag.start(job())
+        ag.start(async_fn())
     assert done
 
 
@@ -46,7 +46,7 @@ def test_aclosing():
         finally:
             nonlocal agen_closed;agen_closed = True
 
-    async def job():
+    async def async_fn():
         async with ag.aclosing(agen_func()) as agen:
             async for i in agen:
                 if i > 1:
@@ -54,7 +54,7 @@ def test_aclosing():
             assert not agen_closed
         assert agen_closed
 
-    task = ag.start(job())
+    task = ag.start(async_fn())
     assert task.done
 
 

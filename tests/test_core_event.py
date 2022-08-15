@@ -70,17 +70,17 @@ def test_reset_value():
     import asyncgui as ag
     e = ag.Event()
 
-    async def job1(e):
+    async def async_fn1(e):
         assert await e.wait() == 'A'
         e.clear()
         e.set('B')
 
-    async def job2(e):
+    async def async_fn2(e):
         assert await e.wait() == 'A'
         assert await e.wait() == 'B'
 
-    task1 = ag.start(job1(e))
-    task2 = ag.start(job2(e))
+    task1 = ag.start(async_fn1(e))
+    task2 = ag.start(async_fn2(e))
     assert not task1.done
     assert not task2.done
     e.set('A')
