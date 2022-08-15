@@ -317,10 +317,9 @@ def get_step_coro():
     return (yield lambda step_coro: step_coro(step_coro))[0][0]
 
 
-async def get_current_task() -> typing.Optional[Task]:
-    '''Returns the task currently running. None if no Task is associated,
-    which happens when ``raw_start()`` is used.'''
-    return getattr(await get_step_coro(), '__self__', None)
+async def get_current_task() -> Task:
+    '''Returns the currently running task.'''
+    return (await get_step_coro()).__self__
 
 
 class aclosing:
