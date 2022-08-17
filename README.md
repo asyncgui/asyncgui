@@ -94,7 +94,7 @@ On the other hand, `asyncgui` doesn't require a lot of work as shown above **bec
 
 No, it is not.
 For `asyncgui`, many features that exist in `asyncio` are either impossible or hard to implement because of the lack of event-loop.
-The implementation of those features need to be specific to the event-loop you are using.
+The implementation of those features needs to be specific to the event-loop you are using.
 You've already witnessed one, the `sleep`.
 
 ## asyncgui is not usefull then.
