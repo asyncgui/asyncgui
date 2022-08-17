@@ -14,7 +14,8 @@ Structured Concurrency
 __all__ = ('and_from_iterable', 'and_', 'or_from_iterable', 'or_', )
 
 from typing import Iterable, List, Awaitable
-from ._core import Task, Awaitable_or_Task
+from ._core import Task, Awaitable_or_Task, start, get_current_task, sleep_forever
+from .exceptions import MultiError, EndOfConcurrency
 
 
 def do_nothing():
@@ -39,8 +40,7 @@ class _raw_cancel_protection:
         self._task._cancel_protection -= 1
 
 
-async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) \
-        -> Awaitable[List[Task]]:
+async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     '''
     and_from_iterable
     =================
@@ -57,9 +57,6 @@ async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) \
     that haven't started yet, they still will start (and will be cancelled
     soon).
     '''
-    from ._core import start, get_current_task, Task, sleep_forever
-    from .exceptions import MultiError, EndOfConcurrency
-
     children = [v if isinstance(v, Task) else Task(v) for v in aws]
     if not children:
         return children
@@ -101,11 +98,9 @@ async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) \
                     await sleep_forever()
         if child_exceptions:
             # ここに辿り着いたという事は
-            # (A) 自身に明示的な中断がかけられて全ての子を中断した所、その際に子で例外
-            # が起きた
+            # (A) 自身に明示的な中断がかけられて全ての子を中断した所、その際に子で例外が起きた
             # (B) 自身に明示的な中断はかけられていないが子で例外が自然発生した
-            # のどちらかを意味する。
-            # どちらの場合も例外を外側へ運ぶ。
+            # のどちらかを意味する。どちらの場合も例外を外側へ運ぶ。
             raise MultiError(child_exceptions)
         else:
             # ここに辿り着いたという事は、自身に明示的な中断がかけられて全ての子を中断
@@ -123,8 +118,7 @@ def and_(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     return and_from_iterable(aws)
 
 
-async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
-        -> Awaitable[List[Task]]:
+async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     '''
     or_from_iterable
     ================
@@ -218,8 +212,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
         これは``e.set()``が呼ばれた事で``f_1()``が完了するが、その後``f_2()``が中断可能
         な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
 
-        * 中断に対する保護がかかっていない(保護は`async with cancel_protection()`でか
-          かる)
+        * 中断に対する保護がかかっていない(保護は`async with cancel_protection()`でかかる)
         * Taskが停まっている(await式の地点で基本的に停まる。停まらない例としては
           ``await get_current_task()``, ``await get_step_coro()``,
           ``await set済のEvent.wait()`` がある)
@@ -227,9 +220,6 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
         の両方を満たしている状態の事で、上のcodeでは``f_2``が``e.set()``を呼んだ後に停止
         する事が無かったため中断される事なく完了する事になった。
     '''
-    from ._core import start, get_current_task, Task, sleep_forever
-    from .exceptions import MultiError, EndOfConcurrency
-
     children = [v if isinstance(v, Task) else Task(v) for v in aws]
     if not children:
         return children
@@ -269,8 +259,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) \
         # (2) 親には中断はかけられていない
         # (3) 例外が全く起こらなかった
         #
-        # の３つを同時に満たした事を意味する。この場合は一つも子taskが完了していな
-        # い状態で関数が返る。
+        # の３つを同時に満たした事を意味する。この場合は一つも子taskが完了していない状態で関数が返る。
         return children
     except EndOfConcurrency:
         resume_parent = do_nothing
