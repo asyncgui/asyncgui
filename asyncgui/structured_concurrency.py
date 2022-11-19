@@ -15,7 +15,7 @@ __all__ = ('and_from_iterable', 'and_', 'or_from_iterable', 'or_', )
 
 from typing import Iterable, List, Awaitable
 from ._core import Task, Awaitable_or_Task, start, get_current_task, sleep_forever
-from .exceptions import MultiError, EndOfConcurrency
+from .exceptions import ExceptionGroup, EndOfConcurrency
 
 
 def do_nothing():
@@ -101,7 +101,7 @@ async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[
             # (A) 自身に明示的な中断がかけられて全ての子を中断した所、その際に子で例外が起きた
             # (B) 自身に明示的な中断はかけられていないが子で例外が自然発生した
             # のどちらかを意味する。どちらの場合も例外を外側へ運ぶ。
-            raise MultiError(child_exceptions)
+            raise ExceptionGroup("One or more exceptions occurred in child tasks.", child_exceptions)
         else:
             # ここに辿り着いたという事は、自身に明示的な中断がかけられて全ての子を中断
             # したものの、その際に子で全く例外が起こらなかった事を意味する。この場合は
@@ -270,7 +270,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
                 while n_left:
                     await sleep_forever()
         if child_exceptions:
-            raise MultiError(child_exceptions)
+            raise ExceptionGroup("One or more exceptions occurred in child tasks.", child_exceptions)
         if parent._cancel_called:
             parent._has_children = False
             await sleep_forever()

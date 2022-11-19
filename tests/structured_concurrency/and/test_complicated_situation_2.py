@@ -74,12 +74,8 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
         task_a = ag.Task(child_a(ctx))
         task_b = ctx['task_b'] = ag.Task(child_b(ctx))
         task_c = ag.Task(child_c(ctx))
-        if n_exceptions == 1:
-            with pytest.raises(ZeroDivisionError):
-                await and_(task_a, task_b, task_c)
-            await ag.sleep_forever()
-        elif n_exceptions:
-            with pytest.raises(ag.MultiError) as excinfo:
+        if n_exceptions:
+            with pytest.raises(ag.ExceptionGroup) as excinfo:
                 await and_(task_a, task_b, task_c)
             assert [ZeroDivisionError, ] * n_exceptions == [type(e) for e in excinfo.value.exceptions]
             await ag.sleep_forever()
