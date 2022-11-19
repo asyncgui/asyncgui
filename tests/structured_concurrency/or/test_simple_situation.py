@@ -87,8 +87,7 @@ def test_multiple_children_fail_immediately():
     async def main():
         with pytest.raises(ag.MultiError) as excinfo:
             await or_(fail_immediately(), fail_immediately())
-        assert [ZeroDivisionError, ZeroDivisionError] == \
-            [type(e) for e in excinfo.value.exceptions]
+        assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
     main_task = ag.start(main())
     assert main_task.done
@@ -170,8 +169,7 @@ def test_multiple_children_fail():
     async def main(e):
         with pytest.raises(ag.MultiError) as excinfo:
             await or_(fail_soon(e), fail_on_cancel())
-        assert [ZeroDivisionError, ZeroDivisionError] == \
-            [type(e) for e in excinfo.value.exceptions]
+        assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
     e = ag.Event()
     main_task = ag.start(main(e))
@@ -208,8 +206,7 @@ def test_必ず例外を起こす子_を複数持つ親を中断():
     async def main(e):
         with pytest.raises(ag.MultiError) as excinfo:
             await or_(fail_on_cancel(), fail_on_cancel())
-        assert [ZeroDivisionError, ZeroDivisionError] == \
-            [type(e) for e in excinfo.value.exceptions]
+        assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
         await e.wait()
         pytest.fail("Failed to cancel")
 
@@ -235,8 +232,7 @@ def test_必ず例外を起こす子_を複数持つ親を中断_2():
     assert main_task.state is TS.STARTED
     with pytest.raises(ag.MultiError) as excinfo:
         main_task.cancel()
-    assert [ZeroDivisionError, ZeroDivisionError] == \
-        [type(e) for e in excinfo.value.exceptions]
+    assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
     assert main_task.state is TS.CANCELLED
 
 
@@ -274,8 +270,7 @@ def test_例外を起こさない子_を複数持つ親を中断():
 
 class Test_cancel_protection:
 
-    @pytest.mark.parametrize(
-        'other_child', (fail_on_cancel, fail_immediately))
+    @pytest.mark.parametrize('other_child', (fail_on_cancel, fail_immediately))
     def test_other_child_fails(self, other_child):
         import asyncgui as ag
         from asyncgui.structured_concurrency import or_
@@ -293,9 +288,7 @@ class Test_cancel_protection:
         e.set()
         assert main_task.done
 
-    @pytest.mark.parametrize('other_child',
-        (fail_soon, finish_immediately, finish_soon,
-        finish_soon_but_protected))
+    @pytest.mark.parametrize('other_child', (fail_soon, finish_immediately, finish_soon, finish_soon_but_protected))
     def test_other_child_does_not_fail(self, other_child):
         import asyncgui as ag
         from asyncgui.structured_concurrency import or_

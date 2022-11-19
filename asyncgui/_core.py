@@ -144,8 +144,7 @@ class Task:
     @property
     def _is_cancellable(self) -> bool:
         '''Whether the task can immediately be cancelled.'''
-        return (not self._cancel_protection) and \
-            getcoroutinestate(self._root_coro) != CORO_RUNNING
+        return (not self._cancel_protection) and getcoroutinestate(self._root_coro) != CORO_RUNNING
 
     def _step_coro(self, *args, **kwargs):
         coro = self._root_coro
