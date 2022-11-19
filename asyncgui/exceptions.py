@@ -1,7 +1,15 @@
 __all__ = (
-    'InvalidStateError', 'MultiError', 'EndOfConcurrency',
+    'ExceptionGroup', 'BaseExceptionGroup',
+    'InvalidStateError', 'EndOfConcurrency',
 )
-from ._multierror import MultiError
+
+import sys
+
+if sys.version_info < (3, 11):
+    from exceptiongroup import BaseExceptionGroup, ExceptionGroup
+else:
+    BaseExceptionGroup = BaseExceptionGroup
+    ExceptionGroup = ExceptionGroup
 
 
 class InvalidStateError(Exception):

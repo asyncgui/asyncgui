@@ -73,8 +73,11 @@ def test_one_child_fails_immediately():
     from asyncgui.structured_concurrency import and_
 
     async def main():
-        with pytest.raises(ZeroDivisionError):
+        with pytest.raises(ag.ExceptionGroup) as excinfo:
             await and_(fail_immediately())
+        child_exceptions = excinfo.value.exceptions
+        assert len(child_exceptions) == 1
+        assert type(child_exceptions[0]) is ZeroDivisionError
 
     main_task = ag.start(main())
     assert main_task.done
@@ -85,7 +88,7 @@ def test_multiple_children_fail_immediately():
     from asyncgui.structured_concurrency import and_
 
     async def main():
-        with pytest.raises(ag.MultiError) as excinfo:
+        with pytest.raises(ag.ExceptionGroup) as excinfo:
             await and_(fail_immediately(), fail_immediately())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
@@ -128,8 +131,11 @@ def test_one_child_fails_soon():
     from asyncgui.structured_concurrency import and_
 
     async def main(e):
-        with pytest.raises(ZeroDivisionError):
+        with pytest.raises(ag.ExceptionGroup) as excinfo:
             await and_(fail_soon(e))
+        child_exceptions = excinfo.value.exceptions
+        assert len(child_exceptions) == 1
+        assert type(child_exceptions[0]) is ZeroDivisionError
 
     e = ag.Event()
     main_task = ag.start(main(e))
@@ -147,8 +153,11 @@ def test_multiple_children_fail_soon():
     from asyncgui.structured_concurrency import and_
 
     async def main(e):
-        with pytest.raises(ZeroDivisionError):
+        with pytest.raises(ag.ExceptionGroup) as excinfo:
             await and_(fail_soon(e), fail_soon(e))
+        child_exceptions = excinfo.value.exceptions
+        assert len(child_exceptions) == 1
+        assert type(child_exceptions[0]) is ZeroDivisionError
 
     e = ag.Event()
     main_task = ag.start(main(e))
@@ -166,7 +175,7 @@ def test_multiple_children_fail():
     from asyncgui.structured_concurrency import and_
 
     async def main(e):
-        with pytest.raises(ag.MultiError) as excinfo:
+        with pytest.raises(ag.ExceptionGroup) as excinfo:
             await and_(fail_soon(e), fail_on_cancel())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
@@ -183,7 +192,7 @@ def test_必ず例外を起こす子_を複数持つ親を中断():
     TS = ag.TaskState
 
     async def main(e):
-        with pytest.raises(ag.MultiError) as excinfo:
+        with pytest.raises(ag.ExceptionGroup) as excinfo:
             await and_(fail_on_cancel(), fail_on_cancel())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
         await e.wait()
@@ -209,7 +218,7 @@ def test_必ず例外を起こす子_を複数持つ親を中断_2():
     main_task = ag.Task(main())
     ag.start(main_task)
     assert main_task.state is TS.STARTED
-    with pytest.raises(ag.MultiError) as excinfo:
+    with pytest.raises(ag.ExceptionGroup) as excinfo:
         main_task.cancel()
     assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
     assert main_task.state is TS.CANCELLED
@@ -255,8 +264,11 @@ class Test_cancel_protection:
         from asyncgui.structured_concurrency import and_
 
         async def main(e):
-            with pytest.raises(ZeroDivisionError):
+            with pytest.raises(ag.ExceptionGroup) as excinfo:
                 await and_(finish_soon_but_protected(e), other_child(e))
+            child_exceptions = excinfo.value.exceptions
+            assert len(child_exceptions) == 1
+            assert type(child_exceptions[0]) is ZeroDivisionError
 
         e = ag.Event()
         main_task = ag.Task(main(e))
