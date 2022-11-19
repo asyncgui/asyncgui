@@ -52,9 +52,7 @@ p = pytest.mark.parametrize
 @p('what_a_should_do', 'nothing suspend fail cancel_self'.split())
 @p('should_b_fail', (True, False, ))
 @p('should_c_fail', (True, False, ))
-def test_complicated_case(
-    starts_immediately, what_a_should_do, should_b_fail, should_c_fail,
-):
+def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, should_c_fail):
     import asyncgui as ag
 
     ctx = {
@@ -83,8 +81,7 @@ def test_complicated_case(
         elif n_exceptions:
             with pytest.raises(ag.MultiError) as excinfo:
                 await or_(task_a, task_b, task_c)
-            assert [ZeroDivisionError, ] * n_exceptions == \
-                [type(e) for e in excinfo.value.exceptions]
+            assert [ZeroDivisionError, ] * n_exceptions == [type(e) for e in excinfo.value.exceptions]
         else:
             await or_(task_a, task_b, task_c)
 

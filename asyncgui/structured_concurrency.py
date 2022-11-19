@@ -245,8 +245,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
             child._suppresses_exception = True
             child._event.add_callback(on_child_end)
             start(child)
-        if child_exceptions or at_least_one_child_has_done or \
-                parent._cancel_called:
+        if child_exceptions or at_least_one_child_has_done or parent._cancel_called:
             raise EndOfConcurrency
         resume_parent = parent._step_coro
         while n_left:
