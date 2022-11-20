@@ -11,7 +11,10 @@ Structured Concurrency
     properly.
 '''
 
-__all__ = ('and_from_iterable', 'and_', 'or_from_iterable', 'or_', )
+__all__ = (
+    'wait_all', 'wait_all_from_iterable', 'wait_any', 'wait_any_from_iterable',
+    'and_from_iterable', 'and_', 'or_from_iterable', 'or_',
+)
 
 from typing import Iterable, List, Awaitable
 from ._core import Task, Awaitable_or_Task, start, get_current_task, sleep_forever
@@ -40,10 +43,10 @@ class _raw_cancel_protection:
         self._task._cancel_protection -= 1
 
 
-async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
+async def wait_all_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     '''
-    and_from_iterable
-    =================
+    wait_all_from_iterable
+    ======================
 
     Run multiple tasks concurrently, and wait for all of their completion
     or cancellation. When one of the tasks raises an exception, the rest will
@@ -113,15 +116,15 @@ async def and_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[
         resume_parent = do_nothing
 
 
-def and_(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
-    """See ``and_from_iterable``'s doc"""
-    return and_from_iterable(aws)
+def wait_all(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
+    """See ``wait_all_from_iterable``'s doc"""
+    return wait_all_from_iterable(aws)
 
 
-async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
+async def wait_any_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     '''
-    or_from_iterable
-    ================
+    wait_any_from_iterable
+    ======================
 
     Run multiple tasks concurrently, and wait for one of them to complete.
     As soon as that happens, the rest will be cancelled, and the function will
@@ -134,7 +137,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
        async def async_fn():
            ...
 
-       tasks = await or_(async_fn(), e.wait())
+       tasks = await wait_any(async_fn(), e.wait())
        if tasks[0].done:
            print("async_fn() was completed")
        else:
@@ -146,7 +149,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
     Fair Start
     ----------
 
-    Like ``and_from_iterable()``, when one of the tasks:
+    Like ``wait_all_from_iterable()``, when one of the tasks:
     A) raises an exception
     B) completes
     while there are still ones that haven't started yet, they still will
@@ -162,10 +165,10 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
 
        def test_cancel_all_children():
            import asyncgui as ag
-           from asyncgui.structured_concurrency import or_
+           from asyncgui.structured_concurrency import wait_any
 
            async def main():
-               tasks = await or_(child1, child2)
+               tasks = await wait_any(child1, child2)
                for task in tasks:
                    assert task.cancelled  # NO TASKS HAVE COMPLETED
 
@@ -181,7 +184,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
 
     .. warning::
 
-        ``or_from_iterable()``が正常に終了した時に常に一つだけ子taskが完了しているとは
+        ``wait_any_from_iterable()``が正常に終了した時に常に一つだけ子taskが完了しているとは
         限らない事に注意されたし。例えば次のように即座に完了する子が複数ある場合はその全てが
         完了する。
 
@@ -190,7 +193,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
            async def f():
                pass
 
-           tasks = await or_from_iterable([f(), f(), ])
+           tasks = await wait_any_from_iterable([f(), f(), ])
            assert tasks[0].done
            assert tasks[1].done
 
@@ -205,7 +208,7 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
                e.set()
 
            e = asyncgui.Event()
-           tasks = await or_from_iterable([f_1(e), f_2(e), ])
+           tasks = await wait_any_from_iterable([f_1(e), f_2(e), ])
            assert tasks[0].done
            assert tasks[1].done
 
@@ -282,10 +285,14 @@ async def or_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[T
         resume_parent = do_nothing
 
 
-def or_(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
-    """See ``or_from_iterable``'s doc"""
-    return or_from_iterable(aws)
+def wait_any(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
+    """See ``wait_any_from_iterable``'s doc"""
+    return wait_any_from_iterable(aws)
 
 
-and_.__doc__ = and_from_iterable.__doc__
-or_.__doc__ = or_from_iterable.__doc__
+wait_all.__doc__ = wait_all_from_iterable.__doc__
+wait_any.__doc__ = wait_any_from_iterable.__doc__
+and_ = wait_all
+and_from_iterable = wait_all_from_iterable
+or_ = wait_any
+or_from_iterable = wait_any_from_iterable
