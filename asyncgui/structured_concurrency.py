@@ -14,6 +14,7 @@ Structured Concurrency
 __all__ = (
     'wait_all', 'wait_all_from_iterable', 'wait_any', 'wait_any_from_iterable',
     'and_from_iterable', 'and_', 'or_from_iterable', 'or_',
+    'run_and_cancelling',
 )
 
 from typing import Iterable, List, Awaitable
@@ -296,3 +297,27 @@ and_ = wait_all
 and_from_iterable = wait_all_from_iterable
 or_ = wait_any
 or_from_iterable = wait_any_from_iterable
+
+
+class run_and_cancelling:
+    '''
+    Almost same as :func:`trio_util.run_and_cancelling`.
+    The difference is that this one can be used in both async and non-async manner.
+    '''
+
+    __slots__ = ('_aw', '_task', )
+
+    def __init__(self, aw: Awaitable_or_Task):
+        self._aw = aw
+
+    def __enter__(self):
+        self._task = start(self._aw)
+
+    def __exit__(self, *__):
+        self._task.cancel()
+
+    async def __aenter__(self):
+        self._task = start(self._aw)
+
+    async def __aexit__(self, *__):
+        self._task.cancel()
