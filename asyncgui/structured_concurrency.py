@@ -302,7 +302,7 @@ or_from_iterable = wait_any_from_iterable
 class run_and_cancelling:
     '''
     Almost same as :func:`trio_util.run_and_cancelling`.
-    The difference is that this one can be used in both async and non-async manner.
+    The difference is that this one is a regular context manager not an async one.
     '''
 
     __slots__ = ('_aw', '_task', )
@@ -314,10 +314,4 @@ class run_and_cancelling:
         self._task = start(self._aw)
 
     def __exit__(self, *__):
-        self._task.cancel()
-
-    async def __aenter__(self):
-        self._task = start(self._aw)
-
-    async def __aexit__(self, *__):
         self._task.cancel()
