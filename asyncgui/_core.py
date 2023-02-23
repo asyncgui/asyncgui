@@ -33,6 +33,10 @@ class TaskState(enum.Flag):
     ENDED = CANCELLED | DONE
 
 
+def _do_nothing(*args):
+    pass
+
+
 class Task:
     '''
     Task
@@ -40,7 +44,7 @@ class Task:
     '''
 
     __slots__ = (
-        'name', '_uid', '_root_coro', '_state', '_result', '_event',
+        'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
         '_cancel_called', 'userdata', '_exception', '_suppresses_exception',
         '_cancel_protection', '_has_children', '__weakref__',
     )
@@ -57,7 +61,7 @@ class Task:
         self._has_children = False
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
-        self._event = Event()
+        self._on_end = _do_nothing
         self._cancel_called = False
         self._exception = None
         self._suppresses_exception = False
@@ -114,7 +118,7 @@ class Task:
         else:
             self._state = TaskState.DONE
         finally:
-            self._event.set(self)
+            self._on_end(self)
 
     def cancel(self):
         '''Cancel the task as soon as possible'''
