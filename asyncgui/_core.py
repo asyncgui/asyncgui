@@ -1,6 +1,6 @@
 __all__ = (
     'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
-    'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
+    'get_current_task', 'aclosing', 'Awaitable_or_Task',
     'cancel_protection', 'dummy_task', 'checkpoint',
 )
 
@@ -291,14 +291,9 @@ class Event:
 
 
 @types.coroutine
-def get_step_coro():
-    '''Returns the method that resumes the current task'''
-    return (yield lambda step_coro: step_coro(step_coro))[0][0]
-
-
-async def get_current_task() -> Task:
+def get_current_task() -> Task:
     '''Returns the currently running task.'''
-    return (await get_step_coro()).__self__
+    return (yield lambda step_coro: step_coro(step_coro))[0][0].__self__
 
 
 class aclosing:
