@@ -1,19 +1,6 @@
 import pytest
 
 
-def test__get_step_coro():
-    import asyncgui as ag
-    done = False
-
-    async def async_fn():
-        step_coro = await ag.get_step_coro()
-        assert callable(step_coro)
-        nonlocal done;done = True
-
-    ag.start(async_fn())
-    assert done
-
-
 def test__get_current_task():
     import asyncgui as ag
     done = False
