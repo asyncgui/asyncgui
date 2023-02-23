@@ -1,7 +1,7 @@
 __all__ = (
     'start', 'sleep_forever', 'Event', 'Task', 'TaskState',
     'get_current_task', 'get_step_coro', 'aclosing', 'Awaitable_or_Task',
-    'raw_start', 'cancel_protection', 'dummy_task', 'checkpoint',
+    'cancel_protection', 'dummy_task', 'checkpoint',
 )
 
 import itertools
@@ -231,26 +231,6 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
             task._actual_cancel()
 
     return task
-
-
-def raw_start(coro: typing.Coroutine) -> typing.Coroutine:
-    '''(internal) Starts an asyncgui-flavored coroutine.
-    '''
-    def step_coro(*args, **kwargs):
-        try:
-            if getcoroutinestate(coro) != CORO_CLOSED:
-                coro.send((args, kwargs, ))(step_coro)
-        except StopIteration:
-            pass
-
-    step_coro._task = None
-
-    try:
-        coro.send(None)(step_coro)
-    except StopIteration:
-        pass
-
-    return coro
 
 
 @types.coroutine

@@ -1,8 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize('raw', (True, False))
-def test__get_step_coro(raw):
+def test__get_step_coro():
     import asyncgui as ag
     done = False
 
@@ -11,29 +10,21 @@ def test__get_step_coro(raw):
         assert callable(step_coro)
         nonlocal done;done = True
 
-    if raw:
-        ag.raw_start(async_fn())
-    else:
-        ag.start(async_fn())
+    ag.start(async_fn())
     assert done
 
 
-@pytest.mark.parametrize('raw', (True, False))
-def test__get_current_task(raw):
+def test__get_current_task():
     import asyncgui as ag
     done = False
 
     async def async_fn():
         from contextlib import nullcontext
-        with pytest.raises(AttributeError) if raw else nullcontext():
-            task = await ag.get_current_task()
-            assert isinstance(task, ag.Task)
+        task = await ag.get_current_task()
+        assert isinstance(task, ag.Task)
         nonlocal done;done = True
 
-    if raw:
-        ag.raw_start(async_fn())
-    else:
-        ag.start(async_fn())
+    ag.start(async_fn())
     assert done
 
 
