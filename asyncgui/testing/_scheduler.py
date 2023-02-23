@@ -13,7 +13,7 @@ def open_scheduler():
 
     @types.coroutine
     def sleep(duration):
-        yield lambda step_coro: s.enter(duration, 10, step_coro)
+        yield lambda task: s.enter(duration, 10, task._step_coro)
 
     yield (s, sleep)
     s.run()
