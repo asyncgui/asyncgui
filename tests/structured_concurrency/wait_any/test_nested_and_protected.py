@@ -1,5 +1,5 @@
 '''
-or_()が入れ子になっていて なおかつ幾つか中断から護られた子が
+wait_any()が入れ子になっていて なおかつ幾つか中断から護られた子が
 ある状況のtest
 '''
 import pytest
@@ -12,10 +12,10 @@ async def protect(e):
 
 
 async def main(e1, e2):
-    from asyncgui.structured_concurrency import or_
-    await or_(
+    from asyncgui.structured_concurrency import wait_any
+    await wait_any(
         e1.wait(), protect(e1), e2.wait(), protect(e2),
-        or_(
+        wait_any(
             e1.wait(), protect(e1), e2.wait(), protect(e2),
         ),
     )

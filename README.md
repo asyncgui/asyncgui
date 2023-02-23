@@ -50,10 +50,10 @@ async def print_letters():
 
 
 async def main():
-    from asyncgui.structured_concurrency import or_
+    from asyncgui.structured_concurrency import wait_any
     # Let print_letters() and print_numbers() race.
     # As soon as one of them finishes, the other one gets cancelled.
-    tasks = await or_(print_letters(), print_numbers())
+    tasks = await wait_any(print_letters(), print_numbers())
     if tasks[0].done:
         print("print_letters() won")
     else:

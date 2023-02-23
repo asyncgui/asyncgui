@@ -10,17 +10,17 @@ async def repeat_printing(sleep, obj, *, interval=.1, times=1):
 
 
 async def main(scheduler: sched.scheduler, sleep):
-    from asyncgui.structured_concurrency import and_, or_
+    from asyncgui.structured_concurrency import wait_all, wait_any
 
     print("\n### Run multiple tasks simultaneously, and wait for ALL of them to end")
-    await and_(
+    await wait_all(
         repeat_printing(sleep, 'Kivy', times=4),
         repeat_printing(sleep, 'Python', times=2),
     )
     print("### done")
 
     print("\n### Run multiple tasks simultaneously, and wait for ONE of them to end")
-    tasks = await or_(
+    tasks = await wait_any(
         repeat_printing(sleep, 'Kivy', times=4),
         repeat_printing(sleep, 'Python', times=2),
     )

@@ -1,5 +1,5 @@
 '''
-and_()が入れ子になっていて なおかつ幾つか中断から護られた子が
+wait_all()が入れ子になっていて なおかつ幾つか中断から護られた子が
 ある状況のtest
 '''
 import pytest
@@ -12,10 +12,10 @@ async def protect(e):
 
 
 async def main(e1, e2):
-    from asyncgui.structured_concurrency import and_
-    await and_(
+    from asyncgui.structured_concurrency import wait_all
+    await wait_all(
         e1.wait(), protect(e1), e2.wait(), protect(e2),
-        and_(
+        wait_all(
             e1.wait(), protect(e1), e2.wait(), protect(e2),
         ),
     )
