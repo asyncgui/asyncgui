@@ -27,13 +27,6 @@ def test__return_value():
         assert isinstance(ag.start(v), ag.Task)
 
 
-def test__return_value2():
-    import asyncgui as ag
-
-    coro = async_fn()
-    assert ag.raw_start(coro) is coro
-
-
 def test__already_started():
     import asyncgui as ag
     task1 = ag.start(ag.sleep_forever())
