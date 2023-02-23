@@ -12,9 +12,7 @@ Structured Concurrency
 '''
 
 __all__ = (
-    'wait_all', 'wait_all_from_iterable', 'wait_any', 'wait_any_from_iterable',
-    'and_from_iterable', 'and_', 'or_from_iterable', 'or_',
-    'run_and_cancelling',
+    'wait_all', 'wait_any', 'run_and_cancelling',
 )
 
 from typing import Iterable, List, Awaitable
@@ -44,11 +42,8 @@ class _raw_cancel_protection:
         self._task._cancel_protection -= 1
 
 
-async def wait_all_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
+async def wait_all(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     '''
-    wait_all_from_iterable
-    ======================
-
     Run multiple tasks concurrently, and wait for all of their completion
     or cancellation. When one of the tasks raises an exception, the rest will
     be cancelled, and the exception will be propagated to the caller, like
@@ -117,17 +112,9 @@ async def wait_all_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[
         resume_parent = do_nothing
 
 
-def wait_all(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
-    """See ``wait_all_from_iterable``'s doc"""
-    return wait_all_from_iterable(aws)
-
-
-async def wait_any_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
+async def wait_any(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
     '''
-    wait_any_from_iterable
-    ======================
-
-    Run multiple tasks concurrently, and wait for one of them to complete.
+    Run multiple tasks concurrently, and wait for any of them to complete.
     As soon as that happens, the rest will be cancelled, and the function will
     return.
 
@@ -284,19 +271,6 @@ async def wait_any_from_iterable(aws: Iterable[Awaitable_or_Task]) -> Awaitable[
     finally:
         parent._has_children = False
         resume_parent = do_nothing
-
-
-def wait_any(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
-    """See ``wait_any_from_iterable``'s doc"""
-    return wait_any_from_iterable(aws)
-
-
-wait_all.__doc__ = wait_all_from_iterable.__doc__
-wait_any.__doc__ = wait_any_from_iterable.__doc__
-and_ = wait_all
-and_from_iterable = wait_all_from_iterable
-or_ = wait_any
-or_from_iterable = wait_any_from_iterable
 
 
 class run_and_cancelling:

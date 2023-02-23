@@ -1,6 +1,6 @@
 '''
 親がa,b,cの３つの子を持っていて、bが'Event.set()'を呼んだことでaが再開し、
-aがそこで親に中断をかけた状況のtest。
+aがそこでbに中断をかけた状況のtest。
 '''
 import pytest
 
@@ -10,8 +10,9 @@ async def child_a(ctx):
     import asyncgui as ag
     await ctx['e_begin'].wait()
     await ctx['e'].wait()
-    assert getcoroutinestate(ctx['task_b'].root_coro) == CORO_RUNNING
-    ctx['main_task'].cancel()
+    task_b = ctx['task_b']
+    assert getcoroutinestate(task_b.root_coro) == CORO_RUNNING
+    task_b.cancel()
     what = ctx['what_a_should_do']
     if what == 'nothing':
         return
@@ -53,6 +54,7 @@ p = pytest.mark.parametrize
 @p('should_c_fail', (True, False, ))
 def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, should_c_fail):
     import asyncgui as ag
+    TS = ag.TaskState
 
     ctx = {
         'e_begin': ag.Event(),
@@ -70,23 +72,24 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
         n_exceptions += 1
 
     async def main(ctx):
-        from asyncgui.structured_concurrency import and_
+        from asyncgui.structured_concurrency import wait_all
         task_a = ag.Task(child_a(ctx))
         task_b = ctx['task_b'] = ag.Task(child_b(ctx))
         task_c = ag.Task(child_c(ctx))
         if n_exceptions:
             with pytest.raises(ag.ExceptionGroup) as excinfo:
-                await and_(task_a, task_b, task_c)
+                await wait_all(task_a, task_b, task_c)
             assert [ZeroDivisionError, ] * n_exceptions == [type(e) for e in excinfo.value.exceptions]
-            await ag.sleep_forever()
         else:
-            await and_(task_a, task_b, task_c)
+            await wait_all(task_a, task_b, task_c)
 
     if starts_immediately:
         ctx['e_begin'].set()
-    ctx['main_task'] = main_task = ag.Task(main(ctx))
-    ag.start(main_task)
+    main_task = ag.start(main(ctx))
     if not starts_immediately:
         ctx['e_begin'].set()
-    assert main_task._cancel_called
-    assert main_task.cancelled
+    if should_c_fail or should_b_fail or what_a_should_do != 'suspend':
+        assert main_task.state is TS.DONE
+    else:
+        assert main_task.state is TS.STARTED
+        main_task.cancel()
