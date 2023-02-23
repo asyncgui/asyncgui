@@ -88,30 +88,6 @@ def test_reset_value():
     assert task2.done
 
 
-def test_callback():
-    import asyncgui as ag
-    e = ag.Event()
-
-    def callback(value):
-        assert value == 'A'
-        nonlocal done; done = True
-
-    # set after a callback is registered
-    done = False
-    e.add_callback(callback)
-    assert not done
-    e.set('A')
-    assert done
-    e.clear()
-
-    # set before a callback is registered
-    done = False
-    e.set('A')
-    assert not done
-    e.add_callback(callback)
-    assert done
-
-
 def test_regular_gen():
     import asyncgui as ag
 

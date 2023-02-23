@@ -286,13 +286,6 @@ class Event:
         else:
             return (yield self._step_coro_list.append)[0][0]
 
-    def add_callback(self, callback):
-        '''(internal)'''
-        if self._flag:
-            callback(self._value)
-        else:
-            self._step_coro_list.append(callback)
-
 
 @types.coroutine
 def get_current_task() -> Task:
