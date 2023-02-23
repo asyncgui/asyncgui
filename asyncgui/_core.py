@@ -130,7 +130,7 @@ class Task:
         coro = self._root_coro
         if self._has_children:
             try:
-                coro.throw(EndOfConcurrency)(self._step_coro)
+                coro.throw(EndOfConcurrency)(self)
             except StopIteration:
                 pass
             else:
@@ -154,7 +154,7 @@ class Task:
         coro = self._root_coro
         try:
             if getcoroutinestate(coro) != CORO_CLOSED:
-                coro.send((args, kwargs, ))(self._step_coro)
+                coro.send((args, kwargs, ))(self)
         except StopIteration:
             pass
         else:
@@ -166,7 +166,7 @@ class Task:
         if self._state is not TaskState.STARTED:
             raise InvalidStateError("Throwing an exception to an unstarted/finished/cancelled task is not allowed.")
         try:
-            coro.throw(exc)(self._step_coro)
+            coro.throw(exc)(self)
         except StopIteration:
             pass
         else:
@@ -225,9 +225,8 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
     else:
         raise ValueError("Argument must be either of a Task or an awaitable.")
 
-    coro = task._root_coro
     try:
-        coro.send(None)(task._step_coro)
+        task._root_coro.send(None)(task)
     except StopIteration:
         pass
     else:
@@ -239,7 +238,7 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
 
 @types.coroutine
 def sleep_forever():
-    return (yield lambda step_coro: None)
+    return (yield lambda task: None)
 
 
 class Event:
@@ -256,12 +255,12 @@ class Event:
        ag.start(task())
        e.set('A')
     '''
-    __slots__ = ('_value', '_flag', '_step_coro_list', '__weakref__', )
+    __slots__ = ('_value', '_flag', '_waiting_tasks', '__weakref__', )
 
     def __init__(self):
         self._value = None
         self._flag = False
-        self._step_coro_list = []
+        self._waiting_tasks = []
 
     def is_set(self):
         return self._flag
@@ -271,10 +270,10 @@ class Event:
             return
         self._flag = True
         self._value = value
-        step_coro_list = self._step_coro_list
-        self._step_coro_list = []
-        for step_coro in step_coro_list:
-            step_coro(value)
+        waiting_tasks = self._waiting_tasks
+        self._waiting_tasks = []
+        for task in waiting_tasks:
+            task._step_coro(value)
 
     def clear(self):
         self._flag = False
@@ -284,13 +283,13 @@ class Event:
         if self._flag:
             return self._value
         else:
-            return (yield self._step_coro_list.append)[0][0]
+            return (yield self._waiting_tasks.append)[0][0]
 
 
 @types.coroutine
 def get_current_task() -> Task:
-    '''Returns the currently running task.'''
-    return (yield lambda step_coro: step_coro(step_coro))[0][0].__self__
+    '''Returns the current task.'''
+    return (yield lambda task: task._step_coro(task))[0][0]
 
 
 class aclosing:

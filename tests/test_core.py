@@ -6,7 +6,6 @@ def test__get_current_task():
     done = False
 
     async def async_fn():
-        from contextlib import nullcontext
         task = await ag.get_current_task()
         assert isinstance(task, ag.Task)
         nonlocal done;done = True
