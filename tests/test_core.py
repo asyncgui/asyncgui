@@ -75,5 +75,5 @@ def test_sleep_forever():
 
     task = ag.start(main())
     assert not task.done
-    task._step_coro(1, 2, python='awesome', rust='awesome')
+    task._step(1, 2, python='awesome', rust='awesome')
     assert task.done
