@@ -150,7 +150,7 @@ class Task:
         '''Whether the task can immediately be cancelled.'''
         return (not self._cancel_protection) and getcoroutinestate(self._root_coro) != CORO_RUNNING
 
-    def _step_coro(self, *args, **kwargs):
+    def _step(self, *args, **kwargs):
         coro = self._root_coro
         try:
             if getcoroutinestate(coro) != CORO_CLOSED:
@@ -273,7 +273,7 @@ class Event:
         waiting_tasks = self._waiting_tasks
         self._waiting_tasks = []
         for task in waiting_tasks:
-            task._step_coro(value)
+            task._step(value)
 
     def clear(self):
         self._flag = False
@@ -289,7 +289,7 @@ class Event:
 @types.coroutine
 def get_current_task() -> Task:
     '''Returns the current task.'''
-    return (yield lambda task: task._step_coro(task))[0][0]
+    return (yield lambda task: task._step(task))[0][0]
 
 
 class aclosing:

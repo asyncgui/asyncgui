@@ -80,7 +80,7 @@ async def wait_all(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
             start(child)
         if child_exceptions or parent._cancel_called:
             raise EndOfConcurrency
-        resume_parent = parent._step_coro
+        resume_parent = parent._step
         while n_left:
             await sleep_forever()
             if child_exceptions:
@@ -91,7 +91,7 @@ async def wait_all(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
         for child in children:
             child.cancel()
         if n_left:
-            resume_parent = parent._step_coro
+            resume_parent = parent._step
             with _raw_cancel_protection(parent):
                 while n_left:
                     await sleep_forever()
@@ -238,7 +238,7 @@ async def wait_any(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
             start(child)
         if child_exceptions or at_least_one_child_has_done or parent._cancel_called:
             raise EndOfConcurrency
-        resume_parent = parent._step_coro
+        resume_parent = parent._step
         while n_left:
             await sleep_forever()
             if child_exceptions or at_least_one_child_has_done:
@@ -256,7 +256,7 @@ async def wait_any(*aws: Iterable[Awaitable_or_Task]) -> Awaitable[List[Task]]:
         for child in children:
             child.cancel()
         if n_left:
-            resume_parent = parent._step_coro
+            resume_parent = parent._step
             with _raw_cancel_protection(parent):
                 while n_left:
                     await sleep_forever()

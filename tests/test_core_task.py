@@ -273,7 +273,7 @@ def test_cancel_protected_self():
     assert not task.cancelled
     assert not task._is_cancellable
     assert task._cancel_protection == 1
-    task._step_coro()
+    task._step()
     assert task.cancelled
     assert task._cancel_protection == 0
 
