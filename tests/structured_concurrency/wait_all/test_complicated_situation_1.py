@@ -72,16 +72,15 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
         n_exceptions += 1
 
     async def main(ctx):
-        from asyncgui.structured_concurrency import wait_all
         task_a = ag.Task(child_a(ctx))
         task_b = ctx['task_b'] = ag.Task(child_b(ctx))
         task_c = ag.Task(child_c(ctx))
         if n_exceptions:
             with pytest.raises(ag.ExceptionGroup) as excinfo:
-                await wait_all(task_a, task_b, task_c)
+                await ag.wait_all(task_a, task_b, task_c)
             assert [ZeroDivisionError, ] * n_exceptions == [type(e) for e in excinfo.value.exceptions]
         else:
-            await wait_all(task_a, task_b, task_c)
+            await ag.wait_all(task_a, task_b, task_c)
 
     if starts_immediately:
         ctx['e_begin'].set()

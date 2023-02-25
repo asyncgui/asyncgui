@@ -20,6 +20,9 @@ classifiers=[
     'Topic :: Software Development :: Libraries',
     'Operating System :: OS Independent',
 ]
+packages = [
+    { include = "asyncgui.py", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.8.1"
