@@ -1,6 +1,21 @@
+from contextlib import contextmanager
 import sched
 import asyncgui
-from asyncgui.testing import open_scheduler
+
+
+@contextmanager
+def open_scheduler():
+    import types
+    import sched
+
+    s = sched.scheduler()
+
+    @types.coroutine
+    def sleep(duration):
+        yield lambda task: s.enter(duration, 10, task._step)
+
+    yield (s, sleep)
+    s.run()
 
 
 async def repeat_printing(sleep, obj, *, interval=.1, times=1):
@@ -19,7 +34,7 @@ async def main(scheduler: sched.scheduler, sleep):
     )
     print("### done")
 
-    print("\n### Run multiple tasks simultaneously, and wait for ONE of them to end")
+    print("\n### Run multiple tasks simultaneously, and wait for ANY of them to end")
     tasks = await wait_any(
         repeat_printing(sleep, 'Kivy', times=4),
         repeat_printing(sleep, 'Python', times=2),
