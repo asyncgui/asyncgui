@@ -1,5 +1,5 @@
 __all__ = (
-    'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'EndOfConcurrency',
+    'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'StopConcurrentExecution',
     'Aw_or_Task', 'start', 'Task', 'TaskState', 'get_current_task',
     'aclosing', 'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
     'wait_all', 'wait_any', 'run_and_cancelling',
@@ -26,7 +26,7 @@ class InvalidStateError(Exception):
     """The operation is not allowed in the current state."""
 
 
-class EndOfConcurrency(BaseException):
+class StopConcurrentExecution(BaseException):
     """(internal) Not an actual error. Used for flow control."""
 
 
@@ -142,7 +142,7 @@ class Task:
         coro = self._root_coro
         if self._has_children:
             try:
-                coro.throw(EndOfConcurrency)(self)
+                coro.throw(StopConcurrentExecution)(self)
             except StopIteration:
                 pass
             else:
@@ -392,14 +392,14 @@ async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             child._on_end = on_child_end
             start(child)
         if child_exceptions or parent._cancel_called:
-            raise EndOfConcurrency
+            raise StopConcurrentExecution
         resume_parent = parent._step
         while n_left:
             await sleep_forever()
             if child_exceptions:
-                raise EndOfConcurrency
+                raise StopConcurrentExecution
         return children
-    except EndOfConcurrency:
+    except StopConcurrentExecution:
         resume_parent = _do_nothing
         for child in children:
             child.cancel()
@@ -546,12 +546,12 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             child._on_end = on_child_end
             start(child)
         if child_exceptions or at_least_one_child_has_done or parent._cancel_called:
-            raise EndOfConcurrency
+            raise StopConcurrentExecution
         resume_parent = parent._step
         while n_left:
             await sleep_forever()
             if child_exceptions or at_least_one_child_has_done:
-                raise EndOfConcurrency
+                raise StopConcurrentExecution
         # ここに辿り着いたという事は
         #
         # (1) 全ての子が中断された
@@ -560,7 +560,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
         #
         # の３つを同時に満たした事を意味する。この場合は一つも子taskが完了していない状態で関数が返る。
         return children
-    except EndOfConcurrency:
+    except StopConcurrentExecution:
         resume_parent = _do_nothing
         for child in children:
             child.cancel()
