@@ -28,7 +28,7 @@ async def fail_on_cancel(e=None):
 
 async def finish_soon_but_protected(e):
     import asyncgui as ag
-    async with ag.cancel_protection():
+    async with ag.disable_cancellation():
         await e.wait()
 
 
@@ -242,7 +242,7 @@ def test_例外を起こさない子_を複数持つ親を中断():
     assert main_task.state is TS.CANCELLED
 
 
-class Test_cancel_protection:
+class Test_disable_cancellation:
 
     @pytest.mark.parametrize('other_child', (fail_on_cancel, fail_immediately))
     def test_other_child_fails(self, other_child):

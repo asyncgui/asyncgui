@@ -43,15 +43,15 @@ def test_dummy_task():
 
 
 @pytest.mark.parametrize('call_cancel', (True, False))
-@pytest.mark.parametrize('protect', (True, False))
-def test_checkpoint(call_cancel, protect):
+@pytest.mark.parametrize('disable_cancellation', (True, False))
+def test_checkpoint(call_cancel, disable_cancellation):
     import asyncgui as ag
 
     async def async_func(ctx):
         if call_cancel:
             ctx['task'].cancel()
-        if protect:
-            async with ag.cancel_protection():
+        if disable_cancellation:
+            async with ag.disable_cancellation():
                 await ag.checkpoint()
         else:
             await ag.checkpoint()
@@ -59,7 +59,7 @@ def test_checkpoint(call_cancel, protect):
     ctx = {}
     ctx['task'] = task = ag.Task(async_func(ctx))
     ag.start(task)
-    if (not protect) and call_cancel:
+    if (not disable_cancellation) and call_cancel:
         assert task.cancelled
     else:
         assert task.done
@@ -79,11 +79,11 @@ def test_sleep_forever():
     assert task.done
 
 
-def test_cancel_protection():
+def test_disable_cancellation():
     import asyncgui as ag
 
     async def async_fn(e):
-        async with ag.cancel_protection():
+        async with ag.disable_cancellation():
             await e.wait()
         await ag.sleep_forever()
         pytest.fail("Failed to cancel")
@@ -92,49 +92,49 @@ def test_cancel_protection():
     task = ag.Task(async_fn(e))
     ag.start(task)
     task.cancel()
-    assert task._cancel_protection == 1
+    assert task._disable_cancellation == 1
     assert not task.cancelled
     assert not task._is_cancellable
     e.set()
-    assert task._cancel_protection == 0
+    assert task._disable_cancellation == 0
     assert task.cancelled
 
 
-def test_nested_cancel_protection():
+def test_disable_cancellation__ver_nested():
     import asyncgui as ag
 
     async def outer_fn(e):
-        async with ag.cancel_protection():
+        async with ag.disable_cancellation():
             await inner_fn(e)
         await ag.sleep_forever()
         pytest.fail("Failed to cancel")
 
     async def inner_fn(e):
-        assert task._cancel_protection == 1
-        async with ag.cancel_protection():
-            assert task._cancel_protection == 2
+        assert task._disable_cancellation == 1
+        async with ag.disable_cancellation():
+            assert task._disable_cancellation == 2
             await e.wait()
-        assert task._cancel_protection == 1
+        assert task._disable_cancellation == 1
 
     e = ag.Event()
     task = ag.Task(outer_fn(e))
-    assert task._cancel_protection == 0
+    assert task._disable_cancellation == 0
     ag.start(task)
-    assert task._cancel_protection == 2
+    assert task._disable_cancellation == 2
     task.cancel()
     assert not task.cancelled
     assert not task._is_cancellable
     e.set()
-    assert task._cancel_protection == 0
+    assert task._disable_cancellation == 0
     assert task.cancelled
 
 
-def test_cancel_protected_self():
+def test_disable_cancellation__ver_self():
     import asyncgui as ag
 
     async def async_fn():
         task = await ag.get_current_task()
-        async with ag.cancel_protection():
+        async with ag.disable_cancellation():
             task.cancel()
             await ag.sleep_forever()
         await ag.sleep_forever()
@@ -144,7 +144,7 @@ def test_cancel_protected_self():
     ag.start(task)
     assert not task.cancelled
     assert not task._is_cancellable
-    assert task._cancel_protection == 1
+    assert task._disable_cancellation == 1
     task._step()
     assert task.cancelled
-    assert task._cancel_protection == 0
+    assert task._disable_cancellation == 0
