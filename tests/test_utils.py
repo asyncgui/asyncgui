@@ -1,7 +1,6 @@
 import pytest
 
 
-
 def test_get_current_task():
     import asyncgui as ag
     done = False
