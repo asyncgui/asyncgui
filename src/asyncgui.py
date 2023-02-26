@@ -1,7 +1,7 @@
 __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'EndOfConcurrency',
     'Awaitable_or_Task', 'start', 'Task', 'TaskState', 'get_current_task',
-    'aclosing', 'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'checkpoint',
+    'aclosing', 'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
     'wait_all', 'wait_any', 'run_and_cancelling',
 )
 import types
@@ -247,7 +247,7 @@ class disable_cancellation:
         self._task._disable_cancellation -= 1
 
 
-async def checkpoint():
+async def check_cancellation():
     '''
     (experimental) If the ``.cancel()`` method of the current task has been
     called and the task is not protected from cancellation, cancels the task

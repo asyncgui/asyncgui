@@ -44,7 +44,7 @@ def test_dummy_task():
 
 @pytest.mark.parametrize('call_cancel', (True, False))
 @pytest.mark.parametrize('disable_cancellation', (True, False))
-def test_checkpoint(call_cancel, disable_cancellation):
+def test_check_cancellation(call_cancel, disable_cancellation):
     import asyncgui as ag
 
     async def async_func(ctx):
@@ -52,9 +52,9 @@ def test_checkpoint(call_cancel, disable_cancellation):
             ctx['task'].cancel()
         if disable_cancellation:
             async with ag.disable_cancellation():
-                await ag.checkpoint()
+                await ag.check_cancellation()
         else:
-            await ag.checkpoint()
+            await ag.check_cancellation()
 
     ctx = {}
     ctx['task'] = task = ag.Task(async_func(ctx))
