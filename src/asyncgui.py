@@ -1,6 +1,6 @@
 __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'EndOfConcurrency',
-    'Awaitable_or_Task', 'start', 'Task', 'TaskState', 'get_current_task',
+    'Aw_or_Task', 'start', 'Task', 'TaskState', 'get_current_task',
     'aclosing', 'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
     'wait_all', 'wait_any', 'run_and_cancelling',
 )
@@ -186,23 +186,23 @@ class Task:
                 self._actual_cancel()
 
 
-Awaitable_or_Task = t.Union[t.Awaitable, Task]
+Aw_or_Task = t.Union[t.Awaitable, Task]
 
 
-def start(awaitable_or_task: Awaitable_or_Task) -> Task:
+def start(aw: Aw_or_Task) -> Task:
     '''Starts an asyncgui-flavored awaitable or a Task.
 
     If the argument is a Task, itself will be returned. If it's an awaitable,
     it will be wrapped in a Task, and the Task will be returned.
     '''
-    if isawaitable(awaitable_or_task):
-        task = Task(awaitable_or_task)
-    elif isinstance(awaitable_or_task, Task):
-        task = awaitable_or_task
+    if isawaitable(aw):
+        task = Task(aw)
+    elif isinstance(aw, Task):
+        task = aw
         if task._state is not TaskState.CREATED:
             raise ValueError(f"{task} was already started")
     else:
-        raise ValueError("Argument must be either of a Task or an awaitable.")
+        raise ValueError("Argument must be either a Task or an awaitable.")
 
     try:
         task._root_coro.send(None)(task)
@@ -353,7 +353,7 @@ class _raw_disable_cancellation:
 # -----------------------------------------------------------------------------
 
 
-async def wait_all(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
+async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for all of their completion
     or cancellation. When one of the tasks raises an exception, the rest will
@@ -423,7 +423,7 @@ async def wait_all(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Ta
         resume_parent = _do_nothing
 
 
-async def wait_any(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
+async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for any of them to complete.
     As soon as that happens, the rest will be cancelled, and the function will
@@ -591,7 +591,7 @@ class run_and_cancelling:
 
     __slots__ = ('_aw', '_task', )
 
-    def __init__(self, aw: Awaitable_or_Task):
+    def __init__(self, aw: Aw_or_Task):
         self._aw = aw
 
     def __enter__(self):
