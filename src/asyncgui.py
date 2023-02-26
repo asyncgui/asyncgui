@@ -221,20 +221,22 @@ def start(aw: Aw_or_Task) -> Task:
 
 @types.coroutine
 def get_current_task() -> t.Awaitable[Task]:
-    '''Returns the task that the caller belongs to.'''
+    '''Returns the Task instance corresponding to the caller.'''
     return (yield lambda task: task._step(task))[0][0]
 
 
 class disable_cancellation:
     '''
     (experimental)
-    Async context manager that protects a code-block from cancellation.
+    Async context manager that protects its code-block from cancellation.
 
     .. code-block::
 
-        async with asyncgui.disable_cancellation():
-            await something1()
-            await something2()
+        await something      # <- might get cancelled
+        async with disable_cancellation():
+            await something  # <- never gets cancelled
+            await something  # <- never gets cancelled
+        await something      # <- might get cancelled
     '''
 
     __slots__ = ('_task', )
@@ -356,7 +358,7 @@ class _raw_disable_cancellation:
 async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for all of their completion
-    or cancellation. When one of the tasks raises an exception, the rest will
+    or cancellation. When one of the tasks raises an exception, the others will
     be cancelled, and the exception will be propagated to the caller, like
     Trio's Nursery does.
 
@@ -426,7 +428,7 @@ async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
 async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for any of them to complete.
-    As soon as that happens, the rest will be cancelled, and the function will
+    As soon as that happens, the others will be cancelled, and the function will
     return.
 
     .. code-block::
@@ -448,7 +450,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
     Fair Start
     ----------
 
-    Like ``wait_all_from_iterable()``, when one of the tasks:
+    Like ``wait_all()``, when one of the tasks:
     A) raises an exception
     B) completes
     while there are still ones that haven't started yet, they still will
@@ -482,9 +484,8 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
 
     .. warning::
 
-        ``wait_any_from_iterable()``が正常に終了した時に常に一つだけ子taskが完了しているとは
-        限らない事に注意されたし。例えば次のように即座に完了する子が複数ある場合はその全てが
-        完了する。
+        ``wait_any()``が正常に終了した時に常に一つだけ子taskが完了しているとは限らない事に注意されたし。
+        例えば次のように即座に完了する子が複数ある場合はその全てが完了する。
 
         .. code-blobk::
 
@@ -514,9 +515,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
         な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
 
         * 中断に対する保護がかかっていない(保護は`async with disable_cancellation()`でかかる)
-        * Taskが停まっている(await式の地点で基本的に停まる。停まらない例としては
-          ``await get_current_task()``, ``await get_step_coro()``,
-          ``await set済のEvent.wait()`` がある)
+        * Taskが停まっている(await式の地点で基本的に停まるが、停まらない例外としては ``await get_current_task()`` , ``await set済のEvent.wait()`` がある)
 
         の両方を満たしている状態の事で、上のcodeでは``f_2``が``e.set()``を呼んだ後に停止
         する事が無かったため中断される事なく完了する事になった。
