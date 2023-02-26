@@ -12,7 +12,7 @@ async def protect(e):
 
 
 async def main(e1, e2):
-    from asyncgui.structured_concurrency import wait_all
+    from asyncgui import wait_all
     await wait_all(
         e1.wait(), protect(e1), e2.wait(), protect(e2),
         wait_all(
