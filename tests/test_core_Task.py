@@ -251,16 +251,3 @@ def test_weakref():
     task = ag.Task(ag.sleep_forever())
     weakref.ref(task)
     task.cancel()
-
-
-def test__get_current_task():
-    import asyncgui as ag
-    done = False
-
-    async def async_fn():
-        task = await ag.get_current_task()
-        assert isinstance(task, ag.Task)
-        nonlocal done;done = True
-
-    ag.start(async_fn())
-    assert done

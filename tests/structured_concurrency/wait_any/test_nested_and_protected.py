@@ -12,10 +12,10 @@ async def protect(e):
 
 
 async def main(e1, e2):
-    import asyncgui as ag
-    await ag.wait_any(
+    from asyncgui import wait_any
+    await wait_any(
         e1.wait(), protect(e1), e2.wait(), protect(e2),
-        ag.wait_any(
+        wait_any(
             e1.wait(), protect(e1), e2.wait(), protect(e2),
         ),
     )

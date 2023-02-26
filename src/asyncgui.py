@@ -215,15 +215,15 @@ def start(awaitable_or_task: Awaitable_or_Task) -> Task:
     return task
 
 
-@types.coroutine
-def get_current_task() -> Task:
-    '''Returns the current task.'''
-    return (yield lambda task: task._step(task))[0][0]
-
-
 # -----------------------------------------------------------------------------
 # Utilities
 # -----------------------------------------------------------------------------
+
+@types.coroutine
+def get_current_task() -> t.Awaitable[Task]:
+    '''Returns the task that the caller belongs to.'''
+    return (yield lambda task: task._step(task))[0][0]
+
 
 class cancel_protection:
     '''
@@ -349,7 +349,7 @@ class _raw_cancel_protection:
 
 
 # -----------------------------------------------------------------------------
-# Structured Concurrency
+# Utilities (Structured Concurrency)
 # -----------------------------------------------------------------------------
 
 

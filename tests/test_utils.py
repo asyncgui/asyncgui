@@ -1,6 +1,20 @@
 import pytest
 
 
+
+def test_get_current_task():
+    import asyncgui as ag
+    done = False
+
+    async def async_fn():
+        task = await ag.get_current_task()
+        assert isinstance(task, ag.Task)
+        nonlocal done;done = True
+
+    ag.start(async_fn())
+    assert done
+
+
 def test_aclosing():
     import asyncgui as ag
     agen_closed = False
