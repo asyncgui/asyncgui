@@ -353,7 +353,7 @@ class _raw_cancel_protection:
 # -----------------------------------------------------------------------------
 
 
-async def wait_all(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Task]]:
+async def wait_all(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for all of their completion
     or cancellation. When one of the tasks raises an exception, the rest will
@@ -423,7 +423,7 @@ async def wait_all(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Ta
         resume_parent = _do_nothing
 
 
-async def wait_any(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Task]]:
+async def wait_any(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for any of them to complete.
     As soon as that happens, the rest will be cancelled, and the function will
