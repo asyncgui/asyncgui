@@ -5,18 +5,18 @@ wait_all()が入れ子になっていて なおかつ幾つか中断から護ら
 import pytest
 
 
-async def protect(e):
+async def protected(e):
     import asyncgui
-    async with asyncgui.cancel_protection():
+    async with asyncgui.disable_cancellation():
         await e.wait()
 
 
 async def main(e1, e2):
     from asyncgui import wait_all
     await wait_all(
-        e1.wait(), protect(e1), e2.wait(), protect(e2),
+        e1.wait(), protected(e1), e2.wait(), protected(e2),
         wait_all(
-            e1.wait(), protect(e1), e2.wait(), protect(e2),
+            e1.wait(), protected(e1), e2.wait(), protected(e2),
         ),
     )
 

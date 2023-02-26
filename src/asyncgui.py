@@ -1,7 +1,7 @@
 __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'EndOfConcurrency',
     'Awaitable_or_Task', 'start', 'Task', 'TaskState', 'get_current_task',
-    'aclosing', 'sleep_forever', 'Event', 'cancel_protection', 'dummy_task', 'checkpoint',
+    'aclosing', 'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'checkpoint',
     'wait_all', 'wait_any', 'run_and_cancelling',
 )
 import types
@@ -58,7 +58,7 @@ class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
         '_cancel_called', 'userdata', '_exception', '_suppresses_exception',
-        '_cancel_protection', '_has_children', '__weakref__',
+        '_disable_cancellation', '_has_children', '__weakref__',
     )
 
     _uid_iter = itertools.count()
@@ -69,7 +69,7 @@ class Task:
         self._uid = next(self._uid_iter)
         self.name = name
         self.userdata = userdata
-        self._cancel_protection = 0
+        self._disable_cancellation = 0
         self._has_children = False
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
@@ -146,7 +146,7 @@ class Task:
             except StopIteration:
                 pass
             else:
-                if not self._cancel_protection:
+                if not self._disable_cancellation:
                     coro.close()
         else:
             coro.close()
@@ -160,7 +160,7 @@ class Task:
     @property
     def _is_cancellable(self) -> bool:
         '''Whether the task can immediately be cancelled.'''
-        return (not self._cancel_protection) and getcoroutinestate(self._root_coro) != CORO_RUNNING
+        return (not self._disable_cancellation) and getcoroutinestate(self._root_coro) != CORO_RUNNING
 
     def _step(self, *args, **kwargs):
         coro = self._root_coro
@@ -225,14 +225,14 @@ def get_current_task() -> t.Awaitable[Task]:
     return (yield lambda task: task._step(task))[0][0]
 
 
-class cancel_protection:
+class disable_cancellation:
     '''
-    (experimental) Async context manager that protects the code-block from
-    cancellation even if it contains 'await'.
+    (experimental)
+    Async context manager that protects a code-block from cancellation.
 
     .. code-block::
 
-        async with asyncgui.cancel_protection():
+        async with asyncgui.disable_cancellation():
             await something1()
             await something2()
     '''
@@ -241,10 +241,10 @@ class cancel_protection:
 
     async def __aenter__(self):
         self._task = task = await get_current_task()
-        task._cancel_protection += 1
+        task._disable_cancellation += 1
 
     async def __aexit__(self, *__):
-        self._task._cancel_protection -= 1
+        self._task._disable_cancellation -= 1
 
 
 async def checkpoint():
@@ -254,7 +254,7 @@ async def checkpoint():
     immediately. Otherwise, does nothing.
     '''
     task = await get_current_task()
-    if task._cancel_called and not task._cancel_protection:
+    if task._cancel_called and not task._disable_cancellation:
         await sleep_forever()
 
 
@@ -329,10 +329,10 @@ dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')
 dummy_task.cancel()
 
 
-class _raw_cancel_protection:
+class _raw_disable_cancellation:
     '''
     (internal)
-    taskが実行中である時のみ使える非async版の ``asyncgui.cancel_protection()``。
+    taskが実行中である時のみ使える非async版の ``asyncgui.disable_cancellation()``。
     少し速くなることを期待しているが その成果は不明。
     '''
 
@@ -342,10 +342,10 @@ class _raw_cancel_protection:
         self._task = task
 
     def __enter__(self):
-        self._task._cancel_protection += 1
+        self._task._disable_cancellation += 1
 
     def __exit__(self, *__):
-        self._task._cancel_protection -= 1
+        self._task._disable_cancellation -= 1
 
 
 # -----------------------------------------------------------------------------
@@ -403,7 +403,7 @@ async def wait_all(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Ta
             child.cancel()
         if n_left:
             resume_parent = parent._step
-            with _raw_cancel_protection(parent):
+            with _raw_disable_cancellation(parent):
                 while n_left:
                     await sleep_forever()
         if child_exceptions:
@@ -513,7 +513,7 @@ async def wait_any(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Ta
         これは``e.set()``が呼ばれた事で``f_1()``が完了するが、その後``f_2()``が中断可能
         な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
 
-        * 中断に対する保護がかかっていない(保護は`async with cancel_protection()`でかかる)
+        * 中断に対する保護がかかっていない(保護は`async with disable_cancellation()`でかかる)
         * Taskが停まっている(await式の地点で基本的に停まる。停まらない例としては
           ``await get_current_task()``, ``await get_step_coro()``,
           ``await set済のEvent.wait()`` がある)
@@ -567,7 +567,7 @@ async def wait_any(*aws: t.Iterable[Awaitable_or_Task]) -> t.Awaitable[t.List[Ta
             child.cancel()
         if n_left:
             resume_parent = parent._step
-            with _raw_cancel_protection(parent):
+            with _raw_disable_cancellation(parent):
                 while n_left:
                     await sleep_forever()
         if child_exceptions:
