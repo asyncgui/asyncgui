@@ -28,7 +28,6 @@ async def child_a(ctx):
 
 
 async def child_b(ctx):
-    import asyncgui as ag
     try:
         await ctx['e_begin'].wait()
         ctx['e'].set()
@@ -38,7 +37,6 @@ async def child_b(ctx):
 
 
 async def child_c(ctx):
-    import asyncgui as ag
     try:
         await ctx['e_begin'].wait()
     finally:

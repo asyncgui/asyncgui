@@ -28,7 +28,6 @@ async def child_a(ctx):
 
 
 async def child_b(ctx):
-    import asyncgui as ag
     try:
         await ctx['e_begin'].wait()
         ctx['e'].set()
@@ -38,7 +37,6 @@ async def child_b(ctx):
 
 
 async def child_c(ctx):
-    import asyncgui as ag
     try:
         await ctx['e_begin'].wait()
     finally:
@@ -75,11 +73,11 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
         task_c = ag.Task(child_c(ctx))
         if n_exceptions:
             with pytest.raises(ag.ExceptionGroup) as excinfo:
-                await ag.wait_all(task_a, task_b, task_c)
+                await ag.wait_any(task_a, task_b, task_c)
             assert [ZeroDivisionError, ] * n_exceptions == [type(e) for e in excinfo.value.exceptions]
             await ag.sleep_forever()
         else:
-            await ag.wait_all(task_a, task_b, task_c)
+            await ag.wait_any(task_a, task_b, task_c)
 
     if starts_immediately:
         ctx['e_begin'].set()
