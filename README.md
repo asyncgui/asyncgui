@@ -19,8 +19,8 @@ s = sched.scheduler()
 
 # wrapping 'scheduler.enter()' takes only three lines
 @types.coroutine
-def sleep(duration):
-    yield lambda step_coro: s.enter(duration, 10, step_coro)
+def sleep(duration, *, priority=10):
+    yield lambda task: s.enter(duration, priority, task._step)
 
 
 async def main():
