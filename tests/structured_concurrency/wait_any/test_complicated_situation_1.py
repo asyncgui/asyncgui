@@ -21,7 +21,7 @@ async def child_a(ctx):
     elif what == 'fail':
         raise ZeroDivisionError
     elif what == 'cancel_self':
-        task_a = await ag.get_current_task()
+        task_a = await ag.current_task()
         task_a.cancel()
         await ag.sleep_forever()
     else:

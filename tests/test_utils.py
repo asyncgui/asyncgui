@@ -6,7 +6,7 @@ def test_get_current_task():
     done = False
 
     async def async_fn():
-        task = await ag.get_current_task()
+        task = await ag.current_task()
         assert isinstance(task, ag.Task)
         nonlocal done;done = True
 
@@ -133,7 +133,7 @@ def test_disable_cancellation__ver_self():
     import asyncgui as ag
 
     async def async_fn():
-        task = await ag.get_current_task()
+        task = await ag.current_task()
         async with ag.disable_cancellation():
             task.cancel()
             await ag.sleep_forever()

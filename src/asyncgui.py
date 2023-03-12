@@ -1,6 +1,6 @@
 __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'StopConcurrentExecution',
-    'Aw_or_Task', 'start', 'Task', 'TaskState', 'get_current_task',
+    'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task',
     'aclosing', 'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
     'wait_all', 'wait_any', 'run_and_cancelling',
 )
@@ -220,7 +220,7 @@ def start(aw: Aw_or_Task) -> Task:
 # -----------------------------------------------------------------------------
 
 @types.coroutine
-def get_current_task() -> t.Awaitable[Task]:
+def current_task() -> t.Awaitable[Task]:
     '''Returns the Task instance corresponding to the caller.'''
     return (yield lambda task: task._step(task))[0][0]
 
@@ -242,7 +242,7 @@ class disable_cancellation:
     __slots__ = ('_task', )
 
     async def __aenter__(self):
-        self._task = task = await get_current_task()
+        self._task = task = await current_task()
         task._disable_cancellation += 1
 
     async def __aexit__(self, *__):
@@ -255,7 +255,7 @@ async def check_cancellation():
     called and the task is not protected from cancellation, cancels the task
     immediately. Otherwise, does nothing.
     '''
-    task = await get_current_task()
+    task = await current_task()
     if task._cancel_called and not task._disable_cancellation:
         await sleep_forever()
 
@@ -383,7 +383,7 @@ async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             child_exceptions.append(child._exception)
         resume_parent()
 
-    parent = await get_current_task()
+    parent = await current_task()
 
     try:
         parent._has_children = True
@@ -515,7 +515,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
         な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
 
         * 中断に対する保護がかかっていない(保護は`async with disable_cancellation()`でかかる)
-        * Taskが停まっている(await式の地点で基本的に停まるが、停まらない例外としては ``await get_current_task()`` , ``await set済のEvent.wait()`` がある)
+        * Taskが停まっている(await式の地点で基本的に停まるが、停まらない例外としては ``await current_task()`` , ``await set済のEvent.wait()`` がある)
 
         の両方を満たしている状態の事で、上のcodeでは``f_2``が``e.set()``を呼んだ後に停止
         する事が無かったため中断される事なく完了する事になった。
@@ -537,7 +537,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             at_least_one_child_has_done = True
         resume_parent()
 
-    parent = await get_current_task()
+    parent = await current_task()
 
     try:
         parent._has_children = True
