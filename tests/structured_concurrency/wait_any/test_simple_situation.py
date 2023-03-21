@@ -40,7 +40,7 @@ def test_no_child():
         assert tasks == []
 
     main_task = ag.start(main())
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_one_child_finishes_immediately():
@@ -48,10 +48,10 @@ def test_one_child_finishes_immediately():
 
     async def main():
         tasks = await ag.wait_any(finish_immediately())
-        assert [True, ] == [task.done for task in tasks]
+        assert [True, ] == [task.finished for task in tasks]
 
     main_task = ag.start(main())
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_multiple_children_finish_immediately():
@@ -59,10 +59,10 @@ def test_multiple_children_finish_immediately():
 
     async def main():
         tasks = await ag.wait_any(finish_immediately(), finish_immediately())
-        assert [True, True, ] == [task.done for task in tasks]
+        assert [True, True, ] == [task.finished for task in tasks]
 
     main_task = ag.start(main())
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_one_child_fails_immediately():
@@ -76,7 +76,7 @@ def test_one_child_fails_immediately():
         assert type(child_exceptions[0]) is ZeroDivisionError
 
     main_task = ag.start(main())
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_multiple_children_fail_immediately():
@@ -88,7 +88,7 @@ def test_multiple_children_fail_immediately():
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
     main_task = ag.start(main())
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_one_child_finishes_soon():
@@ -96,13 +96,13 @@ def test_one_child_finishes_soon():
 
     async def main(e):
         tasks = await ag.wait_any(finish_soon(e))
-        assert [True, ] == [task.done for task in tasks]
+        assert [True, ] == [task.finished for task in tasks]
 
     e = ag.Event()
     main_task = ag.start(main(e))
-    assert not main_task.done
+    assert not main_task.finished
     e.set()
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_multiple_children_finish_soon():
@@ -111,13 +111,13 @@ def test_multiple_children_finish_soon():
 
     async def main(e):
         tasks = await ag.wait_any(finish_soon(e), finish_soon(e))
-        assert [TS.DONE, TS.CANCELLED] == [task.state for task in tasks]
+        assert [TS.FINISHED, TS.CANCELLED] == [task.state for task in tasks]
 
     e = ag.Event()
     main_task = ag.start(main(e))
-    assert not main_task.done
+    assert not main_task.finished
     e.set()
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_one_child_fails_soon():
@@ -132,9 +132,9 @@ def test_one_child_fails_soon():
 
     e = ag.Event()
     main_task = ag.start(main(e))
-    assert not main_task.done
+    assert not main_task.finished
     e.set()
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_multiple_children_fail_soon():
@@ -153,9 +153,9 @@ def test_multiple_children_fail_soon():
 
     e = ag.Event()
     main_task = ag.start(main(e))
-    assert not main_task.done
+    assert not main_task.finished
     e.set()
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_multiple_children_fail():
@@ -172,9 +172,9 @@ def test_multiple_children_fail():
 
     e = ag.Event()
     main_task = ag.start(main(e))
-    assert not main_task.done
+    assert not main_task.finished
     e.set()
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_cancel_all_children():
@@ -193,7 +193,7 @@ def test_cancel_all_children():
     child1.cancel()
     assert main_task.state is TS.STARTED
     child2.cancel()
-    assert main_task.state is TS.DONE
+    assert main_task.state is TS.FINISHED
 
 
 def test_必ず例外を起こす子_を複数持つ親を中断():
@@ -279,11 +279,11 @@ class Test_disable_cancellation:
         e = ag.Event()
         main_task = ag.Task(main(e))
         ag.start(main_task)
-        assert not main_task.done
+        assert not main_task.finished
         main_task.cancel()
-        assert not main_task.done
+        assert not main_task.finished
         e.set()
-        assert main_task.done
+        assert main_task.finished
 
     @pytest.mark.parametrize('other_child', (fail_soon, finish_immediately, finish_soon, finish_soon_but_protected))
     def test_other_child_does_not_fail(self, other_child):

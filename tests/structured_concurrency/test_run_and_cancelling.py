@@ -8,10 +8,10 @@ def test_background_task_gracefully_ends():
         with ag.run_and_cancelling(bg_task):
             assert bg_task.state is TS.STARTED
             bg_e.set()
-            assert bg_task.state is TS.DONE
+            assert bg_task.state is TS.FINISHED
 
     main_task = ag.start(async_fn())
-    assert main_task.done
+    assert main_task.finished
 
 
 def test_background_task_gets_cancelled():
@@ -25,4 +25,4 @@ def test_background_task_gets_cancelled():
         assert bg_task.state is TS.CANCELLED
 
     main_task = ag.start(async_fn())
-    assert main_task.done
+    assert main_task.finished

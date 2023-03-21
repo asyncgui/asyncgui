@@ -10,8 +10,8 @@ def test_multiple_tasks():
     assert task1.state is TS.STARTED
     assert task2.state is TS.STARTED
     e.set()
-    assert task1.state is TS.DONE
-    assert task2.state is TS.DONE
+    assert task1.state is TS.FINISHED
+    assert task2.state is TS.FINISHED
 
 
 def test_set_before_task_starts():
@@ -23,7 +23,7 @@ def test_set_before_task_starts():
         await e.wait()
 
     task = ag.start(main())
-    assert task.done
+    assert task.finished
 
 
 def test_clear():
@@ -61,9 +61,9 @@ def test_pass_argument():
         assert await e.wait() == 'A'
 
     task = ag.start(main(e))
-    assert not task.done
+    assert not task.finished
     e.set('A')
-    assert task.done
+    assert task.finished
 
 
 def test_reset_value():
@@ -81,11 +81,11 @@ def test_reset_value():
 
     task1 = ag.start(async_fn1(e))
     task2 = ag.start(async_fn2(e))
-    assert not task1.done
-    assert not task2.done
+    assert not task1.finished
+    assert not task2.finished
     e.set('A')
-    assert task1.done
-    assert task2.done
+    assert task1.finished
+    assert task2.finished
 
 
 def test_regular_gen():
