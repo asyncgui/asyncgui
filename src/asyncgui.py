@@ -73,7 +73,7 @@ class Task:
         self._has_children = False
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
-        self._on_end = _do_nothing
+        self._on_end = None
         self._cancel_called = False
         self._exception = None
         self._suppresses_exception = False
@@ -130,7 +130,8 @@ class Task:
         else:
             self._state = TaskState.FINISHED
         finally:
-            self._on_end(self)
+            if (on_end := self._on_end) is not None:
+                on_end(self)
 
     def cancel(self):
         '''Cancel the task as soon as possible'''
