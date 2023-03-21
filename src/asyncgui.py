@@ -357,17 +357,14 @@ class _raw_disable_cancellation:
 
 async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
-    Run multiple tasks concurrently, and wait for all of their completion
-    or cancellation. When one of the tasks raises an exception, the others will
-    be cancelled, and the exception will be propagated to the caller, like
-    Trio's Nursery does.
+    Run multiple tasks concurrently, and wait for all of them to end. When any of them raises an exception,
+    the others will be cancelled, and the exception will be propagated to the caller, like Trio's Nursery does.
 
-    Fair Start
-    ----------
+    Guaranteed Start
+    ----------------
 
-    Even if one of the tasks raises an exception while there are still ones
-    that haven't started yet, they still will start (and will be cancelled
-    soon).
+    When any of the tasks raises an exception while there are still ones that haven't started yet, they still will
+    start (and will be cancelled soon).
     '''
     children = [v if isinstance(v, Task) else Task(v) for v in aws]
     if not children:
@@ -427,7 +424,7 @@ async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
 
 async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
-    Run multiple tasks concurrently, and wait for any of them to complete.
+    Run multiple tasks concurrently, and wait for any of them to finish.
     As soon as that happens, the others will be cancelled, and the function will
     return.
 
@@ -440,23 +437,23 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
 
         tasks = await wait_any(async_fn(), e.wait())
         if tasks[0].finished:
-            print("async_fn() was completed")
+            print("async_fn() finished")
         else:
             print("The event was set")
 
-    When one of the tasks raises an exception, the rest will be cancelled, and
+    When any of the tasks raises an exception, the rest will be cancelled, and
     the exception will be propagated to the caller, like Trio's Nursery does.
 
-    Fair Start
-    ----------
+    Guaranteed Start
+    ----------------
 
-    Like ``wait_all()``, when one of the tasks:
+    Like ``wait_all()``, when any of the tasks:
     A) raises an exception
-    B) completes
+    B) finishes
     while there are still ones that haven't started yet, they still will
     start, (and will be cancelled soon).
 
-    Chance of zero tasks to complete
+    Chance of zero tasks to finish
     --------------------------------
 
     When all the tasks are cancelled, and there are no exceptions to
@@ -470,7 +467,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             async def main():
                 tasks = await ag.wait_any(child1, child2)
                 for task in tasks:
-                    assert task.cancelled  # NO TASKS HAVE COMPLETED
+                    assert task.cancelled  # NO TASKS HAVE FINISHED
 
             child1 = ag.Task(ag.sleep_forever())
             child2 = ag.Task(ag.sleep_forever())
@@ -479,7 +476,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             child2.cancel()
             assert main_task.finished
 
-    Chance of multiple tasks to complete
+    Chance of multiple tasks to finish
     ------------------------------------
 
     .. warning::
