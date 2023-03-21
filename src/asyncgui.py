@@ -120,9 +120,8 @@ class Task:
             self._result = await awaitable
         except Exception as e:
             self._state = TaskState.CANCELLED
-            if self._suppresses_exception:
-                self._exception = e
-            else:
+            self._exception = e
+            if not self._suppresses_exception:
                 raise
         except:  # noqa: E722
             self._state = TaskState.CANCELLED
