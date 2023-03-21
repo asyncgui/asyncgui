@@ -3,7 +3,7 @@ import pytest
 
 def test_task_state_ended():
     from asyncgui import TaskState as TS
-    assert TS.ENDED is (TS.CANCELLED | TS.DONE)
+    assert TS.ENDED is (TS.CANCELLED | TS.FINISHED)
 
 
 def test_the_state_and_the_result():
@@ -35,9 +35,9 @@ def test_the_state_and_the_result():
 
     with pytest.raises(StopIteration):
         root_coro.send(None)
-    assert task.state is TS.DONE
+    assert task.state is TS.FINISHED
     assert task._exception is None
-    assert task.done
+    assert task.finished
     assert not task.cancelled
     assert task.result == 'result'
 
@@ -72,7 +72,7 @@ def test_the_state_and_the_result__ver_cancel():
     root_coro.close()
     assert task.state is TS.CANCELLED
     assert task._exception is None
-    assert not task.done
+    assert not task.finished
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -112,7 +112,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
     assert task.state is TS.CANCELLED
     assert task._exception is None
     assert task_state == 'C'
-    assert not task.done
+    assert not task.finished
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -151,7 +151,7 @@ def test_the_state_and_the_result__ver_uncaught_exception_2():
     assert task.state is TS.CANCELLED
     assert task._exception is None
     assert task_state == 'B'
-    assert not task.done
+    assert not task.finished
     assert task.cancelled
     with pytest.raises(ag.InvalidStateError):
         task.result
@@ -185,7 +185,7 @@ def test_throw_exc_to_finished_task():
     task = ag.start(e.wait())
     assert task.state is ag.TaskState.STARTED
     e.set()
-    assert task.state is ag.TaskState.DONE
+    assert task.state is ag.TaskState.FINISHED
     with pytest.raises(ag.InvalidStateError):
         task._throw_exc(ZeroDivisionError)
 
@@ -203,7 +203,7 @@ def test_throw_exc_to_started_task_and_get_caught():
     task = ag.start(async_fn())
     assert task.state is ag.TaskState.STARTED
     task._throw_exc(ZeroDivisionError)
-    assert task.state is ag.TaskState.DONE
+    assert task.state is ag.TaskState.FINISHED
 
 
 @pytest.mark.parametrize('do_suppress', (True, False, ), )
@@ -260,7 +260,7 @@ def test_try_to_cancel_self_but_no_opportunity_for_that():
 
     task = ag.Task(async_fn())
     ag.start(task)
-    assert task.done
+    assert task.finished
 
 
 def test_weakref():

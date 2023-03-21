@@ -53,7 +53,7 @@ async def main():
     # Let print_letters() and print_numbers() race.
     # As soon as one of them finishes, the other one gets cancelled.
     tasks = await asyncgui.wait_any(print_letters(), print_numbers())
-    if tasks[0].done:
+    if tasks[0].finished:
         print("print_letters() won")
     else:
         print("print_numbers() won")

@@ -39,8 +39,8 @@ def test_nested(set_immediately_1, set_immediately_2):
     ag.start(main_task)
     main_task.cancel()
     if set_immediately_1 and set_immediately_2:
-        # 中断の機会を与えられずに終わる為 DONE
-        assert main_task.state is TS.DONE
+        # 中断の機会を与えられずに終わる為 FINISHED
+        assert main_task.state is TS.FINISHED
         return
     assert main_task.state is TS.STARTED
     if set_immediately_1 or set_immediately_2:

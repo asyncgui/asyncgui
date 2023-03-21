@@ -3,15 +3,15 @@ import pytest
 
 def test_get_current_task():
     import asyncgui as ag
-    done = False
+    finished = False
 
     async def async_fn():
         task = await ag.current_task()
         assert isinstance(task, ag.Task)
-        nonlocal done;done = True
+        nonlocal finished;finished = True
 
     ag.start(async_fn())
-    assert done
+    assert finished
 
 
 def test_aclosing():
@@ -34,7 +34,7 @@ def test_aclosing():
         assert agen_closed
 
     task = ag.start(async_fn())
-    assert task.done
+    assert task.finished
 
 
 def test_dummy_task():
@@ -62,7 +62,7 @@ def test_check_cancellation(call_cancel, disable_cancellation):
     if (not disable_cancellation) and call_cancel:
         assert task.cancelled
     else:
-        assert task.done
+        assert task.finished
 
 
 def test_sleep_forever():
@@ -74,9 +74,9 @@ def test_sleep_forever():
         assert kwargs == {'python': 'awesome', 'rust': 'awesome', }
 
     task = ag.start(main())
-    assert not task.done
+    assert not task.finished
     task._step(1, 2, python='awesome', rust='awesome')
-    assert task.done
+    assert task.finished
 
 
 def test_disable_cancellation():

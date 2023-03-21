@@ -38,7 +38,7 @@ async def main(scheduler: sched.scheduler, sleep):
         repeat_printing(sleep, 'Kivy', times=4),
         repeat_printing(sleep, 'Python', times=2),
     )
-    print('Kivy' if tasks[0].done else 'Python', 'ended earlier')
+    print('Kivy' if tasks[0].finished else 'Python', 'ended earlier')
     print("### done")
 
 

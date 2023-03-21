@@ -42,12 +42,12 @@ class TaskState(enum.Flag):
     '''CORO_RUNNING or CORO_SUSPENDED'''
 
     CANCELLED = enum.auto()
-    '''CORO_CLOSED by 'coroutine.close()' or an uncaught exception'''
+    '''CORO_CLOSED by 'Task.cancel()' or an unhandled exception'''
 
-    DONE = enum.auto()
-    '''CORO_CLOSED (completed)'''
+    FINISHED = enum.auto()
+    '''CORO_CLOSED (finished)'''
 
-    ENDED = CANCELLED | DONE
+    ENDED = CANCELLED | FINISHED
 
 
 def _do_nothing(*args):
@@ -94,8 +94,8 @@ class Task:
         return self._state
 
     @property
-    def done(self) -> bool:
-        return self._state is TaskState.DONE
+    def finished(self) -> bool:
+        return self._state is TaskState.FINISHED
 
     @property
     def cancelled(self) -> bool:
@@ -107,7 +107,7 @@ class Task:
         InvalidStateError will be raised.
         '''
         state = self._state
-        if state is TaskState.DONE:
+        if state is TaskState.FINISHED:
             return self._result
         elif state is TaskState.CANCELLED:
             raise InvalidStateError(f"{self} was cancelled")
@@ -128,7 +128,7 @@ class Task:
             self._state = TaskState.CANCELLED
             raise
         else:
-            self._state = TaskState.DONE
+            self._state = TaskState.FINISHED
         finally:
             self._on_end(self)
 
@@ -439,7 +439,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             ...
 
         tasks = await wait_any(async_fn(), e.wait())
-        if tasks[0].done:
+        if tasks[0].finished:
             print("async_fn() was completed")
         else:
             print("The event was set")
@@ -477,7 +477,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             main_task = ag.start(main())
             child1.cancel()
             child2.cancel()
-            assert main_task.done
+            assert main_task.finished
 
     Chance of multiple tasks to complete
     ------------------------------------
@@ -493,8 +493,8 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
                 pass
 
             tasks = await wait_any(f(), f())
-            assert tasks[0].done
-            assert tasks[1].done
+            assert tasks[0].finished
+            assert tasks[1].finished
 
         また次の例も両方の子が完了する。
 
@@ -508,8 +508,8 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
 
             e = asyncgui.Event()
             tasks = await wait_any([f_1(e), f_2(e))
-            assert tasks[0].done
-            assert tasks[1].done
+            assert tasks[0].finished
+            assert tasks[1].finished
 
         これは``e.set()``が呼ばれた事で``f_1()``が完了するが、その後``f_2()``が中断可能
         な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
@@ -525,16 +525,16 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
         return children
     child_exceptions = []
     n_left = len(children)
-    at_least_one_child_has_done = False
+    at_least_one_child_has_finished = False
     resume_parent = _do_nothing
 
     def on_child_end(child):
-        nonlocal n_left, at_least_one_child_has_done
+        nonlocal n_left, at_least_one_child_has_finished
         n_left -= 1
         if child._exception is not None:
             child_exceptions.append(child._exception)
-        elif child.done:
-            at_least_one_child_has_done = True
+        elif child.finished:
+            at_least_one_child_has_finished = True
         resume_parent()
 
     parent = await current_task()
@@ -545,12 +545,12 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             child._suppresses_exception = True
             child._on_end = on_child_end
             start(child)
-        if child_exceptions or at_least_one_child_has_done or parent._cancel_called:
+        if child_exceptions or at_least_one_child_has_finished or parent._cancel_called:
             raise StopConcurrentExecution
         resume_parent = parent._step
         while n_left:
             await sleep_forever()
-            if child_exceptions or at_least_one_child_has_done:
+            if child_exceptions or at_least_one_child_has_finished:
                 raise StopConcurrentExecution
         # ここに辿り着いたという事は
         #
@@ -575,7 +575,7 @@ async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             parent._has_children = False
             await sleep_forever()
             assert False, f"{parent} was not cancelled"
-        assert at_least_one_child_has_done
+        assert at_least_one_child_has_finished
         return children
     finally:
         parent._has_children = False

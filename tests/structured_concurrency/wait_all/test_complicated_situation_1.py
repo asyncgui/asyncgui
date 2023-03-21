@@ -88,7 +88,7 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
     if not starts_immediately:
         ctx['e_begin'].set()
     if should_c_fail or should_b_fail or what_a_should_do != 'suspend':
-        assert main_task.state is TS.DONE
+        assert main_task.state is TS.FINISHED
     else:
         assert main_task.state is TS.STARTED
         main_task.cancel()

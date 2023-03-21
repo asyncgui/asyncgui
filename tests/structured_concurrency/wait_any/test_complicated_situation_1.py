@@ -86,4 +86,4 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
     main_task = ag.start(main(ctx))
     if not starts_immediately:
         ctx['e_begin'].set()
-    assert main_task.done
+    assert main_task.finished
