@@ -19,7 +19,6 @@ def test_the_state_and_the_result():
         return 'result'
 
     task = ag.Task(async_fn())
-    root_coro = task.root_coro
     assert task.state is TS.CREATED
     assert task._exception is None
     assert task_state == 'A'
@@ -34,7 +33,7 @@ def test_the_state_and_the_result():
         task.result
 
     with pytest.raises(StopIteration):
-        root_coro.send(None)
+        task.root_coro.send(None)
     assert task.state is TS.FINISHED
     assert task._exception is None
     assert task.finished
@@ -55,7 +54,6 @@ def test_the_state_and_the_result__ver_cancel():
         return 'result'
 
     task = ag.Task(async_fn(), name='pytest')
-    root_coro = task.root_coro
     assert task.state is TS.CREATED
     assert task._exception is None
     assert task_state == 'A'
@@ -69,7 +67,7 @@ def test_the_state_and_the_result__ver_cancel():
     with pytest.raises(ag.InvalidStateError):
         task.result
 
-    root_coro.close()
+    task.cancel()
     assert task.state is TS.CANCELLED
     assert task._exception is None
     assert not task.finished
@@ -79,7 +77,6 @@ def test_the_state_and_the_result__ver_cancel():
 
 
 def test_the_state_and_the_result__ver_uncaught_exception():
-    '''例外が自然発生した場合'''
     import asyncgui as ag
     TS = ag.TaskState
 
@@ -93,7 +90,6 @@ def test_the_state_and_the_result__ver_uncaught_exception():
         return 'result'
 
     task = ag.Task(async_fn(), name='pytest')
-    root_coro = task.root_coro
     assert task.state is TS.CREATED
     assert task._exception is None
     assert task_state == 'A'
@@ -108,7 +104,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
         task.result
 
     with pytest.raises(ZeroDivisionError):
-        root_coro.send(None)
+        task.root_coro.send(None)
     assert task.state is TS.CANCELLED
     assert task._exception is None
     assert task_state == 'C'
@@ -119,7 +115,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
 
 
 def test_the_state_and_the_result__ver_uncaught_exception_2():
-    '''coro.throw()によって例外を起こした場合'''
+    '''Task._throw_exc()によって例外を起こした場合'''
     import asyncgui as ag
     TS = ag.TaskState
 
@@ -132,7 +128,6 @@ def test_the_state_and_the_result__ver_uncaught_exception_2():
         return 'result'
 
     task = ag.Task(async_fn(), name='pytest')
-    root_coro = task.root_coro
     assert task.state is TS.CREATED
     assert task._exception is None
     assert task_state == 'A'
@@ -147,7 +142,7 @@ def test_the_state_and_the_result__ver_uncaught_exception_2():
         task.result
 
     with pytest.raises(ZeroDivisionError):
-        root_coro.throw(ZeroDivisionError)
+        task._throw_exc(ZeroDivisionError)
     assert task.state is TS.CANCELLED
     assert task._exception is None
     assert task_state == 'B'
@@ -240,7 +235,7 @@ def test_cancel_self():
     assert task._exception is None
 
 
-def test_cancel_without_start():
+def test_cancel_without_starting_it():
     from inspect import getcoroutinestate, CORO_CLOSED
     import asyncgui as ag
 
@@ -248,6 +243,7 @@ def test_cancel_without_start():
     task.cancel()
     assert task.cancelled
     assert task._exception is None
+    assert task.cancelled
     assert getcoroutinestate(task.root_coro) == CORO_CLOSED
 
 
