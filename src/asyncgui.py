@@ -170,7 +170,7 @@ class Task:
         except StopIteration:
             pass
         else:
-            if self._cancel_called and self._is_cancellable:
+            if self._cancel_called and (not self._disable_cancellation):
                 self._actual_cancel()
 
     def _throw_exc(self, exc):
@@ -182,7 +182,7 @@ class Task:
         except StopIteration:
             pass
         else:
-            if self._cancel_called and self._is_cancellable:
+            if self._cancel_called and (not self._disable_cancellation):
                 self._actual_cancel()
 
 
@@ -209,7 +209,7 @@ def start(aw: Aw_or_Task) -> Task:
     except StopIteration:
         pass
     else:
-        if task._cancel_called and task._is_cancellable:
+        if task._cancel_called and (not task._disable_cancellation):
             task._actual_cancel()
 
     return task
