@@ -1,7 +1,7 @@
 import pytest
 
 
-def test_get_current_task():
+def test_current_task():
     import asyncgui as ag
     finished = False
 
@@ -47,17 +47,16 @@ def test_dummy_task():
 def test_check_cancellation(call_cancel, disable_cancellation):
     import asyncgui as ag
 
-    async def async_func(ctx):
+    async def async_func():
         if call_cancel:
-            ctx['task'].cancel()
+            task.cancel()
         if disable_cancellation:
             async with ag.disable_cancellation():
                 await ag.check_cancellation()
         else:
             await ag.check_cancellation()
 
-    ctx = {}
-    ctx['task'] = task = ag.Task(async_func(ctx))
+    task = ag.Task(async_func())
     ag.start(task)
     if (not disable_cancellation) and call_cancel:
         assert task.cancelled

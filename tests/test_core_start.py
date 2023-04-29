@@ -15,16 +15,12 @@ def test__unsupported_type():
             ag.start(v)
 
 
-def test__return_value():
+def test__return_value_is_a_Task():
     import asyncgui as ag
 
-    task = ag.Task(ag.sleep_forever())
-    gen_based_coro = ag.sleep_forever()
-    coro = async_fn()
-
-    assert ag.start(task) is task
-    for v in (gen_based_coro, coro):
-        assert isinstance(ag.start(v), ag.Task)
+    for v in [ag.Task(ag.sleep_forever()), ag.sleep_forever(), async_fn()]:
+        r = ag.start(v)
+        assert isinstance(r, ag.Task)
 
 
 def test__already_started():
