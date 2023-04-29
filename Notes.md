@@ -32,7 +32,7 @@
 
 # 中断を表す独自例外を用いるか否か
 
-独自例外を用いようがcoroがGCによって捨てられる時には `GeneratorExit` が起きてしまうので利用者は次のようにして両方の例外に備えないといけない。
+独自例外を用いていようがcoroがGCによって捨てられる時には `GeneratorExit` が起きてしまうので利用者はそれから逃れる事は出来ない。結果次のようにして両方の例外に備えないといけない。
 
 ```python
 def async_func():
@@ -44,4 +44,12 @@ def async_func():
 ```
 
 ただこのやり方だと利用者が片方の例外を書き忘れる怖れがあって危険だと思う。
-じゃあcoroへの参照(実際にはcoroを包んでいるTaskへの参照)を何らかの方法で保持してGCに捨てられないようにして `GeneratorExit` が起こらないようにしたらどうかという話になりますが、良い方法を思いつかないので独自例外は用いない方向でいく事にする。
+ではcoroへの参照(実際にはcoroを包んでいるTaskへの参照)を何らかの方法で保持してGCに捨てられないようにしたらどうかという話になりますが、良い方法を思いつかないので独自例外は用いない方向でいく事にする。
+
+# coro.send()で例外が起きなかった場合でも状態がCORO_CLOSEDになる事がある
+
+`investigation/current_task_enlarges_the_call_stack.py` を実行して分かる通り `current_task()` だけを `await` しているとcall stackは肥っていく。
+この時どうやら `Task._step()` が入れ子になって呼び出されているようである。
+結果的に内側の `Task._step()` が `StopIteration` を受け取った場合は外側の　`Task._step()` では例外が起こらないのにcoroの状態が `CORO_CLOSED` に変わっている。
+この事は `Task._throw_exc()` と `asyncgui.start()` にも言える。
+なので `Task._actual_cancel()` を呼ぶ前にはcoroの状態が `CORO_SUSPENDED` であるかの確認が必要と思う。
