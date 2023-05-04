@@ -53,3 +53,16 @@ def async_func():
 結果的に内側の `Task._step()` が `StopIteration` を受け取った場合は外側の　`Task._step()` では例外が起こらないのにcoroの状態が `CORO_CLOSED` に変わっている。
 この事は `Task._throw_exc()` と `asyncgui.start()` にも言える。
 なので `Task._actual_cancel()` を呼ぶ前にはcoroの状態が `CORO_SUSPENDED` であるかの確認が必要と思う。
+
+# 中断scopeが連続した場合の懸念
+
+```python
+async def async_fn():
+    with open_cancel_scope() as scope1:
+        scope1.cancel()
+    with open_cancel_scope() as scope2:
+        await ...
+```
+
+scope1とscope2は深さが同じであるため`scope1.cancel()`はscope2を中断させてしまう。
+これを防ぐためにはcontextmanager側が中断を取り消す必要がありそう。
