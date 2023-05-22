@@ -169,25 +169,31 @@ def test_throw_exc_to_unstarted_task():
 
 def test_throw_exc_to_cancelled_task():
     import asyncgui as ag
+    TS = ag.TaskState
 
-    task = ag.start(ag.Event().wait())
-    assert task.state is ag.TaskState.STARTED
+    task = ag.start(ag.sleep_forever())
+    assert task.state is TS.STARTED
     task.cancel()
-    assert task.state is ag.TaskState.CANCELLED
+    assert task.state is TS.CANCELLED
+    assert task._exception is None
     with pytest.raises(ag.InvalidStateError):
         task._throw_exc(ZeroDivisionError)
+    assert task.state is TS.CANCELLED
+    assert task._exception is None
 
 
 def test_throw_exc_to_finished_task():
     import asyncgui as ag
 
-    e = ag.Event()
-    task = ag.start(e.wait())
-    assert task.state is ag.TaskState.STARTED
-    e.set()
-    assert task.state is ag.TaskState.FINISHED
+    async def async_func():
+        pass
+
+    task = ag.start(async_func())
+    assert task.finished
     with pytest.raises(ag.InvalidStateError):
         task._throw_exc(ZeroDivisionError)
+    assert task.finished
+    assert task._exception is None
 
 
 def test_throw_exc_to_started_task_and_get_caught():
@@ -241,15 +247,13 @@ def test_cancel_self():
 
 
 def test_cancel_without_starting_it():
-    from inspect import getcoroutinestate, CORO_CLOSED
     import asyncgui as ag
 
     task = ag.Task(ag.sleep_forever())
     task.cancel()
+    assert task._cancel_called
     assert task.cancelled
     assert task._exception is None
-    assert task.cancelled
-    assert getcoroutinestate(task.root_coro) == CORO_CLOSED
 
 
 def test_try_to_cancel_self_but_no_opportunity_for_that():
