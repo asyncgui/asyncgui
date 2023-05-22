@@ -35,3 +35,7 @@ flake8 = "^4.0.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+xfail_strict = true
+addopts = "--maxfail=4 --strict-markers"
