@@ -220,9 +220,9 @@ def start(aw: Aw_or_Task) -> Task:
 # -----------------------------------------------------------------------------
 
 @types.coroutine
-def current_task() -> t.Awaitable[Task]:
+def current_task(_f=lambda task: task._step(task)) -> t.Awaitable[Task]:
     '''Returns the Task instance corresponding to the caller.'''
-    return (yield lambda task: task._step(task))[0][0]
+    return (yield _f)[0][0]
 
 
 class disable_cancellation:
