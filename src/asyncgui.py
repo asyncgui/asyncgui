@@ -262,7 +262,7 @@ async def check_cancellation():
 
 @types.coroutine
 def sleep_forever(_f=lambda task: None):
-    return (yield _f)
+    yield _f
 
 
 class Event:

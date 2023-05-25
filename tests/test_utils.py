@@ -69,9 +69,7 @@ def test_sleep_forever():
     import asyncgui as ag
 
     async def main():
-        args, kwargs = await ag.sleep_forever()
-        assert args == (1, 2, )
-        assert kwargs == {'python': 'awesome', 'rust': 'awesome', }
+        assert (await ag.sleep_forever()) is None
 
     task = ag.start(main())
     assert not task.finished
