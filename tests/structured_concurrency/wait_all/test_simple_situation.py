@@ -279,3 +279,50 @@ class Test_disable_cancellation:
         assert not main_task.cancelled
         e.set()
         assert main_task.cancelled
+
+
+def test_no_errors_on_GeneratorExit():
+    import asyncgui as ag
+
+    async def main():
+        try:
+            await ag.wait_all(ag.sleep_forever())
+        except GeneratorExit:
+            nonlocal caught; caught = True
+            raise
+        await ag.sleep_forever()
+
+    caught = False
+    task = ag.start(main())
+    task.root_coro.close()
+    assert caught
+    assert task.cancelled
+
+
+def test_error_on_scoped_cancel():
+    import asyncgui as ag
+
+    async def main():
+        async with ag.open_cancel_scope() as scope:
+            with pytest.raises(ag.ExceptionGroup) as exc_info:
+                scope.cancel()
+                await ag.wait_all(fail_on_cancel())
+            assert [ZeroDivisionError, ] == [type(e) for e in exc_info.value.exceptions]
+            await ag.sleep_forever()
+            pytest.fail()
+
+    task = ag.start(main())
+    assert task.finished
+
+
+def test_no_errors_on_scoped_cancel():
+    import asyncgui as ag
+
+    async def main():
+        async with ag.open_cancel_scope() as scope:
+            scope.cancel()
+            await ag.wait_all(ag.sleep_forever())
+            pytest.fail()
+
+    task = ag.start(main())
+    assert task.finished
