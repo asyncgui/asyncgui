@@ -180,15 +180,14 @@ def test_必ず例外を起こす子_を複数持つ親を中断():
     import asyncgui as ag
     TS = ag.TaskState
 
-    async def main(e):
+    async def main():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
             await ag.wait_all(fail_on_cancel(), fail_on_cancel())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
-        await e.wait()
+        await ag.sleep_forever()
         pytest.fail("Failed to cancel")
 
-    e = ag.Event()
-    main_task = ag.Task(main(e))
+    main_task = ag.Task(main())
     ag.start(main_task)
     assert main_task.state is TS.STARTED
     main_task.cancel()
