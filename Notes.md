@@ -46,6 +46,22 @@ def async_func():
 ただこのやり方だと利用者が片方の例外を書き忘れる怖れがあって危険だと思う。
 ではcoroへの参照(実際にはcoroを包んでいるTaskへの参照)を何らかの方法で保持してGCに捨てられないようにしたらどうかという話になりますが、良い方法を思いつかないので独自例外は用いない方向でいく事にする。
 
+### 追記(2023/05/22)
+
+両方の例外を含んだtupleを用意してやれば利用者側が書き忘れる可能性は低いだろう。
+
+```python
+
+Cancelled = (GeneratorExit, 独自例外, )
+
+def async_func():
+    try:
+        ...
+    except Cancelled:
+        中断時に行いたい処理
+        raise
+```
+
 # coro.send()で例外が起きなかった場合でも状態がCORO_CLOSEDになる事がある
 
 `investigation/current_task_enlarges_the_call_stack.py` を実行して分かる通り `current_task()` だけを `await` しているとcall stackは肥っていく。
