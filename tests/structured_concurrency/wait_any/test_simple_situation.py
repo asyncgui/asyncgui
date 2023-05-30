@@ -139,7 +139,7 @@ def test_one_child_fails_soon():
 
 def test_multiple_children_fail_soon():
     '''
-    MultiErrorが起こるように思えるが、１つ目の子で例外が起こるや否や２つ目
+    ２つの例外が起こるように思えるが、１つ目の子で例外が起こるや否や２つ目
     は即中断されるため、２つ目では例外は起こらない
     '''
     import asyncgui as ag
@@ -161,7 +161,7 @@ def test_multiple_children_fail_soon():
 def test_multiple_children_fail():
     '''
     １つ目の子で例外が起こる事で２つ目が中断される。その時２つ目でも例外が
-    起きるためMultiErrorが湧く。
+    起きるため２つ例外が湧く。
     '''
     import asyncgui as ag
 
