@@ -101,7 +101,7 @@ class Task:
         return self._state is TaskState.CANCELLED
 
     @property
-    def result(self):
+    def result(self) -> t.Any:
         '''Result of the task. If the task hasn't finished yet,
         InvalidStateError will be raised.
         '''
@@ -350,6 +350,7 @@ dummy_task.cancel()
 # Utilities
 # -----------------------------------------------------------------------------
 
+
 class Event:
     '''Similar to 'trio.Event'. The difference is this one allows the user to
     pass value:
@@ -379,9 +380,9 @@ class Event:
             return
         self._flag = True
         self._value = value
-        waiting_tasks = self._waiting_tasks
+        tasks = self._waiting_tasks
         self._waiting_tasks = []
-        for task in waiting_tasks:
+        for task in tasks:
             task._step(value)
 
     def clear(self):
