@@ -1,7 +1,7 @@
 __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
     'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope',
-    'aclosing', 'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
+    'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
     'wait_all', 'wait_any', 'run_and_cancelling',
 )
 import types
@@ -394,23 +394,6 @@ class Event:
             return self._value
         else:
             return (yield self._waiting_tasks.append)[0][0]
-
-
-class aclosing:
-    '''(experimental)
-    async version of 'contextlib.closing()'.
-    '''
-
-    __slots__ = ('_agen', )
-
-    def __init__(self, agen):
-        self._agen = agen
-
-    async def __aenter__(self):
-        return self._agen
-
-    async def __aexit__(self, *__):
-        await self._agen.aclose()
 
 
 dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')

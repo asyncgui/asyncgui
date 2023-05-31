@@ -14,29 +14,6 @@ def test_current_task():
     assert finished
 
 
-def test_aclosing():
-    import asyncgui as ag
-    agen_closed = False
-
-    async def agen_func():
-        try:
-            for i in range(10):
-                yield i
-        finally:
-            nonlocal agen_closed;agen_closed = True
-
-    async def async_fn():
-        async with ag.aclosing(agen_func()) as agen:
-            async for i in agen:
-                if i > 1:
-                    break
-            assert not agen_closed
-        assert agen_closed
-
-    task = ag.start(async_fn())
-    assert task.finished
-
-
 def test_dummy_task():
     from asyncgui import dummy_task
     assert dummy_task.cancelled
