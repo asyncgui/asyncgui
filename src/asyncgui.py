@@ -57,7 +57,7 @@ class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
         'userdata', '_exception', '_suppresses_exception',
-        '_disable_cancellation', '_cancel_depth', '_cancel_level', '__weakref__',
+        '_disable_cancellation', '_cancel_depth', '_cancel_level',
     )
 
     _uid_iter = itertools.count()
