@@ -14,7 +14,7 @@ import enum
 
 
 # -----------------------------------------------------------------------------
-# Exceptions
+# Core
 # -----------------------------------------------------------------------------
 
 if sys.version_info < (3, 11):
@@ -36,10 +36,6 @@ class _Cancelled(BaseException):
 
 Cancelled = (_Cancelled, GeneratorExit, )
 
-
-# -----------------------------------------------------------------------------
-# Core (Task Runner)
-# -----------------------------------------------------------------------------
 
 class TaskState(enum.Flag):
     CREATED = enum.auto()
@@ -301,10 +297,6 @@ class open_cancel_scope:
         return self._scope.__exit__(*args)
 
 
-# -----------------------------------------------------------------------------
-# Utilities
-# -----------------------------------------------------------------------------
-
 @types.coroutine
 def current_task(_f=lambda task: task._step(task)) -> t.Awaitable[Task]:
     '''Returns the Task instance corresponding to the caller.'''
@@ -351,6 +343,13 @@ def sleep_forever(_f=lambda task: None):
     yield _f
 
 
+dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')
+dummy_task.cancel()
+
+# -----------------------------------------------------------------------------
+# Utilities
+# -----------------------------------------------------------------------------
+
 class Event:
     '''Similar to 'trio.Event'. The difference is this one allows the user to
     pass value:
@@ -395,14 +394,6 @@ class Event:
         else:
             return (yield self._waiting_tasks.append)[0][0]
 
-
-dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')
-dummy_task.cancel()
-
-
-# -----------------------------------------------------------------------------
-# Utilities (Structured Concurrency)
-# -----------------------------------------------------------------------------
 
 async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
     '''
