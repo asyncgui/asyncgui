@@ -82,3 +82,53 @@ async def async_fn():
 
 scope1とscope2は深さが同じであるため`scope1.cancel()`はscope2を中断させてしまう。
 これを防ぐためにはcontextmanager側が中断を取り消す必要がありそう。
+
+# ExceptionGroupを用いればcoroを閉じた時に発生した例外を外に運べるか？
+
+無理そう。
+
+```python
+# 環境 CPython 3.11.0
+
+from types import coroutine
+
+
+@coroutine
+def sleep_forever():
+    yield
+
+
+async def error_on_cleanup():
+    try:
+        await sleep_forever()
+    except GeneratorExit as e:
+        raise BaseExceptionGroup("error_on_cleanup", [e, ZeroDivisionError()])
+
+
+async def no_error_on_cleanup():
+    await sleep_forever()
+
+
+async def outer(async_fn):
+    try:
+        await async_fn()
+    except* GeneratorExit as e:
+        print("except* GeneratorExit:", repr(e))
+        # raise e.exceptions[0]
+        raise
+    except* ZeroDivisionError as e:
+        print("except* ZeroDivisionError:", repr(e))
+    assert False
+
+
+def main():
+    coro = outer(error_on_cleanup)
+    coro.send(None)
+    coro.close()
+
+    # coro = outer(no_error_on_cleanup)
+    # coro.send(None)
+    # coro.close()
+
+main()
+```
