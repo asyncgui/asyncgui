@@ -5,7 +5,7 @@ __all__ = (
     'wait_all', 'wait_any', 'run_and_cancelling',
 )
 import types
-import typing as t
+import typing as T
 from inspect import getcoroutinestate, CORO_CREATED, CORO_SUSPENDED, isawaitable
 import sys
 import itertools
@@ -85,7 +85,7 @@ class Task:
         return self._uid
 
     @property
-    def root_coro(self) -> t.Coroutine:
+    def root_coro(self) -> T.Coroutine:
         return self._root_coro
 
     @property
@@ -101,7 +101,7 @@ class Task:
         return self._state is TaskState.CANCELLED
 
     @property
-    def result(self) -> t.Any:
+    def result(self) -> T.Any:
         '''Result of the task. If the task hasn't finished yet,
         InvalidStateError will be raised.
         '''
@@ -209,7 +209,7 @@ class Task:
             self._cancel_if_needed()
 
 
-Aw_or_Task = t.Union[t.Awaitable, Task]
+Aw_or_Task = T.Union[T.Awaitable, Task]
 
 
 def start(aw: Aw_or_Task) -> Task:
@@ -298,7 +298,7 @@ class open_cancel_scope:
 
 
 @types.coroutine
-def current_task(_f=lambda task: task._step(task)) -> t.Awaitable[Task]:
+def current_task(_f=lambda task: task._step(task)) -> T.Awaitable[Task]:
     '''Returns the Task instance corresponding to the caller.'''
     return (yield _f)[0][0]
 
@@ -396,7 +396,7 @@ class Event:
             return (yield self._waiting_tasks.append)[0][0]
 
 
-async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
+async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for all of them to end. When any of them raises an exception,
     the others will be cancelled, and the exception will be propagated to the caller, like Trio's Nursery does.
@@ -459,7 +459,7 @@ async def wait_all(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  
             assert False, "This may be a bug of the library"
 
 
-async def wait_any(*aws: t.Iterable[Aw_or_Task]) -> t.Awaitable[t.List[Task]]:  # noqa: C901
+async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901
     '''
     Run multiple tasks concurrently, and wait for any of them to finish.
     As soon as that happens, the others will be cancelled, and the function will
