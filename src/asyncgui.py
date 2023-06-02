@@ -56,17 +56,18 @@ class TaskState(enum.Flag):
 class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
-        '_exception', '_suppresses_exception',
+        'userdata', '_exception', '_suppresses_exception',
         '_disable_cancellation', '_cancel_depth', '_cancel_level',
     )
 
     _uid_iter = itertools.count()
 
-    def __init__(self, awaitable, *, name=''):
+    def __init__(self, awaitable, *, name='', userdata=None):
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
         self.name = name
+        self.userdata = userdata
         self._disable_cancellation = 0
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
@@ -222,7 +223,7 @@ def start(aw: Aw_or_Task) -> Task:
     elif isinstance(aw, Task):
         task = aw
         if task._state is not TaskState.CREATED:
-            raise ValueError(f"{task} has already started")
+            raise ValueError(f"{task} was already started")
     else:
         raise ValueError("Argument must be either a Task or an awaitable.")
 
