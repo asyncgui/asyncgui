@@ -332,7 +332,6 @@ def test_reuse():
     assert task.finished
 
 
-@pytest.mark.xfail
 def test_reuse_the_internal_one():
     import asyncgui as ag
 
@@ -341,8 +340,9 @@ def test_reuse_the_internal_one():
         scope = ag.CancelScope(task)
         with scope:
             pass
-        with scope:
-            pass
+        with pytest.raises(Exception):
+            with scope:
+                pass
 
     task = ag.start(async_fn())
 

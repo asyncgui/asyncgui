@@ -268,8 +268,8 @@ def test_try_to_cancel_self_but_no_opportunity_for_that():
     assert task.finished
 
 
-@pytest.mark.xfail
 def test_weakref():
     import weakref
     import asyncgui as ag
-    weakref.ref(ag.dummy_task)
+    with pytest.raises(Exception):
+        weakref.ref(ag.dummy_task)
