@@ -1,28 +1,27 @@
-def test_background_task_gracefully_ends():
+def test_bg_finishes_before_fg_ends():
     import asyncgui as ag
 
     async def async_fn():
         TS = ag.TaskState
-        bg_e = ag.Event()
-        bg_task = ag.Task(bg_e.wait())
+        bg_task = ag.Task(ag.sleep_forever())
         with ag.run_and_cancelling(bg_task):
             assert bg_task.state is TS.STARTED
-            bg_e.set()
+            bg_task._step()
             assert bg_task.state is TS.FINISHED
 
-    main_task = ag.start(async_fn())
-    assert main_task.finished
+    fg_task = ag.start(async_fn())
+    assert fg_task.finished
 
 
-def test_background_task_gets_cancelled():
+def test_fg_finishes_before_bg_ends():
     import asyncgui as ag
 
     async def async_fn():
         TS = ag.TaskState
-        bg_task = ag.Task(ag.Event().wait())
+        bg_task = ag.Task(ag.sleep_forever())
         with ag.run_and_cancelling(bg_task):
             assert bg_task.state is TS.STARTED
         assert bg_task.state is TS.CANCELLED
 
-    main_task = ag.start(async_fn())
-    assert main_task.finished
+    fg_task = ag.start(async_fn())
+    assert fg_task.finished
