@@ -152,7 +152,7 @@ class Task:
 
     def _actual_cancel(self):
         try:
-            # TODO: 最後に coro.throw(_Cancelled(self._cancel_level)) でもいけるか試す?
+            # NOTE: _cancel_levelが0の時は末尾の関数呼び出し (self) は省いても良いかもしれない
             self._root_coro.throw(_Cancelled(self._cancel_level))(self)
         except StopIteration:
             pass
@@ -223,7 +223,7 @@ def start(aw: Aw_or_Task) -> Task:
     elif isinstance(aw, Task):
         task = aw
         if task._state is not TaskState.CREATED:
-            raise ValueError(f"{task} was already started")
+            raise ValueError(f"{task} has already started")
     else:
         raise ValueError("Argument must be either a Task or an awaitable.")
 
