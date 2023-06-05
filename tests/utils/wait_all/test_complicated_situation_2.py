@@ -85,5 +85,5 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
     ag.start(main_task)
     if not starts_immediately:
         ctx['e_begin'].set()
-    assert main_task._cancel_called
+    assert main_task._cancel_requested
     assert main_task.cancelled
