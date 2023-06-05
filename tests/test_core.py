@@ -66,11 +66,11 @@ def test_disable_cancellation():
     task = ag.Task(async_fn(e))
     ag.start(task)
     task.cancel()
-    assert task._disable_cancellation == 1
+    assert task._cancel_disabled == 1
     assert not task.cancelled
     assert not task._is_cancellable
     e.set()
-    assert task._disable_cancellation == 0
+    assert task._cancel_disabled == 0
     assert task.cancelled
 
 
@@ -84,22 +84,22 @@ def test_disable_cancellation__ver_nested():
         pytest.fail("Failed to cancel")
 
     async def inner_fn(e):
-        assert task._disable_cancellation == 1
+        assert task._cancel_disabled == 1
         async with ag.disable_cancellation():
-            assert task._disable_cancellation == 2
+            assert task._cancel_disabled == 2
             await e.wait()
-        assert task._disable_cancellation == 1
+        assert task._cancel_disabled == 1
 
     e = ag.Event()
     task = ag.Task(outer_fn(e))
-    assert task._disable_cancellation == 0
+    assert task._cancel_disabled == 0
     ag.start(task)
-    assert task._disable_cancellation == 2
+    assert task._cancel_disabled == 2
     task.cancel()
     assert not task.cancelled
     assert not task._is_cancellable
     e.set()
-    assert task._disable_cancellation == 0
+    assert task._cancel_disabled == 0
     assert task.cancelled
 
 
@@ -118,7 +118,7 @@ def test_disable_cancellation__ver_self():
     ag.start(task)
     assert not task.cancelled
     assert not task._is_cancellable
-    assert task._disable_cancellation == 1
+    assert task._cancel_disabled == 1
     task._step()
     assert task.cancelled
-    assert task._disable_cancellation == 0
+    assert task._cancel_disabled == 0

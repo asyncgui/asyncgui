@@ -56,8 +56,8 @@ class TaskState(enum.Flag):
 class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
-        'userdata', '_exception', '_suppresses_exception',
-        '_disable_cancellation', '_cancel_depth', '_cancel_level',
+        'userdata', '_exc_caught', '_suppresses_exc',
+        '_cancel_disabled', '_cancel_depth', '_cancel_level',
     )
 
     _uid_iter = itertools.count()
@@ -68,14 +68,14 @@ class Task:
         self._uid = next(self._uid_iter)
         self.name = name
         self.userdata = userdata
-        self._disable_cancellation = 0
+        self._cancel_disabled = 0
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
         self._on_end = None
         self._cancel_depth = 0
         self._cancel_level = None
-        self._exception = None
-        self._suppresses_exception = False
+        self._exc_caught = None
+        self._suppresses_exc = False
 
     def __str__(self):
         return f'Task(state={self._state.name}, uid={self._uid}, name={self.name!r})'
@@ -123,8 +123,8 @@ class Task:
             self._cancel_level == 0, "This may be a bug of the library"
         except Exception as e:
             self._state = TaskState.CANCELLED
-            self._exception = e
-            if not self._suppresses_exception:
+            self._exc_caught = e
+            if not self._suppresses_exc:
                 raise
         except:  # noqa: E722
             self._state = TaskState.CANCELLED
@@ -142,7 +142,7 @@ class Task:
             self._cancel_level = _level
             state = getcoroutinestate(self._root_coro)
             if state == CORO_SUSPENDED:
-                if not self._disable_cancellation:
+                if not self._cancel_disabled:
                     self._actual_cancel()
             elif state == CORO_CREATED:
                 self._root_coro.close()
@@ -163,23 +163,16 @@ class Task:
     close = cancel
 
     @property
-    def _cancel_called(self) -> bool:
-        '''Whether the task needs to be cancelled.'''
+    def _cancel_requested(self) -> bool:
         return self._cancel_level is not None
 
     @property
     def _is_cancellable(self, getcoroutinestate=getcoroutinestate, CORO_SUSPENDED=CORO_SUSPENDED) -> bool:
         '''Whether the task can immediately be cancelled.'''
-        return (not self._disable_cancellation) and getcoroutinestate(self._root_coro) == CORO_SUSPENDED
+        return (not self._cancel_disabled) and getcoroutinestate(self._root_coro) == CORO_SUSPENDED
 
     def _cancel_if_needed(self, getcoroutinestate=getcoroutinestate, CORO_SUSPENDED=CORO_SUSPENDED):
-        # やってる事は
-        #
-        # if self._cancel_called and self._is_cancellable:
-        #     self._actual_cancel()
-        #
-        # と同じ
-        if (self._cancel_level is None) or self._disable_cancellation or \
+        if (self._cancel_level is None) or self._cancel_disabled or \
                 (getcoroutinestate(self._root_coro) != CORO_SUSPENDED):
             pass
         else:
@@ -321,10 +314,10 @@ class disable_cancellation:
 
     async def __aenter__(self):
         self._task = task = await current_task()
-        task._disable_cancellation += 1
+        task._cancel_disabled += 1
 
     async def __aexit__(self, *__):
-        self._task._disable_cancellation -= 1
+        self._task._cancel_disabled -= 1
 
 
 async def check_cancellation():
@@ -334,7 +327,7 @@ async def check_cancellation():
     immediately. Otherwise, does nothing.
     '''
     task = await current_task()
-    if task._cancel_called and not task._disable_cancellation:
+    if task._cancel_requested and not task._cancel_disabled:
         await sleep_forever()
 
 
@@ -418,7 +411,7 @@ async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
     def on_child_end(child: Task):
         nonlocal n_left
         n_left -= 1
-        if (e := child._exception) is not None:
+        if (e := child._exc_caught) is not None:
             exceptions.append(e)
             scope.cancel()
         if parent_step is not None and (not n_left):
@@ -428,10 +421,10 @@ async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
     try:
         with CancelScope(parent) as scope:
             for c in children:
-                c._suppresses_exception = True
+                c._suppresses_exc = True
                 c._on_end = on_child_end
                 start(c)
-            if exceptions or parent._cancel_called:
+            if exceptions or parent._cancel_requested:
                 await sleep_forever()
                 assert False, "This may be a bug of the library"
             elif n_left:
@@ -447,14 +440,14 @@ async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
         if n_left:
             parent_step = parent._step
             try:
-                parent._disable_cancellation += 1
+                parent._cancel_disabled += 1
                 await sleep_forever()
             finally:
                 parent_step = None
-                parent._disable_cancellation -= 1
+                parent._cancel_disabled -= 1
         if exceptions:
             raise ExceptionGroup("One or more exceptions occurred in child tasks.", exceptions)
-        elif parent._cancel_called:
+        elif parent._cancel_requested:
             await sleep_forever()
             assert False, "This may be a bug of the library"
 
@@ -565,7 +558,7 @@ async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
     def on_child_end(child: Task):
         nonlocal n_left
         n_left -= 1
-        if (e := child._exception) is not None:
+        if (e := child._exc_caught) is not None:
             exceptions.append(e)
             scope.cancel()
         elif child.finished or (not n_left):
@@ -576,7 +569,7 @@ async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
     try:
         with CancelScope(parent) as scope:
             for c in children:
-                c._suppresses_exception = True
+                c._suppresses_exc = True
                 c._on_end = on_child_end
                 start(c)
             await sleep_forever()
@@ -587,14 +580,14 @@ async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
         if n_left:
             parent_step = parent._step
             try:
-                parent._disable_cancellation += 1
+                parent._cancel_disabled += 1
                 await sleep_forever()
             finally:
                 parent_step = None
-                parent._disable_cancellation -= 1
+                parent._cancel_disabled -= 1
         if exceptions:
             raise ExceptionGroup("One or more exceptions occurred in child tasks.", exceptions)
-        elif parent._cancel_called:
+        elif parent._cancel_requested:
             await sleep_forever()
             assert False, "This may be a bug of the library"
         return children
