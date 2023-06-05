@@ -23,6 +23,11 @@ else:
     BaseExceptionGroup = BaseExceptionGroup
     ExceptionGroup = ExceptionGroup
 
+potential_bug_msg = '''
+This may be a bug of this library. Please make a minimal code that reproduces the bug, and open an issue at the GitHub
+repository. (https://github.com/gottadiveintopython/asyncgui).
+'''
+
 
 class InvalidStateError(Exception):
     """The operation is not allowed in the current state."""
@@ -119,8 +124,8 @@ class Task:
             self._result = await awaitable
         except _Cancelled as e:
             self._state = TaskState.CANCELLED
-            e.level == 0, "This may be a bug of the library"
-            self._cancel_level == 0, "This may be a bug of the library"
+            e.level == 0, potential_bug_msg
+            self._cancel_level == 0, potential_bug_msg
         except Exception as e:
             self._state = TaskState.CANCELLED
             self._exc_caught = e
@@ -132,7 +137,7 @@ class Task:
         else:
             self._state = TaskState.FINISHED
         finally:
-            assert self._cancel_depth == 0, "This may be a bug of the library"
+            assert self._cancel_depth == 0, potential_bug_msg
             if (on_end := self._on_end) is not None:
                 on_end(self)
 
@@ -256,7 +261,7 @@ class CancelScope:
             if level == depth:
                 task._cancel_level = None
             else:
-                assert level < depth, "This may be a bug of the library"
+                assert level < depth, potential_bug_msg
         if exc_type is not _Cancelled:
             return
         level = exc.level
@@ -264,7 +269,7 @@ class CancelScope:
             self.cancelled_caught = True
             return True
         else:
-            assert level < depth, "This may be a bug of the library"
+            assert level < depth, potential_bug_msg
 
     @property
     def closed(self) -> bool:
@@ -426,7 +431,7 @@ async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
                 start(c)
             if exceptions or parent._cancel_requested:
                 await sleep_forever()
-                assert False, "This may be a bug of the library"
+                assert False, potential_bug_msg
             elif n_left:
                 parent_step = parent._step
                 await sleep_forever()
@@ -449,7 +454,7 @@ async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
             raise ExceptionGroup("One or more exceptions occurred in child tasks.", exceptions)
         elif parent._cancel_requested:
             await sleep_forever()
-            assert False, "This may be a bug of the library"
+            assert False, potential_bug_msg
 
 
 async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901
@@ -573,7 +578,7 @@ async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
                 c._on_end = on_child_end
                 start(c)
             await sleep_forever()
-            assert False, "This may be a bug of the library"
+            assert False, potential_bug_msg
     finally:
         for c in children:
             c.cancel()
@@ -589,7 +594,7 @@ async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
             raise ExceptionGroup("One or more exceptions occurred in child tasks.", exceptions)
         elif parent._cancel_requested:
             await sleep_forever()
-            assert False, "This may be a bug of the library"
+            assert False, potential_bug_msg
         return children
 
 
