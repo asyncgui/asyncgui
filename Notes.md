@@ -132,3 +132,12 @@ def main():
 
 main()
 ```
+
+# Task-Local Storage の実装
+
+どのようなやり方でいくか悩ましい。
+
+- contextvars
+  - GeneratorExitが起きた時にどのようにContext内でコルーチンを動かせば良いのか分からない。
+- TaskTree-Local Storage
+  - `wait_any()` や `wait_all()` で築かれた親子に同じStorageを共有させる？

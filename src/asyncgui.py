@@ -61,18 +61,17 @@ class TaskState(enum.Flag):
 class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
-        'userdata', '_exc_caught', '_suppresses_exc',
+        '_exc_caught', '_suppresses_exc',
         '_cancel_disabled', '_cancel_depth', '_cancel_level',
     )
 
     _uid_iter = itertools.count()
 
-    def __init__(self, awaitable, *, name='', userdata=None):
+    def __init__(self, awaitable):
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
-        self.name = name
-        self.userdata = userdata
+        self.name = ""
         self._cancel_disabled = 0
         self._root_coro = self._wrapper(awaitable)
         self._state = TaskState.CREATED
@@ -341,8 +340,9 @@ def sleep_forever(_f=lambda task: None):
     yield _f
 
 
-dummy_task = Task(sleep_forever(), name='asyncgui.dummy_task')
+dummy_task = Task(sleep_forever())
 dummy_task.cancel()
+dummy_task.name = r"asyncgui.dummy_task"
 
 # -----------------------------------------------------------------------------
 # Utilities
