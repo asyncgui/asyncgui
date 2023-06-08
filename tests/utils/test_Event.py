@@ -53,51 +53,6 @@ def test_clear():
     assert task_state == 'D'
 
 
-def test_pass_argument():
-    import asyncgui as ag
-    e = ag.Event()
-
-    async def main(e):
-        assert await e.wait() == 'A'
-
-    task = ag.start(main(e))
-    assert not task.finished
-    e.set('A')
-    assert task.finished
-
-
-def test_reset_value():
-    import asyncgui as ag
-    e = ag.Event()
-
-    async def async_fn1(e):
-        assert await e.wait() == 'A'
-        e.clear()
-        e.set('B')
-
-    async def async_fn2(e):
-        assert await e.wait() == 'A'
-        assert await e.wait() == 'B'
-
-    task1 = ag.start(async_fn1(e))
-    task2 = ag.start(async_fn2(e))
-    assert not task1.finished
-    assert not task2.finished
-    e.set('A')
-    assert task1.finished
-    assert task2.finished
-
-
-def test_regular_gen():
-    import asyncgui as ag
-
-    def regular_gen():
-        yield 1
-
-    with pytest.raises(ValueError):
-        ag.start(regular_gen())
-
-
 def test_weakref():
     import weakref
     from asyncgui import Event

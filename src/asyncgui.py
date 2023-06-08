@@ -350,48 +350,46 @@ dummy_task.name = r"asyncgui.dummy_task"
 
 
 class Event:
-    '''Similar to 'trio.Event'. The difference is this one allows the user to
-    pass value:
+    '''
+    Equivalent of :class:`asyncio.Event`.
+
+    Difference
+    ----------
+
+    :meth:`set` accepts any number of arguments and doesn't use them at all so it can be a callback function of any
+    library.
 
     .. code-block::
 
-        import asyncgui as ag
-
-        e = ag.Event()
-        async def task():
-            assert await e.wait() == 'A'
-        ag.start(task())
-        e.set('A')
+        e = Event()
+        any_library.register_callback(e.set)
     '''
-    __slots__ = ('_value', '_flag', '_waiting_tasks', '__weakref__', )
+
+    __slots__ = ('_flag', '_waiting_tasks', '__weakref__', )
 
     def __init__(self):
-        self._value = None
         self._flag = False
         self._waiting_tasks = []
 
     def is_set(self):
         return self._flag
 
-    def set(self, value=None):
+    def set(self, *args, **kwargs):
         if self._flag:
             return
         self._flag = True
-        self._value = value
         tasks = self._waiting_tasks
         self._waiting_tasks = []
-        for task in tasks:
-            task._step(value)
+        for t in tasks:
+            t._step()
 
     def clear(self):
         self._flag = False
 
     @types.coroutine
     def wait(self):
-        if self._flag:
-            return self._value
-        else:
-            return (yield self._waiting_tasks.append)[0][0]
+        if not self._flag:
+            yield self._waiting_tasks.append
 
 
 async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901
