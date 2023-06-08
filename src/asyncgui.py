@@ -172,7 +172,7 @@ class Task:
         return self._cancel_level is not None
 
     @property
-    def _is_cancellable(self, getcoroutinestate=getcoroutinestate, CORO_SUSPENDED=CORO_SUSPENDED) -> bool:
+    def _is_cancellable(self) -> bool:
         '''Whether the task can immediately be cancelled.'''
         return (not self._cancel_disabled) and getcoroutinestate(self._root_coro) == CORO_SUSPENDED
 
