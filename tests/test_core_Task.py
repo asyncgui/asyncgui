@@ -53,7 +53,7 @@ def test_the_state_and_the_result__ver_cancel():
         task_state = 'C'
         return 'result'
 
-    task = ag.Task(async_fn(), name='pytest')
+    task = ag.Task(async_fn())
     assert task.state is TS.CREATED
     assert task._exc_caught is None
     assert task_state == 'A'
@@ -89,7 +89,7 @@ def test_the_state_and_the_result__ver_uncaught_exception():
         raise ZeroDivisionError
         return 'result'
 
-    task = ag.Task(async_fn(), name='pytest')
+    task = ag.Task(async_fn())
     assert task.state is TS.CREATED
     assert task._exc_caught is None
     assert task_state == 'A'
@@ -127,7 +127,7 @@ def test_the_state_and_the_result__ver_uncaught_exception_2():
         task_state = 'C'
         return 'result'
 
-    task = ag.Task(async_fn(), name='pytest')
+    task = ag.Task(async_fn())
     assert task.state is TS.CREATED
     assert task._exc_caught is None
     assert task_state == 'A'
@@ -156,7 +156,7 @@ def test_throw_exc_to_unstarted_task():
     import asyncgui as ag
     TS = ag.TaskState
 
-    task = ag.Task(ag.sleep_forever(), name='pytest')
+    task = ag.Task(ag.sleep_forever())
     assert task.state is TS.CREATED
     with pytest.raises(ag.InvalidStateError):
         task._throw_exc(ZeroDivisionError)
@@ -222,7 +222,7 @@ def test_suppress_exception(do_suppress):
     async def async_fn():
         raise ZeroDivisionError
 
-    task = ag.Task(async_fn(), name='pytest')
+    task = ag.Task(async_fn())
     task._suppresses_exc = do_suppress
     with nullcontext() if do_suppress else pytest.raises(ZeroDivisionError):
         ag.start(task)
