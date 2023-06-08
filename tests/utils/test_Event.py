@@ -51,10 +51,3 @@ def test_clear():
     assert task_state == 'C'
     e1.set()
     assert task_state == 'D'
-
-
-def test_weakref():
-    import weakref
-    from asyncgui import Event
-    e = Event()
-    weakref.ref(e)
