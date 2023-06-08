@@ -365,7 +365,7 @@ class Event:
         any_library.register_callback(e.set)
     '''
 
-    __slots__ = ('_flag', '_waiting_tasks', '__weakref__', )
+    __slots__ = ('_flag', '_waiting_tasks', )
 
     def __init__(self):
         self._flag = False
