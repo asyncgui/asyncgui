@@ -1,7 +1,7 @@
 import pytest
 
 
-def test_multiple_tasks():
+def test_wait_then_set():
     import asyncgui as ag
     TS = ag.TaskState
     e = ag.Event()
@@ -14,16 +14,15 @@ def test_multiple_tasks():
     assert task2.state is TS.FINISHED
 
 
-def test_set_before_task_starts():
+def test_set_then_wait():
     import asyncgui as ag
+    TS = ag.TaskState
     e = ag.Event()
     e.set()
-
-    async def main():
-        await e.wait()
-
-    task = ag.start(main())
-    assert task.finished
+    task1 = ag.start(e.wait())
+    task2 = ag.start(e.wait())
+    assert task1.state is TS.FINISHED
+    assert task2.state is TS.FINISHED
 
 
 def test_clear():
@@ -47,6 +46,7 @@ def test_clear():
     e1.set()
     assert task_state == 'B'
     e1.clear()
+    assert task_state == 'B'
     e2.set()
     assert task_state == 'C'
     e1.set()
