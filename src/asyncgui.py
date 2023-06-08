@@ -381,15 +381,22 @@ class Event:
         tasks = self._waiting_tasks
         self._waiting_tasks = []
         for t in tasks:
-            t._step()
+            if t is not None:
+                t._step()
 
     def clear(self):
         self._flag = False
 
     @types.coroutine
     def wait(self):
-        if not self._flag:
+        if self._flag:
+            return
+        try:
+            tasks = self._waiting_tasks
+            idx = len(tasks)
             yield self._waiting_tasks.append
+        finally:
+            tasks[idx] = None
 
 
 async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901

@@ -51,3 +51,55 @@ def test_clear():
     assert task_state == 'C'
     e1.set()
     assert task_state == 'D'
+
+
+def test_cancel():
+    import asyncgui as ag
+    TS = ag.TaskState
+
+    async def async_fn(ctx, e):
+        async with ag.open_cancel_scope() as scope:
+            ctx['scope'] = scope
+            await e.wait()
+            pytest.fail()
+        await ag.sleep_forever()
+
+    ctx = {}
+    e = ag.Event()
+    task = ag.start(async_fn(ctx, e))
+    assert task.state is TS.STARTED
+    ctx['scope'].cancel()
+    assert task.state is TS.STARTED
+    e.set()
+    assert task.state is TS.STARTED
+    task._step()
+    assert task.state is TS.FINISHED
+
+
+def test_complicated_cancel():
+    import asyncgui as ag
+    TS = ag.TaskState
+
+    async def async_fn_1(ctx, e):
+        await e.wait()
+        ctx['scope'].cancel()
+
+    async def async_fn_2(ctx, e):
+        async with ag.open_cancel_scope() as scope:
+            ctx['scope'] = scope
+            await e.wait()
+            pytest.fail()
+        await ag.sleep_forever()
+
+    ctx = {}
+    e = ag.Event()
+    task1 = ag.start(async_fn_1(ctx, e))
+    task2 = ag.start(async_fn_2(ctx, e))
+    assert e._waiting_tasks == [task1, task2, ]
+    assert task2.state is TS.STARTED
+    e.set()
+    assert task1.state is TS.FINISHED
+    assert task2.state is TS.STARTED
+    assert e._waiting_tasks == []
+    task2._step()
+    assert task2.state is TS.FINISHED
