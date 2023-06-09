@@ -1,8 +1,8 @@
 __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
-    'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope',
+    'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope', 'CancelScope',
     'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
-    'wait_all', 'wait_any', 'run_and_cancelling',
+    'wait_all', 'wait_any', 'run_and_cancelling', 'OnetimeBox',
 )
 import types
 import typing as T
@@ -647,3 +647,42 @@ def _rac_on_bg_task_end(end_signal, scope, bg_task):
     if bg_task._exc_caught is not None:
         scope.cancel()
     end_signal.set()
+
+
+class OnetimeBox:
+    '''
+    (internal)
+    A box that you can put/get an item only once.
+    '''
+
+    __slots__ = ('_args', '_kwargs', '_getter', '_get_async_called', )
+
+    def __init__(self):
+        self._args = None
+        self._kwargs = None
+        self._getter = None
+        self._get_async_called = False
+
+    def put(self, *args, **kwargs):
+        if self._args is not None:
+            raise InvalidStateError("put() has been already called")
+        self._args = args
+        self._kwargs = kwargs
+        if (getter := self._getter) is not None:
+            getter._step(*args, **kwargs)
+
+    @types.coroutine
+    def get_async(self) -> T.Awaitable[T.Tuple[tuple, dict]]:
+        if self._get_async_called:
+            raise InvalidStateError("get_async() has been already called")
+        self._get_async_called = True
+        if self._args is None:
+            try:
+                return (yield self._store_getter)
+            finally:
+                self._getter = None
+        else:
+            return (self._args, self._kwargs, )
+
+    def _store_getter(self, task):
+        self._getter = task
