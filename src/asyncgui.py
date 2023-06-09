@@ -243,7 +243,7 @@ class CancelScope:
         self.cancelled_caught = False
         self.cancell_called = False
 
-    def __enter__(self):
+    def __enter__(self) -> 'CancelScope':
         t = self._task
         t._cancel_depth = self._depth = t._cancel_depth + 1
         return self
@@ -286,7 +286,7 @@ class open_cancel_scope:
     '''(experimental)'''
     __slots__ = ('_scope', )
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> T.Awaitable[CancelScope]:
         self._scope = CancelScope(await current_task())
         return self._scope.__enter__()
 
