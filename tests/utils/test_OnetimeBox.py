@@ -78,8 +78,9 @@ def test_put_get_get():
         args, kwargs = await box.get_async()
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
-        with pytest.raises(ag.InvalidStateError):
-            await box.get_async()
+        args, kwargs = await box.get_async()
+        assert args == (None, )
+        assert kwargs == {'python': 'awesome', }
 
     task = ag.start(async_fn())
     assert task.finished
@@ -92,8 +93,9 @@ def test_get_put_get():
         args, kwargs = await box.get_async()
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
-        with pytest.raises(ag.InvalidStateError):
-            await box.get_async()
+        args, kwargs = await box.get_async()
+        assert args == (None, )
+        assert kwargs == {'python': 'awesome', }
 
     box = ag.OnetimeBox()
     task = ag.start(async_fn(box))
@@ -140,3 +142,16 @@ def test_cancel():
     assert task.state is TS.STARTED
     task._step()
     assert task.state is TS.FINISHED
+
+
+def test_sync_get():
+    import asyncgui as ag
+
+    box = ag.OnetimeBox()
+    with pytest.raises(ag.InvalidStateError):
+        box.get()
+    box.put(None, python='awesome')
+    args, kwargs = box.get()
+    assert args == (None, )
+    assert kwargs == {'python': 'awesome', }
+    args, kwargs = box.get()

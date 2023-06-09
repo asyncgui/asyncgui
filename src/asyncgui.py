@@ -652,30 +652,40 @@ def _rac_on_bg_task_end(end_signal, scope, bg_task):
 class OnetimeBox:
     '''
     (internal)
-    A box that you can put/get an item only once.
+    An item box with the following limitations.
+
+    * You can put an item in it only once.
+    * Only one task can get an item from it at a time.
     '''
 
-    __slots__ = ('_args', '_kwargs', '_getter', '_get_async_called', )
+    __slots__ = ('_args', '_kwargs', '_getter', )
 
     def __init__(self):
         self._args = None
         self._kwargs = None
         self._getter = None
-        self._get_async_called = False
+
+    @property
+    def is_empty(self) -> bool:
+        return self._args is None
 
     def put(self, *args, **kwargs):
         if self._args is not None:
-            raise InvalidStateError("put() has been already called")
+            raise InvalidStateError("The box already has an item.")
         self._args = args
         self._kwargs = kwargs
         if (getter := self._getter) is not None:
             getter._step(*args, **kwargs)
 
+    def get(self) -> T.Tuple[tuple, dict]:
+        if self._args is None:
+            raise InvalidStateError("The box is empty.")
+        return (self._args, self._kwargs, )
+
     @types.coroutine
     def get_async(self) -> T.Awaitable[T.Tuple[tuple, dict]]:
-        if self._get_async_called:
-            raise InvalidStateError("get_async() has been already called")
-        self._get_async_called = True
+        if self._getter is not None:
+            raise InvalidStateError("There is already a task trying to get an item from this box.")
         if self._args is None:
             try:
                 return (yield self._store_getter)
