@@ -9,9 +9,9 @@ import typing as T
 from inspect import getcoroutinestate, CORO_CREATED, CORO_SUSPENDED, isawaitable
 import sys
 import itertools
-from functools import cached_property
+from functools import cached_property, partial
 import enum
-
+from contextlib import asynccontextmanager
 
 # -----------------------------------------------------------------------------
 # Core
@@ -603,19 +603,47 @@ async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  
         return children
 
 
-class run_and_cancelling:
+@asynccontextmanager
+async def run_and_cancelling(aw: Aw_or_Task) -> T.AsyncIterator[Task]:
     '''
-    Almost same as :func:`trio_util.run_and_cancelling`.
-    The difference is that this one is a regular context manager not an async one.
+    Equivalent of :func:`trio_util.run_and_cancelling`.
     '''
 
-    __slots__ = ('_aw', '_task', )
+    bg_task = start(aw)
+    if bg_task._state in TaskState.ENDED:
+        yield bg_task
+        return
 
-    def __init__(self, aw: Aw_or_Task):
-        self._aw = aw
+    fg_task = await current_task()
+    end_signal = Event()
+    exc = None
 
-    def __enter__(self):
-        self._task = start(self._aw)
+    try:
+        with CancelScope(fg_task) as scope:
+            bg_task._suppresses_exc = True
+            bg_task._on_end = partial(_rac_on_bg_task_end, end_signal, scope)
+            yield bg_task
+    except Exception as e:
+        exc = e
+    finally:
+        bg_task.cancel()
+        try:
+            fg_task._cancel_disabled += 1
+            await end_signal.wait()
+        finally:
+            fg_task._cancel_disabled -= 1
+        excs = tuple(
+            e for e in (exc, bg_task._exc_caught, )
+            if e is not None
+        )
+        if excs:
+            raise ExceptionGroup("run_and_cancelling()", excs)
+        elif fg_task._cancel_level is not None:
+            await sleep_forever()
+            assert False, potential_bug_msg
 
-    def __exit__(self, *__):
-        self._task.cancel()
+
+def _rac_on_bg_task_end(end_signal, scope, bg_task):
+    if bg_task._exc_caught is not None:
+        scope.cancel()
+    end_signal.set()
