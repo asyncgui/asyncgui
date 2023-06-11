@@ -669,7 +669,7 @@ class OnetimeBox:
     def is_empty(self) -> bool:
         return self._args is None
 
-    def put(self, *args, **kwargs):
+    def put_nowait(self, *args, **kwargs):
         if self._args is not None:
             raise InvalidStateError("The box already has an item.")
         self._args = args
@@ -677,13 +677,13 @@ class OnetimeBox:
         if (getter := self._getter) is not None:
             getter._step(*args, **kwargs)
 
-    def get(self) -> T.Tuple[tuple, dict]:
+    def get_nowait(self) -> T.Tuple[tuple, dict]:
         if self._args is None:
             raise InvalidStateError("The box is empty.")
         return (self._args, self._kwargs, )
 
     @types.coroutine
-    def get_async(self) -> T.Awaitable[T.Tuple[tuple, dict]]:
+    def get(self) -> T.Awaitable[T.Tuple[tuple, dict]]:
         if self._getter is not None:
             raise InvalidStateError("There is already a task trying to get an item from this box.")
         if self._args is None:
