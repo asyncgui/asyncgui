@@ -657,22 +657,16 @@ class OnetimeBox:
     * Only one task can :meth:`get` an item from it at a time.
     '''
 
-    __slots__ = ('_args', '_kwargs', '_getter', )
+    __slots__ = ('_item', '_getter', )
 
     def __init__(self):
-        self._args = None
-        self._kwargs = None
+        self._item = None
         self._getter = None
 
-    @property
-    def is_empty(self) -> bool:
-        return self._args is None
-
     def put(self, *args, **kwargs):
-        if self._args is not None:
+        if self._item is not None:
             return
-        self._args = args
-        self._kwargs = kwargs
+        self._item = (args, kwargs, )
         if (getter := self._getter) is not None:
             getter._step(*args, **kwargs)
 
@@ -680,13 +674,13 @@ class OnetimeBox:
     def get(self) -> T.Awaitable[T.Tuple[tuple, dict]]:
         if self._getter is not None:
             raise InvalidStateError("There is already a task trying to get an item from this box.")
-        if self._args is None:
+        if self._item is None:
             try:
                 return (yield self._store_getter)
             finally:
                 self._getter = None
         else:
-            return (self._args, self._kwargs, )
+            return self._item
 
     def _store_getter(self, task):
         self._getter = task
