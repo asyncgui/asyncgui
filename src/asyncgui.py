@@ -654,7 +654,7 @@ class OnetimeBox:
     (internal)
     An item box with the following limitations.
 
-    * You can put an item in it only once.
+    * You can put an item in it only once. Calling :meth:`put_nowait` more than once will be ignored.
     * Only one task can get an item from it at a time.
     '''
 
@@ -671,7 +671,7 @@ class OnetimeBox:
 
     def put_nowait(self, *args, **kwargs):
         if self._args is not None:
-            raise InvalidStateError("The box already has an item.")
+            return
         self._args = args
         self._kwargs = kwargs
         if (getter := self._getter) is not None:

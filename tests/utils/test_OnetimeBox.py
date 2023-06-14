@@ -37,8 +37,7 @@ def test_put_put():
     async def async_fn():
         box = ag.OnetimeBox()
         box.put_nowait(None)
-        with pytest.raises(ag.InvalidStateError):
-            box.put_nowait(None)
+        box.put_nowait(None)
 
     task = ag.start(async_fn())
     assert task.finished
@@ -62,8 +61,7 @@ def test_put_get_put():
         args, kwargs = await box.get()
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
-        with pytest.raises(ag.InvalidStateError):
-            box.put_nowait(None, python='awesome')
+        box.put_nowait(None, python='awesome')
 
     task = ag.start(async_fn())
     assert task.finished
@@ -117,8 +115,7 @@ def test_get_put_put():
     assert task.state is ag.TaskState.STARTED
     box.put_nowait(None, python='awesome')
     assert task.finished
-    with pytest.raises(ag.InvalidStateError):
-        box.put_nowait(None, python='awesome')
+    box.put_nowait(None, python='awesome')
 
 
 def test_cancel():
