@@ -677,11 +677,6 @@ class OnetimeBox:
         if (getter := self._getter) is not None:
             getter._step(*args, **kwargs)
 
-    def get_nowait(self) -> T.Tuple[tuple, dict]:
-        if self._args is None:
-            raise InvalidStateError("The box is empty.")
-        return (self._args, self._kwargs, )
-
     @types.coroutine
     def get(self) -> T.Awaitable[T.Tuple[tuple, dict]]:
         if self._getter is not None:

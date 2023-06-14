@@ -139,16 +139,3 @@ def test_cancel():
     assert task.state is TS.STARTED
     task._step()
     assert task.state is TS.FINISHED
-
-
-def test_get_nowait():
-    import asyncgui as ag
-
-    box = ag.OnetimeBox()
-    with pytest.raises(ag.InvalidStateError):
-        box.get_nowait()
-    box.put_nowait(None, python='awesome')
-    args, kwargs = box.get_nowait()
-    assert args == (None, )
-    assert kwargs == {'python': 'awesome', }
-    args, kwargs = box.get_nowait()
