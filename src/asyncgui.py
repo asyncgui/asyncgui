@@ -2,7 +2,8 @@ __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
     'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope', 'CancelScope',
     'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
-    'wait_all', 'wait_any', 'run_and_cancelling', 'OnetimeBox',
+    'wait_all', 'wait_any', 'run_and_cancelling',
+    'IBox',
 )
 import types
 import typing as T
@@ -649,12 +650,17 @@ def _rac_on_bg_task_end(end_signal, scope, bg_task):
     end_signal.set()
 
 
-class OnetimeBox:
+class IBox:
     '''
     An item box with the following limitations.
 
     * You can :meth:`put` an item in it only once. Doing it more than once will be ignored.
     * Only one task can :meth:`get` an item from it at a time.
+
+    .. note::
+
+        This exists for the purpose of building an async/await-based api from a callback-based api.
+        Using it for any other purpose is not recommended.
     '''
 
     __slots__ = ('_item', '_getter', )
