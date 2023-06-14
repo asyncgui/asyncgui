@@ -3,7 +3,7 @@ __all__ = (
     'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope', 'CancelScope',
     'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
     'wait_all', 'wait_any', 'run_and_cancelling',
-    'IBox',
+    'IBox', 'ISignal', 
 )
 import types
 import typing as T
@@ -398,6 +398,48 @@ class Event:
             yield self._waiting_tasks.append
         finally:
             tasks[idx] = None
+
+
+class ISignal:
+    '''
+    Same as :class:`Event` except:
+
+    * This one doesn't have ``clear()`` and ``is_set()``.
+    * Only one task can :meth:`wait` at a time.
+
+    The reason this is introduced
+    -----------------------------
+
+    It's quite common that only one task waits for an event to be fired,
+    and :class:`Event` may be over-kill in that situation because it is designed to accept multiple tasks.
+    '''
+
+    __slots__ = ('_flag', '_task', )
+
+    def __init__(self):
+        self._flag = False
+        self._task = None
+
+    def set(self, *args, **kwargs):
+        if self._flag:
+            return
+        self._flag = True
+        if (t := self._task) is not None:
+            t._step()
+
+    @types.coroutine
+    def wait(self) -> T.Awaitable:
+        if self._flag:
+            return
+        if self._task is not None:
+            raise InvalidStateError("There is already a task waiting for this signal to set.")
+        try:
+            yield self._store_task
+        finally:
+            self._task = None
+
+    def _store_task(self, task):
+        self._task = task
 
 
 async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901
