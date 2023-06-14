@@ -6,7 +6,7 @@ def test_put_get():
 
     async def async_fn():
         box = ag.OnetimeBox()
-        box.put_nowait(None, python='awesome')
+        box.put(None, python='awesome')
         args, kwargs = await box.get()
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
@@ -27,7 +27,7 @@ def test_get_put():
     box = ag.OnetimeBox()
     task = ag.start(async_fn(box))
     assert task.state is ag.TaskState.STARTED
-    box.put_nowait(None, python='awesome')
+    box.put(None, python='awesome')
     assert task.finished
 
 
@@ -36,8 +36,8 @@ def test_put_put():
 
     async def async_fn():
         box = ag.OnetimeBox()
-        box.put_nowait(None)
-        box.put_nowait(None)
+        box.put(None)
+        box.put(None)
 
     task = ag.start(async_fn())
     assert task.finished
@@ -57,11 +57,11 @@ def test_put_get_put():
 
     async def async_fn():
         box = ag.OnetimeBox()
-        box.put_nowait(None, python='awesome')
+        box.put(None, python='awesome')
         args, kwargs = await box.get()
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
-        box.put_nowait(None, python='awesome')
+        box.put(None, python='awesome')
 
     task = ag.start(async_fn())
     assert task.finished
@@ -72,7 +72,7 @@ def test_put_get_get():
 
     async def async_fn():
         box = ag.OnetimeBox()
-        box.put_nowait(None, python='awesome')
+        box.put(None, python='awesome')
         args, kwargs = await box.get()
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
@@ -98,7 +98,7 @@ def test_get_put_get():
     box = ag.OnetimeBox()
     task = ag.start(async_fn(box))
     assert task.state is ag.TaskState.STARTED
-    box.put_nowait(None, python='awesome')
+    box.put(None, python='awesome')
     assert task.finished
 
 
@@ -113,9 +113,9 @@ def test_get_put_put():
     box = ag.OnetimeBox()
     task = ag.start(async_fn(box))
     assert task.state is ag.TaskState.STARTED
-    box.put_nowait(None, python='awesome')
+    box.put(None, python='awesome')
     assert task.finished
-    box.put_nowait(None, python='awesome')
+    box.put(None, python='awesome')
 
 
 def test_cancel():
@@ -135,7 +135,7 @@ def test_cancel():
     assert task.state is TS.STARTED
     ctx['scope'].cancel()
     assert task.state is TS.STARTED
-    box.put_nowait(None, python='awesome')
+    box.put(None, python='awesome')
     assert task.state is TS.STARTED
     task._step()
     assert task.state is TS.FINISHED

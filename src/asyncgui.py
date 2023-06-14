@@ -651,11 +651,10 @@ def _rac_on_bg_task_end(end_signal, scope, bg_task):
 
 class OnetimeBox:
     '''
-    (internal)
     An item box with the following limitations.
 
-    * You can put an item in it only once. Calling :meth:`put_nowait` more than once will be ignored.
-    * Only one task can get an item from it at a time.
+    * You can :meth:`put` an item in it only once. Doing it more than once will be ignored.
+    * Only one task can :meth:`get` an item from it at a time.
     '''
 
     __slots__ = ('_args', '_kwargs', '_getter', )
@@ -669,7 +668,7 @@ class OnetimeBox:
     def is_empty(self) -> bool:
         return self._args is None
 
-    def put_nowait(self, *args, **kwargs):
+    def put(self, *args, **kwargs):
         if self._args is not None:
             return
         self._args = args
