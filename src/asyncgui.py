@@ -26,7 +26,7 @@ else:
 
 potential_bug_msg = '''
 This may be a bug of this library. Please make a minimal code that reproduces the bug, and open an issue at the GitHub
-repository. (https://github.com/gottadiveintopython/asyncgui).
+repository, and post that code. (https://github.com/gottadiveintopython/asyncgui).
 '''
 
 
@@ -124,8 +124,8 @@ class Task:
             self._result = await awaitable
         except _Cancelled as e:
             self._state = TaskState.CANCELLED
-            e.level == 0, potential_bug_msg
-            self._cancel_level == 0, potential_bug_msg
+            assert e.level == 0, potential_bug_msg
+            assert self._cancel_level == 0, potential_bug_msg
         except Exception as e:
             self._state = TaskState.CANCELLED
             self._exc_caught = e
@@ -337,7 +337,7 @@ async def check_cancellation():
 
 
 @types.coroutine
-def sleep_forever(_f=lambda task: None):
+def sleep_forever(_f=lambda task: None) -> T.Awaitable:
     yield _f
 
 
@@ -357,8 +357,8 @@ class Event:
     Difference
     ----------
 
-    :meth:`set` accepts any number of arguments and doesn't use them at all so it can be a callback function of any
-    library.
+    :meth:`set` accepts any number of arguments but doesn't use them at all so it can be used as a callback function
+    of any library.
 
     .. code-block::
 
@@ -389,7 +389,7 @@ class Event:
         self._flag = False
 
     @types.coroutine
-    def wait(self):
+    def wait(self) -> T.Awaitable:
         if self._flag:
             return
         try:
