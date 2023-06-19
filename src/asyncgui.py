@@ -427,6 +427,8 @@ class ISignal:
         if (t := self._task) is not None:
             t._step()
 
+    _decrease_or_set = set
+
     @types.coroutine
     def wait(self) -> T.Awaitable:
         if self._flag:
@@ -465,6 +467,8 @@ class TaskCounter:
         if not n:
             self._signal.set()
 
+    _decrease_or_set = decrease
+
     async def to_be_zero(self) -> T.Awaitable:
         if self._n_tasks:
             sig = self._signal
@@ -475,178 +479,94 @@ class TaskCounter:
         return not not self._n_tasks  # 'not not' is not a typo
 
 
-        tasks = await wait_any(async_fn(), e.wait())
-        if tasks[0].finished:
-            print("async_fn() finished")
-        else:
-            print("The event was set")
-
-    When any of the tasks raises an exception, the rest will be cancelled, and
-    the exception will be propagated to the caller, like Trio's Nursery does.
-
-    Guaranteed Start
-    ----------------
-
-    Like ``wait_all()``, when any of the tasks:
-    A) raises an exception
-    B) finishes
-    while there are still ones that haven't started yet, they still will
-    start, (and will be cancelled soon).
-
-    Chance of zero tasks to finish
-    --------------------------------
-
-    When all the tasks are cancelled, and there are no exceptions to
-    propagate, it would happen.
-
-    .. code-block::
-
-        def test_cancel_all_children():
-            import asyncgui as ag
-
-            async def main():
-                tasks = await ag.wait_any(child1, child2)
-                for task in tasks:
-                    assert task.cancelled  # NO TASKS HAVE FINISHED
-
-            child1 = ag.Task(ag.sleep_forever())
-            child2 = ag.Task(ag.sleep_forever())
-            main_task = ag.start(main())
-            child1.cancel()
-            child2.cancel()
-            assert main_task.finished
-
-    Chance of multiple tasks to finish
-    ------------------------------------
-
-    .. warning::
-
-        ``wait_any()``が正常に終了した時に常に一つだけ子taskが完了しているとは限らない事に注意されたし。
-        例えば次のように即座に完了する子が複数ある場合はその全てが完了する。
-
-        .. code-blobk::
-
-            async def f():
-                pass
-
-            tasks = await wait_any(f(), f())
-            assert tasks[0].finished
-            assert tasks[1].finished
-
-        また次の例も両方の子が完了する。
-
-        .. code-blobk::
-
-            async def f_1(e):
-                await e.wait()
-
-            async def f_2(e):
-                e.set()
-
-            e = asyncgui.Event()
-            tasks = await wait_any([f_1(e), f_2(e))
-            assert tasks[0].finished
-            assert tasks[1].finished
-
-        これは``e.set()``が呼ばれた事で``f_1()``が完了するが、その後``f_2()``が中断可能
-        な状態にならないまま完了するためでる。中断可能な状態とは何かと言うと
-
-        * 中断に対する保護がかかっていない(保護は`async with disable_cancellation()`でかかる)
-        * Taskが停まっている(await式の地点で基本的に停まるが、停まらない例外としては ``await current_task()`` , ``await set済のEvent.wait()`` がある)
-
-        の両方を満たしている状態の事で、上のcodeでは``f_2``が``e.set()``を呼んだ後に停止
-        する事が無かったため中断される事なく完了する事になった。
-    '''
-    children = [v if isinstance(v, Task) else Task(v) for v in aws]
+async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]):
+    children = tuple(v if isinstance(v, Task) else Task(v) for v in aws)
     if not children:
         return children
-    n_left = len(children)
-    exceptions = []
+    counter = TaskCounter(len(children))
     parent = await current_task()
-    parent_step = None
-
-    def on_child_end(child: Task):
-        nonlocal n_left
-        n_left -= 1
-        if (e := child._exc_caught) is not None:
-            exceptions.append(e)
-            scope.cancel()
-        elif child.finished or (not n_left):
-            scope.cancel()
-        if parent_step is not None and (not n_left):
-            parent_step()
 
     try:
         with CancelScope(parent) as scope:
+            on_child_end = partial(on_child_end, scope, counter)
             for c in children:
                 c._suppresses_exc = True
                 c._on_end = on_child_end
                 start(c)
-            await sleep_forever()
-            assert False, potential_bug_msg
+            await counter.to_be_zero()
     finally:
-        for c in children:
-            c.cancel()
-        if n_left:
-            parent_step = parent._step
-            try:
-                parent._cancel_disabled += 1
-                await sleep_forever()
-            finally:
-                parent_step = None
-                parent._cancel_disabled -= 1
+        if counter:
+            for c in children:
+                c.cancel()
+            if counter:
+                try:
+                    parent._cancel_disabled += 1
+                    await counter.to_be_zero()
+                finally:
+                    parent._cancel_disabled -= 1
+        exceptions = tuple(e for c in children if (e := c._exc_caught) is not None)
         if exceptions:
-            raise ExceptionGroup("One or more exceptions occurred in child tasks.", exceptions)
-        elif parent._cancel_requested:
+            raise ExceptionGroup(debug_msg, exceptions)
+        if (parent._cancel_level is not None) and (not parent._cancel_disabled):
             await sleep_forever()
             assert False, potential_bug_msg
-        return children
+    return children
+
+
+def _on_child_end__ver_all(scope, counter_or_signal, child):
+    counter_or_signal._decrease_or_set()
+    if child._exc_caught is not None:
+        scope.cancel()
+
+
+def _on_child_end__ver_any(scope, counter_or_signal, child):
+    counter_or_signal._decrease_or_set()
+    if child._exc_caught is not None or child.finished:
+        scope.cancel()
+
+
+_wait_xxx_type = T.Callable[..., T.Awaitable[T.Sequence[Task]]]
+wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
+wait_any: _wait_xxx_type = partial(_wait_xxx, "wait_any()", _on_child_end__ver_any)
 
 
 @asynccontextmanager
-async def run_and_cancelling(aw: Aw_or_Task) -> T.AsyncIterator[Task]:
-    '''
-    Equivalent of :func:`trio_util.run_and_cancelling`.
-    '''
-
-    bg_task = start(aw)
-    if bg_task._state in TaskState.ENDED:
-        yield bg_task
-        return
-
+async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
+    signal = ISignal()
     fg_task = await current_task()
-    end_signal = Event()
+    bg_task = aw if isinstance(aw, Task) else Task(aw)
     exc = None
 
     try:
         with CancelScope(fg_task) as scope:
+            bg_task._on_end = partial(on_child_end, scope, signal)
             bg_task._suppresses_exc = True
-            bg_task._on_end = partial(_rac_on_bg_task_end, end_signal, scope)
-            yield bg_task
+            yield start(bg_task)
+            if wait_bg:
+                await signal.wait()
     except Exception as e:
         exc = e
     finally:
         bg_task.cancel()
-        try:
-            fg_task._cancel_disabled += 1
-            await end_signal.wait()
-        finally:
-            fg_task._cancel_disabled -= 1
+        if not signal._flag:
+            try:
+                fg_task._cancel_disabled += 1
+                await signal.wait()
+            finally:
+                fg_task._cancel_disabled -= 1
         excs = tuple(
             e for e in (exc, bg_task._exc_caught, )
             if e is not None
         )
         if excs:
-            raise ExceptionGroup("run_and_cancelling()", excs)
-        elif fg_task._cancel_level is not None:
+            raise ExceptionGroup(debug_msg, excs)
+        if (fg_task._cancel_level is not None) and (not fg_task._cancel_disabled):
             await sleep_forever()
             assert False, potential_bug_msg
 
 
-def _rac_on_bg_task_end(end_signal, scope, bg_task):
-    if bg_task._exc_caught is not None:
-        scope.cancel()
-    end_signal.set()
+_wait_xxx_cm_type = T.Callable[[Aw_or_Task], T.AsyncContextManager[Task]]
+run_and_cancelling: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_and_cancelling()", _on_child_end__ver_all, False)
 
 
 class IBox:
