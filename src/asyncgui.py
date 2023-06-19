@@ -442,81 +442,38 @@ class ISignal:
         self._task = task
 
 
-async def wait_all(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901
+class TaskCounter:
     '''
-    Run multiple tasks concurrently, and wait for all of them to end. When any of them raises an exception,
-    the others will be cancelled, and the exception will be propagated to the caller, like Trio's Nursery does.
-
-    Guaranteed Start
-    ----------------
-
-    When any of the tasks raises an exception while there are still ones that haven't started yet, they still will
-    start (and will be cancelled soon).
+    (internal)
+    数値が零になった事を通知する仕組みを持つカウンター。
+    親taskが自分の子task達の終了を待つのに用いる。
     '''
-    children = [v if isinstance(v, Task) else Task(v) for v in aws]
-    if not children:
-        return children
-    n_left = len(children)
-    exceptions = []
-    parent = await current_task()
-    parent_step = None
 
-    def on_child_end(child: Task):
-        nonlocal n_left
-        n_left -= 1
-        if (e := child._exc_caught) is not None:
-            exceptions.append(e)
-            scope.cancel()
-        if parent_step is not None and (not n_left):
-            parent_step()
+    __slots__ = ('_signal', '_n_tasks', )
 
-    succeeded = False
-    try:
-        with CancelScope(parent) as scope:
-            for c in children:
-                c._suppresses_exc = True
-                c._on_end = on_child_end
-                start(c)
-            if exceptions or parent._cancel_requested:
-                await sleep_forever()
-                assert False, potential_bug_msg
-            elif n_left:
-                parent_step = parent._step
-                await sleep_forever()
-            succeeded = True
-    finally:
-        if succeeded:
-            return children
-        parent_step = None
-        for c in children:
-            c.cancel()
-        if n_left:
-            parent_step = parent._step
-            try:
-                parent._cancel_disabled += 1
-                await sleep_forever()
-            finally:
-                parent_step = None
-                parent._cancel_disabled -= 1
-        if exceptions:
-            raise ExceptionGroup("One or more exceptions occurred in child tasks.", exceptions)
-        elif parent._cancel_requested:
-            await sleep_forever()
-            assert False, potential_bug_msg
+    def __init__(self, initial=0):
+        self._n_tasks = initial
+        self._signal = ISignal()
 
+    def increase(self):
+        self._n_tasks += 1
 
-async def wait_any(*aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.List[Task]]:  # noqa: C901
-    '''
-    Run multiple tasks concurrently, and wait for any of them to finish.
-    As soon as that happens, the others will be cancelled, and the function will
-    return.
+    def decrease(self):
+        n = self._n_tasks - 1
+        assert n >= 0, potential_bug_msg
+        self._n_tasks = n
+        if not n:
+            self._signal.set()
 
-    .. code-block::
+    async def to_be_zero(self) -> T.Awaitable:
+        if self._n_tasks:
+            sig = self._signal
+            sig._flag = False
+            await sig.wait()
 
-        e = asyncgui.Event()
+    def __bool__(self) -> bool:
+        return not not self._n_tasks  # 'not not' is not a typo
 
-        async def async_fn():
-            ...
 
         tasks = await wait_any(async_fn(), e.wait())
         if tasks[0].finished:
