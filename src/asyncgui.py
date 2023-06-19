@@ -1,9 +1,19 @@
 __all__ = (
+    # core (exceptions)
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
+
+    # core
     'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope', 'CancelScope',
-    'sleep_forever', 'Event', 'disable_cancellation', 'dummy_task', 'check_cancellation',
-    'wait_all', 'wait_any', 'run_and_cancelling',
-    'IBox', 'ISignal', 
+    'sleep_forever', 'disable_cancellation', 'dummy_task', 'check_cancellation',
+
+    # utils
+    'Event',
+
+    # utils (structured concurrency)
+    'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary',
+
+    # utils (for async library developer)
+    'IBox', 'ISignal',
 )
 import types
 import typing as T
@@ -566,7 +576,10 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
 
 
 _wait_xxx_cm_type = T.Callable[[Aw_or_Task], T.AsyncContextManager[Task]]
-run_and_cancelling: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_and_cancelling()", _on_child_end__ver_all, False)
+wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_child_end__ver_all, True)
+wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
+run_as_primary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_primary()", _on_child_end__ver_any, True)
+run_as_secondary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_secondary()", _on_child_end__ver_all, False)
 
 
 class IBox:
@@ -578,7 +591,7 @@ class IBox:
 
     .. note::
 
-        This exists for the purpose of building an async/await-based api from a callback-based api.
+        This exists for the purpose of wrapping a callback-based api in an async/await-based api.
         Using it for any other purpose is not recommended.
     '''
 
