@@ -79,7 +79,7 @@ class Task:
 
     _uid_iter = itertools.count()
 
-    def __init__(self, awaitable):
+    def __init__(self, awaitable: T.Awaitable, /):
         if not isawaitable(awaitable):
             raise ValueError(str(awaitable) + " is not awaitable.")
         self._uid = next(self._uid_iter)
@@ -129,7 +129,7 @@ class Task:
         else:
             raise InvalidStateError(f"Result of {self} is not ready")
 
-    async def _wrapper(self, awaitable):
+    async def _wrapper(self, awaitable, /):
         try:
             self._state = TaskState.STARTED
             self._result = await awaitable
@@ -152,7 +152,7 @@ class Task:
             if (on_end := self._on_end) is not None:
                 on_end(self)
 
-    def cancel(self, _level=0):
+    def cancel(self, _level=0, /):
         '''Cancel the task as soon as possible'''
         if self._cancel_level is None:
             self._cancel_level = _level
@@ -209,7 +209,7 @@ class Task:
 Aw_or_Task = T.Union[T.Awaitable, Task]
 
 
-def start(aw: Aw_or_Task) -> Task:
+def start(aw: Aw_or_Task, /) -> Task:
     '''Starts an asyncgui-flavored awaitable or a Task.
 
     If the argument is a Task, itself will be returned. If it's an awaitable,
@@ -238,7 +238,7 @@ class CancelScope:
     '''(internal)'''
     __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancell_called', )
 
-    def __init__(self, task: Task):
+    def __init__(self, task: Task, /):
         self._task = task
         self.cancelled_caught = False
         self.cancell_called = False
@@ -371,7 +371,7 @@ class Event:
         self._flag = False
         self._waiting_tasks = []
 
-    def is_set(self):
+    def is_set(self) -> bool:
         return self._flag
 
     def set(self, *args, **kwargs):
@@ -452,7 +452,7 @@ class TaskCounter:
 
     __slots__ = ('_signal', '_n_tasks', )
 
-    def __init__(self, initial=0):
+    def __init__(self, initial=0, /):
         self._n_tasks = initial
         self._signal = ISignal()
 
@@ -474,7 +474,7 @@ class TaskCounter:
             sig._flag = False
             await sig.wait()
 
-    def __bool__(self) -> bool:
+    def __bool__(self):
         return not not self._n_tasks  # 'not not' is not a typo
 
 
