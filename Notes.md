@@ -141,3 +141,23 @@ main()
   - GeneratorExitが起きた時にどのようにContext内でコルーチンを動かせば良いのか分からない。
 - TaskTree-Local Storage
   - `wait_any()` や `wait_all()` で築かれた親子に同じStorageを共有させる？
+
+# 子Taskを開始する時に中断保護を受け継がせるべき?
+
+structured concurrency系のapiに於いては、もしかすると子taskは親taskの中断保護の影響を受けるべきかもしれない。
+
+```python
+async def _wait_xxx(...):
+    ...
+    try:
+        with CancelScope(parent) as scope:
+            dc = parent._disable_cancellation
+            on_child_end = partial(on_child_end, scope, counter)
+            for c in children:
+                c._suppresses_exc = True
+                c._on_end = on_child_end
+                c._disable_cancellation = dc
+                start(c)
+            await counter.to_be_zero()
+    ...
+```
