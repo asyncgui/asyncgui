@@ -235,7 +235,9 @@ def start(aw: Aw_or_Task, /) -> Task:
 
 
 class CancelScope:
-    '''(internal)'''
+    '''
+    You should not directly instantiate this. Use :func:`open_cancel_scope`.
+    '''
     __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancell_called', )
 
     def __init__(self, task: Task, /):
@@ -283,7 +285,14 @@ class CancelScope:
 
 
 class open_cancel_scope:
-    '''(experimental)'''
+    '''
+    Same as :class:`trio.CancelScope` except this one is an async context manager.
+
+    .. code-block::
+
+        async with open_cancel_scope() as scope:
+            ...
+    '''
     __slots__ = ('_scope', )
 
     async def __aenter__(self) -> T.Awaitable[CancelScope]:
@@ -302,16 +311,12 @@ def current_task(_f=lambda task: task._step(task)) -> T.Awaitable[Task]:
 
 class disable_cancellation:
     '''
-    (experimental)
     Async context manager that protects its code-block from cancellation.
 
     .. code-block::
 
-        await something      # <- might get cancelled
         async with disable_cancellation():
             await something  # <- never gets cancelled
-            await something  # <- never gets cancelled
-        await something      # <- might get cancelled
     '''
 
     __slots__ = ('_task', )
