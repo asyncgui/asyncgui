@@ -11,6 +11,7 @@ __all__ = (
 
     # utils (structured concurrency)
     'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary',
+    'open_nursery', 'TaskGroup', 'Nursery',
 
     # utils (for async library developer)
     'IBox', 'ISignal',
@@ -568,6 +569,87 @@ wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_chil
 wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
 run_as_primary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_primary()", _on_child_end__ver_any, True)
 run_as_secondary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_secondary()", _on_child_end__ver_all, False)
+
+
+class Nursery:
+    '''
+    You should not directly instantiate this. Use :func:`open_nursery`.
+    '''
+
+    __slots__ = ('_closed', '_children', '_scope', '_counters', '_callbacks', )
+
+    def __init__(self, children, scope, counter, daemon_counter):
+        self._closed = False
+        self._children = children
+        self._scope = scope
+        self._counters = (daemon_counter, counter, )
+        self._callbacks = (
+            partial(_on_child_end__ver_all, scope, daemon_counter),
+            partial(_on_child_end__ver_all, scope, counter),
+        )
+
+    def start(self, aw: Aw_or_Task, /, *, daemon=False) -> Task:
+        if self._closed:
+            raise InvalidStateError("Nursery has been already closed")
+        child = aw if isinstance(aw, Task) else Task(aw)
+        child._suppresses_exc = True
+        child._on_end = self._callbacks[not daemon]
+        self._counters[not daemon].increase()
+        self._children.append(child)
+        return start(child)
+
+    def close(self):
+        '''
+        Cancel all the child tasks inside the nursery.
+        '''
+        self._closed = True
+        self._scope.cancel()
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
+
+
+@asynccontextmanager
+async def open_nursery() -> T.AsyncIterator[Nursery]:
+    '''
+    Equivalent of :func:`trio.open_nursery`.
+    '''
+    children = []
+    exc = None
+    parent = await current_task()
+    counter = TaskCounter()
+    daemon_counter = TaskCounter()
+
+    try:
+        with CancelScope(parent) as scope:
+            nursery = Nursery(children, scope, counter, daemon_counter)
+            yield nursery
+            await counter.to_be_zero()
+    except Exception as e:
+        exc = e
+    finally:
+        nursery._closed = True
+        for c in children:
+            c.cancel()
+        try:
+            parent._cancel_disabled += 1
+            await daemon_counter.to_be_zero()
+            await counter.to_be_zero()
+        finally:
+            parent._cancel_disabled -= 1
+        excs = tuple(
+            e for e in itertools.chain((exc, ), (c._exc_caught for c in children))
+            if e is not None
+        )
+        if excs:
+            raise ExceptionGroup("Nursery", excs)
+        if (parent._cancel_level is not None) and (not parent._cancel_disabled):
+            await sleep_forever()
+            assert False, potential_bug_msg
+
+
+TaskGroup = open_nursery
 
 
 class IBox:
