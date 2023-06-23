@@ -54,7 +54,7 @@ class _Cancelled(BaseException):
 Cancelled = (_Cancelled, GeneratorExit, )
 
 
-class TaskState(enum.Flag):
+class TaskState(enum.Enum):
     CREATED = enum.auto()
     '''CORO_CREATED'''
 
@@ -66,8 +66,6 @@ class TaskState(enum.Flag):
 
     FINISHED = enum.auto()
     '''CORO_CLOSED (finished)'''
-
-    ENDED = CANCELLED | FINISHED
 
 
 class Task:

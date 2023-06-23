@@ -1,11 +1,6 @@
 import pytest
 
 
-def test_task_state_ended():
-    from asyncgui import TaskState as TS
-    assert TS.ENDED is (TS.CANCELLED | TS.FINISHED)
-
-
 def test_the_state_and_the_result():
     import asyncgui as ag
     TS = ag.TaskState
