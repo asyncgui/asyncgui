@@ -155,10 +155,10 @@ class Task:
         if self._cancel_level is None:
             self._cancel_level = _level
             state = getcoroutinestate(self._root_coro)
-            if state == CORO_SUSPENDED:
+            if state is CORO_SUSPENDED:
                 if not self._cancel_disabled:
                     self._actual_cancel()
-            elif state == CORO_CREATED:
+            elif state is CORO_CREATED:
                 self._root_coro.close()
                 self._state = TaskState.CANCELLED
         else:
@@ -183,18 +183,18 @@ class Task:
     @property
     def _is_cancellable(self) -> bool:
         '''Whether the task can immediately be cancelled.'''
-        return (not self._cancel_disabled) and getcoroutinestate(self._root_coro) == CORO_SUSPENDED
+        return (not self._cancel_disabled) and getcoroutinestate(self._root_coro) is CORO_SUSPENDED
 
     def _cancel_if_needed(self, getcoroutinestate=getcoroutinestate, CORO_SUSPENDED=CORO_SUSPENDED):
         if (self._cancel_level is None) or self._cancel_disabled or \
-                (getcoroutinestate(self._root_coro) != CORO_SUSPENDED):
+                (getcoroutinestate(self._root_coro) is not CORO_SUSPENDED):
             pass
         else:
             self._actual_cancel()
 
     def _step(self, *args, **kwargs):
         coro = self._root_coro
-        if getcoroutinestate(coro) != CORO_SUSPENDED:
+        if getcoroutinestate(coro) is not CORO_SUSPENDED:
             return
         try:
             coro.send((args, kwargs, ))(self)
