@@ -10,14 +10,14 @@ def test_no_cancel():
             assert scope._depth == 1
             assert scope._task is task
             assert not scope.cancelled_caught
-            assert not scope.cancell_called
+            assert not scope.cancel_called
             assert not scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
         assert scope._depth == 1
         assert scope._task is None
         assert not scope.cancelled_caught
-        assert not scope.cancell_called
+        assert not scope.cancel_called
         assert scope.closed
         assert task._cancel_depth == 0
         assert task._cancel_level is None
@@ -35,7 +35,7 @@ def test_cancel():
             assert scope._depth == 1
             assert scope._task is task
             assert not scope.cancelled_caught
-            assert not scope.cancell_called
+            assert not scope.cancel_called
             assert not scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
@@ -43,7 +43,7 @@ def test_cancel():
             assert scope._depth == 1
             assert scope._task is task
             assert not scope.cancelled_caught
-            assert scope.cancell_called
+            assert scope.cancel_called
             assert not scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level == 1
@@ -53,7 +53,7 @@ def test_cancel():
         assert scope._depth == 1
         assert scope._task is None
         assert scope.cancelled_caught
-        assert scope.cancell_called
+        assert scope.cancel_called
         assert scope.closed
         assert task._cancel_depth == 0
         assert task._cancel_level is None
@@ -71,7 +71,7 @@ def test_cancel_neither():
             assert o_scope._depth == 1
             assert o_scope._task is task
             assert not o_scope.cancelled_caught
-            assert not o_scope.cancell_called
+            assert not o_scope.cancel_called
             assert not o_scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
@@ -79,36 +79,36 @@ def test_cancel_neither():
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
-                assert not i_scope.cancell_called
+                assert not i_scope.cancel_called
                 assert not i_scope.closed
                 assert o_scope._depth == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
-                assert not o_scope.cancell_called
+                assert not o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level is None
             assert i_scope._depth == 2
             assert i_scope._task is None
             assert not i_scope.cancelled_caught
-            assert not i_scope.cancell_called
+            assert not i_scope.cancel_called
             assert i_scope.closed
             assert o_scope._depth == 1
             assert o_scope._task is task
             assert not o_scope.cancelled_caught
-            assert not o_scope.cancell_called
+            assert not o_scope.cancel_called
             assert not o_scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
         assert i_scope._depth == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
-        assert not i_scope.cancell_called
+        assert not i_scope.cancel_called
         assert i_scope.closed
         assert o_scope._depth == 1
         assert o_scope._task is None
         assert not o_scope.cancelled_caught
-        assert not o_scope.cancell_called
+        assert not o_scope.cancel_called
         assert o_scope.closed
         assert task._cancel_depth == 0
         assert task._cancel_level is None
@@ -128,12 +128,12 @@ def test_cancel_inner():
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
-                assert i_scope.cancell_called
+                assert i_scope.cancel_called
                 assert not i_scope.closed
                 assert o_scope._depth == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
-                assert not o_scope.cancell_called
+                assert not o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 2
@@ -143,24 +143,24 @@ def test_cancel_inner():
             assert i_scope._depth == 2
             assert i_scope._task is None
             assert i_scope.cancelled_caught
-            assert i_scope.cancell_called
+            assert i_scope.cancel_called
             assert i_scope.closed
             assert o_scope._depth == 1
             assert o_scope._task is task
             assert not o_scope.cancelled_caught
-            assert not o_scope.cancell_called
+            assert not o_scope.cancel_called
             assert not o_scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
         assert i_scope._depth == 2
         assert i_scope._task is None
         assert i_scope.cancelled_caught
-        assert i_scope.cancell_called
+        assert i_scope.cancel_called
         assert i_scope.closed
         assert o_scope._depth == 1
         assert o_scope._task is None
         assert not o_scope.cancelled_caught
-        assert not o_scope.cancell_called
+        assert not o_scope.cancel_called
         assert o_scope.closed
         assert task._cancel_depth == 0
         assert task._cancel_level is None
@@ -180,12 +180,12 @@ def test_cancel_outer():
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
-                assert not i_scope.cancell_called
+                assert not i_scope.cancel_called
                 assert not i_scope.closed
                 assert o_scope._depth == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
-                assert o_scope.cancell_called
+                assert o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 1
@@ -196,12 +196,12 @@ def test_cancel_outer():
         assert i_scope._depth == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
-        assert not i_scope.cancell_called
+        assert not i_scope.cancel_called
         assert i_scope.closed
         assert o_scope._depth == 1
         assert o_scope._task is None
         assert o_scope.cancelled_caught
-        assert o_scope.cancell_called
+        assert o_scope.cancel_called
         assert o_scope.closed
         assert task._cancel_depth == 0
         assert task._cancel_level is None
@@ -221,12 +221,12 @@ def test_cancel_inner_first():
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
-                assert i_scope.cancell_called
+                assert i_scope.cancel_called
                 assert not i_scope.closed
                 assert o_scope._depth == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
-                assert not o_scope.cancell_called
+                assert not o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 2
@@ -234,12 +234,12 @@ def test_cancel_inner_first():
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
-                assert i_scope.cancell_called
+                assert i_scope.cancel_called
                 assert not i_scope.closed
                 assert o_scope._depth == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
-                assert o_scope.cancell_called
+                assert o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 1
@@ -250,12 +250,12 @@ def test_cancel_inner_first():
         assert i_scope._depth == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
-        assert i_scope.cancell_called
+        assert i_scope.cancel_called
         assert i_scope.closed
         assert o_scope._depth == 1
         assert o_scope._task is None
         assert o_scope.cancelled_caught
-        assert o_scope.cancell_called
+        assert o_scope.cancel_called
         assert o_scope.closed
         assert task._cancel_depth == 0
         assert task._cancel_level is None
@@ -275,12 +275,12 @@ def test_cancel_outer_first():
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
-                assert not i_scope.cancell_called
+                assert not i_scope.cancel_called
                 assert not i_scope.closed
                 assert o_scope._depth == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
-                assert o_scope.cancell_called
+                assert o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 1
@@ -288,12 +288,12 @@ def test_cancel_outer_first():
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
-                assert i_scope.cancell_called
+                assert i_scope.cancel_called
                 assert not i_scope.closed
                 assert o_scope._depth == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
-                assert o_scope.cancell_called
+                assert o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 1
@@ -304,12 +304,12 @@ def test_cancel_outer_first():
         assert i_scope._depth == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
-        assert i_scope.cancell_called
+        assert i_scope.cancel_called
         assert i_scope.closed
         assert o_scope._depth == 1
         assert o_scope._task is None
         assert o_scope.cancelled_caught
-        assert o_scope.cancell_called
+        assert o_scope.cancel_called
         assert o_scope.closed
         assert task._cancel_depth == 0
         assert task._cancel_level is None

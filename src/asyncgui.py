@@ -236,12 +236,12 @@ class CancelScope:
     '''
     You should not directly instantiate this. Use :func:`open_cancel_scope`.
     '''
-    __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancell_called', )
+    __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancel_called', )
 
     def __init__(self, task: Task, /):
         self._task = task
         self.cancelled_caught = False
-        self.cancell_called = False
+        self.cancel_called = False
 
     def __enter__(self) -> 'CancelScope':
         t = self._task
@@ -275,9 +275,9 @@ class CancelScope:
         return self._task is None
 
     def cancel(self):
-        if self.cancell_called:
+        if self.cancel_called:
             return
-        self.cancell_called = True
+        self.cancel_called = True
         if not self.closed:
             self._task.cancel(self._depth)
 
