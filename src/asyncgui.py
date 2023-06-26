@@ -11,10 +11,13 @@ __all__ = (
 
     # utils (structured concurrency)
     'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary',
-    'open_nursery', 'TaskGroup', 'Nursery',
+    'open_nursery', 'Nursery',
 
     # utils (for async library developer)
     'IBox', 'ISignal',
+
+    # aliases
+    'TaskGroup', 'and_', 'or_',
 )
 import types
 import typing as T
@@ -652,9 +655,6 @@ async def open_nursery() -> T.AsyncIterator[Nursery]:
             assert False, potential_bug_msg
 
 
-TaskGroup = open_nursery
-
-
 class IBox:
     '''
     An item box with the following limitations.
@@ -695,3 +695,12 @@ class IBox:
 
     def _store_getter(self, task):
         self._getter = task
+
+
+# -----------------------------------------------------------------------------
+# Aliases
+# -----------------------------------------------------------------------------
+
+TaskGroup = open_nursery
+and_ = wait_all
+or_ = wait_any
