@@ -17,7 +17,7 @@ __all__ = (
     'IBox', 'ISignal',
 
     # aliases
-    'TaskGroup', 'and_', 'or_',
+    'run_as_daemon', 'TaskGroup', 'and_', 'or_',
 )
 import types
 import typing as T
@@ -701,6 +701,7 @@ class IBox:
 # Aliases
 # -----------------------------------------------------------------------------
 
+run_as_daemon = run_as_secondary
 TaskGroup = open_nursery
 and_ = wait_all
 or_ = wait_any
