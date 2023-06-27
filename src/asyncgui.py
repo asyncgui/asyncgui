@@ -377,6 +377,7 @@ class Event:
         self._flag = False
         self._waiting_tasks = []
 
+    @property
     def is_set(self) -> bool:
         return self._flag
 
@@ -409,7 +410,7 @@ class ISignal:
     '''
     Same as :class:`Event` except:
 
-    * This one doesn't have ``clear()`` and ``is_set()``.
+    * This one doesn't have ``clear()`` and ``is_set``.
     * Only one task can :meth:`wait` at a time.
 
     The reason this is introduced
