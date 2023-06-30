@@ -206,6 +206,18 @@ class Task:
         else:
             self._cancel_if_needed()
 
+    def _throw_exc(self, exc):
+        '''停止中のTaskへ例外を投げる。Taskが停止中ではない場合は :exc:`InvalidStateError` が起こる。'''
+        coro = self._root_coro
+        if getcoroutinestate(coro) is not CORO_SUSPENDED:
+            raise InvalidStateError("Throwing an exception to an unstarted/running/closed task is not allowed.")
+        try:
+            coro.throw(exc)(self)
+        except StopIteration:
+            pass
+        else:
+            self._cancel_if_needed()
+
 
 Aw_or_Task = T.Union[T.Awaitable, Task]
 
