@@ -316,8 +316,12 @@ class open_cancel_scope:
         return self._scope.__exit__(*args)
 
 
+def _current_task(task):
+    return task._step(task)
+
+
 @types.coroutine
-def current_task(_f=lambda task: task._step(task)) -> T.Awaitable[Task]:
+def current_task(_f=_current_task) -> T.Awaitable[Task]:
     '''Returns the Task instance corresponding to the caller.'''
     return (yield _f)[0][0]
 
@@ -353,11 +357,16 @@ async def check_cancellation():
         await sleep_forever()
 
 
+def _sleep_forever(task):
+    pass
+
+
 @types.coroutine
-def sleep_forever(_f=lambda task: None) -> T.Awaitable:
+def sleep_forever(_f=_sleep_forever) -> T.Awaitable:
     yield _f
 
 
+del _sleep_forever, _current_task
 dummy_task = Task(sleep_forever())
 dummy_task.cancel()
 dummy_task.name = r"asyncgui.dummy_task"
