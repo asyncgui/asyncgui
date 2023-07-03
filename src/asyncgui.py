@@ -14,7 +14,7 @@ __all__ = (
     'open_nursery', 'Nursery',
 
     # utils (for async library developer)
-    'IBox', 'ISignal',
+    'IBox', 'ISignal', '_current_task', '_sleep_forever',
 
     # aliases
     'run_as_daemon', 'TaskGroup', 'and_', 'or_',
@@ -402,7 +402,8 @@ class disable_cancellation:
         self._task._cancel_disabled -= 1
 
 
-async def check_cancellation():
+@types.coroutine
+def check_cancellation():
     '''
     If the current task has been requested to be cancelled, and the task is not protected from cancellation,
     cancel the task immediately. Otherwise, do nothing.
@@ -411,9 +412,9 @@ async def check_cancellation():
 
         await check_cancellation()
     '''
-    task = await current_task()
+    task = (yield _current_task)[0][0]
     if task._cancel_requested and not task._cancel_disabled:
-        await sleep_forever()
+        yield _sleep_forever
 
 
 def _sleep_forever(task):
@@ -430,7 +431,6 @@ def sleep_forever(_f=_sleep_forever) -> T.Awaitable:
     yield _f
 
 
-del _sleep_forever, _current_task
 dummy_task = Task(sleep_forever())
 '''
 An already closed task.
