@@ -8,7 +8,7 @@
 project = 'asyncgui'
 copyright = '2023, Nattōsai Mitō'
 author = 'Nattōsai Mitō'
-release = '0.6.0.dev1'
+release = '0.6.0.dev2'
 
 
 # -- General configuration ---------------------------------------------------
