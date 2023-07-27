@@ -9,8 +9,8 @@ style:
 	$(FLAKE8) --count --select=E9,F63,F7,F82 --show-source --statistics ./tests ./src
 	$(FLAKE8) --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics ./src
 
-apidoc:
-	sphinx-apidoc --separate --output-dir ./doc ./src
+html:
+	sphinx-build -b html ./sphinx ./docs
 
 livehtml:
-	sphinx-autobuild -b html ./doc ./doc/_build/html
+	sphinx-autobuild -b html ./sphinx ./docs

@@ -3,12 +3,14 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import importlib.metadata
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = 'asyncgui'
-copyright = '2023, Nattōsai Mitō'
-author = 'Nattōsai Mitō'
-release = '0.6.0.dev2'
+copyright = '2023, Mitō Nattōsai'
+author = 'Mitō Nattōsai'
+release = importlib.metadata.version(project)
 
 
 # -- General configuration ---------------------------------------------------
