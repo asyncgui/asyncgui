@@ -8,4 +8,4 @@ bin/
 /Pipfile.lock
 /poetry.lock
 /dist
-/doc/_build/
+/docs/

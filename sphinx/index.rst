@@ -6,4 +6,5 @@ A thin layer that helps to build an async/await-based api using a callback-based
 .. toctree::
    :maxdepth: 1
 
+   structured-concurrency
    reference
