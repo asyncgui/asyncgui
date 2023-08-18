@@ -56,7 +56,7 @@ class _Cancelled(BaseException):
 Cancelled = (_Cancelled, GeneratorExit, )
 '''
 Exception class that represents cancellation.
-See dealing-with-cancellation_ .
+See :ref:`dealing-with-cancellation`.
 
 :meta hide-value:
 '''
@@ -263,7 +263,7 @@ Aw_or_Task = T.Union[T.Awaitable, Task]
 def start(aw: Aw_or_Task, /) -> Task:
     '''*Immediately* start a Task/Awaitable.
 
-    If the argument is a :class:`Task`, itself will be returned. If it's a :class:`typing.Awaitable`,
+    If the argument is a :class:`Task`, itself will be returned. If it's an :class:`typing.Awaitable`,
     it will be wrapped in a Task, and that Task will be returned.
 
     .. code-block::
@@ -555,7 +555,7 @@ class ISignal:
         async def async_func():
             await sig.wait()
 
-    .. seealso:: wrapping-a-callback-based-api_
+    Read :doc:`usage` for details.
     '''
 
     __slots__ = ('_flag', '_task', )
@@ -740,13 +740,47 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
 
 _wait_xxx_cm_type = T.Callable[[Aw_or_Task], T.AsyncContextManager[Task]]
 wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_child_end__ver_all, True)
-'''See :doc:`structured-concurrency`.'''
+'''
+The context manager form of :func:`wait_all`.
+
+.. code-block::
+
+    async with wait_all_cm(async_fn()) as bg_task:
+        ...
+
+See :doc:`structured-concurrency` for details.
+'''
 wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
-'''See :doc:`structured-concurrency`.'''
+'''
+The context manager form of :func:`wait_any`, an equivalent of :func:`trio_util.move_on_when`.
+
+.. code-block::
+
+    async with wait_any_cm(async_fn()) as bg_task:
+        ...
+
+See :doc:`structured-concurrency` for details.
+'''
 run_as_primary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_primary()", _on_child_end__ver_any, True)
-'''See :doc:`structured-concurrency`.'''
+'''
+.. code-block::
+
+    async with run_as_primary(async_fn()) as task:
+        ...
+
+See :doc:`structured-concurrency` for details.
+'''
 run_as_secondary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_secondary()", _on_child_end__ver_all, False)
-'''See :doc:`structured-concurrency`.'''
+'''
+An equivalent of :func:`trio_util.run_and_cancelling`.
+
+.. code-block::
+
+    async with run_as_secondary(async_fn()) as bg_task:
+        ...
+
+See :doc:`structured-concurrency` for details.
+'''
 
 
 class Nursery:
@@ -771,7 +805,7 @@ class Nursery:
         '''
         *Immediately* start a Task/Awaitable under the supervision of the nursery.
 
-        If the argument is a :class:`Task`, itself will be returned. If it's a :class:`typing.Awaitable`,
+        If the argument is a :class:`Task`, itself will be returned. If it's an :class:`typing.Awaitable`,
         it will be wrapped in a Task, and that Task will be returned.
 
         The ``daemon`` parameter acts like the one in the :mod:`threading` module.
@@ -799,13 +833,13 @@ class Nursery:
 @asynccontextmanager
 async def open_nursery() -> T.AsyncIterator[Nursery]:
     '''
-    Equivalent of :func:`trio.open_nursery`.
+    Similar to :func:`trio.open_nursery`.
 
     .. code-block::
 
         async with open_nursery() as nursery:
-            nursery.start(other_async_func1())
-            nursery.start(other_async_func2())
+            nursery.start(async_fn1())
+            nursery.start(async_fn2(), daemon=True)
     '''
     children = []
     exc = None
@@ -856,10 +890,8 @@ class IBox:
             assert args == (1, 2, )
             assert kwargs == {'key': 'value', }
 
-    .. note::
-
-        This is not a generic item storage, but is designed for a specific purpose.
-        See wrapping-a-callback-based-api_ for details.
+    This is not a generic item storage, but is designed for a specific purpose.
+    Read :doc:`usage` for details.
     '''
 
     __slots__ = ('_item', '_getter', )

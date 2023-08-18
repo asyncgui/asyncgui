@@ -12,6 +12,9 @@ copyright = '2023, Mitō Nattōsai'
 author = 'Mitō Nattōsai'
 release = importlib.metadata.version(project)
 
+rst_epilog = """
+.. |ja| replace:: 🇯🇵
+"""
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -55,14 +58,13 @@ intersphinx_mapping = {
 }
 
 
-# -- Options for autodoc extension ---------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
-
-
 # -- Options for tabs extension ---------------------------------------
 # https://sphinx-tabs.readthedocs.io/en/latest/
 sphinx_tabs_disable_tab_closing = True
 
+
+# -- Options for autodoc extension ---------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
 
 def modify_signature(app, what: str, name: str, obj, options, signature, return_annotation: str,
                      prefix="asyncgui.",
