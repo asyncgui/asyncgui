@@ -97,6 +97,9 @@ class TaskState(enum.Enum):
     '''
 
 
+_next_Task_uid = itertools.count().__next__
+
+
 class Task:
     __slots__ = (
         'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
@@ -104,12 +107,10 @@ class Task:
         '_cancel_disabled', '_cancel_depth', '_cancel_level',
     )
 
-    _uid_iter = itertools.count()
-
     def __init__(self, aw: T.Awaitable, /):
         if not isawaitable(aw):
             raise ValueError(str(aw) + " is not awaitable.")
-        self._uid = next(self._uid_iter)
+        self._uid = _next_Task_uid()
         self.name = ""  #: :meta private:
         self._cancel_disabled = 0
         self._root_coro = self._wrapper(aw)
