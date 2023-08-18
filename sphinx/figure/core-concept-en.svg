@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" xml:space="preserve"><g transform="matrix(1.01,0,0,1,255.5,260.26)"><g><radialGradient id="a" cx=".5" cy=".5" r="1.58" fx=".5" fy=".5"><stop offset="0%" stop-color="#fff" stop-opacity=".996"/><stop offset="24.61%" stop-color="#007fff" stop-opacity=".996"/></radialGradient><ellipse rx="252.5" ry="259.76" fill="url(#a)"/></g><g><radialGradient id="b" cx=".5" cy=".5" r=".8" fx=".5" fy=".5"><stop offset="36.33%" stop-color="#3f7f00" stop-opacity=".996"/><stop offset="1e2%" stop-color="#aa56ff" stop-opacity=".996"/></radialGradient><circle r="134" fill="url(#b)"/></g>
+
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;stroke:#000;stroke-width:0;fill:#fff;white-space:pre" transform="matrix(2.17,0,0,2.26-2.17-76.28)">
+  <tspan x="-42.66" y="7.54">asyncgui</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;font-weight:bold;fill:#fff;white-space:pre" transform="translate(-1.86,71.22)">
+  <tspan x="-88.34" y="7.54">basic task handling</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;font-weight:bold;fill:#fff;white-space:pre" transform="matrix(.95,0,0,.95,3.44-3.04)">
+  <tspan x="-120.53" y="7.54">structured concurrency</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;font-weight:bold;fill:#fff;white-space:pre" transform="matrix(.98,0,0,.98-2.72,35.38)">
+  <tspan x="-62.98" y="7.54">cancel scope</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;fill:#fff;white-space:pre" transform="matrix(3.51,0,0,3.51-3.17-190.92)">
+  <tspan x="-31.99" y="7.54">GLUE</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;fill:#fff;white-space:pre" transform="matrix(.9,0,0,.9-100.25,176.37)">
+  <tspan x="-56.31" y="7.54">GUI library</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;fill:#e5e5e5;white-space:pre" transform="matrix(1.16,0,0,1.16-178.48-80.76)">
+  <tspan x="-35.99" y="7.54">process</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;fill:#e5e5e5;white-space:pre" transform="matrix(1.1,0,0,1.1,91.89,181.05)">
+  <tspan x="-39.32" y="7.54">network</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;fill:#e5e5e5;white-space:pre" transform="matrix(1.18,0,0,1.18-187.81,54.63)">
+  <tspan x="-29.98" y="7.54">thread</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;fill:#fff;white-space:pre" transform="matrix(1.08,0,0,1.08,182.2-84.56)">
+  <tspan x="-25.32" y="7.54">timer</tspan>
+</text>
+<text xml:space="preserve" style="font-family:Times New Roman;font-size:24px;fill:#fff;white-space:pre" transform="translate(183.91,58.44)">
+  <tspan x="-52.32" y="7.54">file system</tspan>
+</text>
+
+</g></svg>
