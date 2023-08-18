@@ -17,7 +17,7 @@ __all__ = (
     'IBox', 'ISignal', '_current_task', '_sleep_forever',
 
     # aliases
-    'run_as_daemon', 'TaskGroup', 'and_', 'or_',
+    'run_as_daemon', 'and_', 'or_',
 )
 import types
 import typing as T
@@ -680,8 +680,8 @@ def _on_child_end__ver_any(scope, counter_or_signal, child):
 _wait_xxx_type = T.Callable[..., T.Awaitable[T.Sequence[Task]]]
 wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
 '''
-Run multiple tasks concurrently, and wait for **all** of them to **end**. When any of them raises an exception, the others
-will be cancelled, and the exception will be propagated to the caller, like :class:`trio.Nursery`.
+Run multiple tasks concurrently, and wait for **all** of them to **end**. When any of them raises an exception, the
+others will be cancelled, and the exception will be propagated to the caller, like :class:`trio.Nursery`.
 
 .. code-block::
 
@@ -932,6 +932,5 @@ class IBox:
 # Aliases
 # -----------------------------------------------------------------------------
 run_as_daemon = run_as_secondary  #: An alias for :func:`run_as_secondary`.
-TaskGroup = open_nursery  #: An alias for :func:`open_nursery`.
 and_ = wait_all  #: An alias for :func:`wait_all`. This exists solely for backward compatibility.
 or_ = wait_any  #: An alias for :func:`wait_any`. This exists solely for backward compatibility.
