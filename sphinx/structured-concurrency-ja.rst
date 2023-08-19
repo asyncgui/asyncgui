@@ -45,7 +45,7 @@ wait_all
 
 .. code-block::
 
-    await wait_all(async_fn1(), async_fn2(), async_fn3())
+    tasks = await wait_all(async_fn1(), async_fn2(), async_fn3())
 
 どのタスクが完了/中断したのか、完了した物の戻り値は何か等の調べ方は全て ``wait_any`` と同じなので説明を省きます。
 
@@ -75,7 +75,7 @@ wait_all
 
     flattened_tasks = (tasks[0], *tasks[1].result, )
 
-    while t, idx in zip(flattened_tasks, "123"):
+    for t, idx in zip(flattened_tasks, "123"):
         if t.finished:
             print(f"async_fn{idx}()の戻り値 :", t.result)
         else:
