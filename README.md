@@ -1,13 +1,13 @@
 # AsyncGui
 
-A thin layer that helps to build async/await-based apis using callback-based apis.
+A thin layer that helps to build async/await-based APIs using callback-based APIs.
 
 ## How to use
 
 Despite its name, the application of `asyncgui` is **not** limited to gui programs.
-You can wrap any kind of callback-based apis in it.
+You can wrap any kind of callback-based APIs in it.
 The simplest example of it would be [sched](https://docs.python.org/3/library/sched.html),
-whose the whole feature is a timer.
+whose the whole feature is timer.
 All you need is just few lines of code:
 
 ```python
@@ -35,11 +35,11 @@ async def main():
     print('C')
 
 
-asyncgui.start(main(s))
+asyncgui.start(main())
 s.run()
 ```
 
-And you already have structured concurrency apis as well:
+And you already have structured concurrency APIs as well:
 
 ```python
 async def print_numbers():

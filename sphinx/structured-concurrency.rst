@@ -27,15 +27,15 @@ from the return value of this function.
 
     tasks = await wait_any(async_fn1(), async_fn2(), async_fn3())
 
-    while t, idx in zip(tasks, "123"):
+    for t, idx in zip(tasks, "123"):
         if t.finished:
             print(f"The return value of async_fn{idx}() :", t.result)
         else:
             print(f"async_fn{idx}() was cancelled")
 
 Note that there is no guarantee that only one task will finish.
-There is a possibility that all tasks may be cancelled.
-There is also a possibility that multiple tasks may finish.
+There is a possibility that all tasks are cancelled.
+There is also a possibility that multiple tasks finish.
 The reasons for this could be due to :func:`asyncgui.disable_cancellation` or tasks that finish before
 they have a chance to be cancelled.
 However, in most cases, you don't need to worry about it.
