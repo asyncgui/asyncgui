@@ -84,8 +84,8 @@ main end
 It's recommended to pin the minor version, because if it changed, it means some *important* breaking changes occurred.
 
 ```text
-poetry add asyncgui@~0.5
-pip install "asyncgui>=0.5,<0.6"
+poetry add asyncgui@~0.6
+pip install "asyncgui>=0.6,<0.7"
 ```
 
 ## Tested on
