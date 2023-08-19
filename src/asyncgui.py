@@ -638,6 +638,7 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]) -> T.
         return children
     counter = TaskCounter(len(children))
     parent = await current_task()
+    generator_exit = False
 
     try:
         with CancelScope(parent) as scope:
@@ -647,16 +648,21 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]) -> T.
                 c._on_end = on_child_end
                 start(c)
             await counter.to_be_zero()
+    except GeneratorExit:
+        generator_exit = True
+        raise
     finally:
         if counter:
             for c in children:
                 c.cancel()
-            if counter:
-                try:
-                    parent._cancel_disabled += 1
-                    await counter.to_be_zero()
-                finally:
-                    parent._cancel_disabled -= 1
+        if generator_exit:
+            return
+        if counter:
+            try:
+                parent._cancel_disabled += 1
+                await counter.to_be_zero()
+            finally:
+                parent._cancel_disabled -= 1
         exceptions = tuple(e for c in children if (e := c._exc_caught) is not None)
         if exceptions:
             raise ExceptionGroup(debug_msg, exceptions)
@@ -710,6 +716,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
     fg_task = await current_task()
     bg_task = aw if isinstance(aw, Task) else Task(aw)
     exc = None
+    generator_exit = False
 
     try:
         with CancelScope(fg_task) as scope:
@@ -718,10 +725,15 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
             yield start(bg_task)
             if wait_bg:
                 await signal.wait()
+    except GeneratorExit:
+        generator_exit = True
+        raise
     except Exception as e:
         exc = e
     finally:
         bg_task.cancel()
+        if generator_exit:
+            return
         if not signal._flag:
             try:
                 fg_task._cancel_disabled += 1
@@ -847,18 +859,24 @@ async def open_nursery() -> T.AsyncIterator[Nursery]:
     parent = await current_task()
     counter = TaskCounter()
     daemon_counter = TaskCounter()
+    generator_exit = False
 
     try:
         with CancelScope(parent) as scope:
             nursery = Nursery(children, scope, counter, daemon_counter)
             yield nursery
             await counter.to_be_zero()
+    except GeneratorExit:
+        generator_exit = True
+        raise
     except Exception as e:
         exc = e
     finally:
         nursery._closed = True
         for c in children:
             c.cancel()
+        if generator_exit:
+            return
         try:
             parent._cancel_disabled += 1
             await daemon_counter.to_be_zero()
