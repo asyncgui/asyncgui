@@ -248,3 +248,34 @@ def test_parent_fails():
 
     root = ag.start(async_fn())
     assert root.finished
+
+
+def test_garbage_collection():
+    import asyncgui as ag
+
+    async def do_nothing():
+        pass
+
+    async def async_fn(ctx):
+        async with ag.open_nursery(_gc_in_every=3) as nursery:
+            ctx['nursery'] = nursery
+            nursery.start(ag.sleep_forever())
+            nursery.start(do_nothing())
+            nursery.start(ctx['e'].wait())
+
+    ctx = {}
+    ctx['e'] = e = ag.Event()
+    root = ag.start(async_fn(ctx))
+    nursery: ag.Nursery = ctx['nursery']
+    assert len(nursery._children) == 3
+    nursery.start(do_nothing())  # GC-ed
+    assert len(nursery._children) == 3
+    nursery.start(do_nothing())
+    assert len(nursery._children) == 4
+    e.set()
+    nursery.start(do_nothing())
+    assert len(nursery._children) == 5
+    nursery.start(do_nothing())  # GC-ed
+    assert len(nursery._children) == 2
+    nursery.close()
+    assert root.finished
