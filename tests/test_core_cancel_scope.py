@@ -7,14 +7,14 @@ def test_no_cancel():
     async def async_fn():
         task = await ag.current_task()
         async with ag.open_cancel_scope() as scope:
-            assert scope._depth == 1
+            assert scope._level == 1
             assert scope._task is task
             assert not scope.cancelled_caught
             assert not scope.cancel_called
             assert not scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
-        assert scope._depth == 1
+        assert scope._level == 1
         assert scope._task is None
         assert not scope.cancelled_caught
         assert not scope.cancel_called
@@ -32,7 +32,7 @@ def test_cancel():
     async def async_fn():
         task = await ag.current_task()
         async with ag.open_cancel_scope() as scope:
-            assert scope._depth == 1
+            assert scope._level == 1
             assert scope._task is task
             assert not scope.cancelled_caught
             assert not scope.cancel_called
@@ -40,7 +40,7 @@ def test_cancel():
             assert task._cancel_depth == 1
             assert task._cancel_level is None
             scope.cancel()
-            assert scope._depth == 1
+            assert scope._level == 1
             assert scope._task is task
             assert not scope.cancelled_caught
             assert scope.cancel_called
@@ -50,7 +50,7 @@ def test_cancel():
 
             await ag.sleep_forever()
             pytest.fail("Failed to cancel")
-        assert scope._depth == 1
+        assert scope._level == 1
         assert scope._task is None
         assert scope.cancelled_caught
         assert scope.cancel_called
@@ -68,7 +68,7 @@ def test_cancel_neither():
     async def async_fn():
         task = await ag.current_task()
         async with ag.open_cancel_scope() as o_scope:  # o_ -> outer
-            assert o_scope._depth == 1
+            assert o_scope._level == 1
             assert o_scope._task is task
             assert not o_scope.cancelled_caught
             assert not o_scope.cancel_called
@@ -76,36 +76,36 @@ def test_cancel_neither():
             assert task._cancel_depth == 1
             assert task._cancel_level is None
             async with ag.open_cancel_scope() as i_scope:  # i_ -> inner
-                assert i_scope._depth == 2
+                assert i_scope._level == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
                 assert not i_scope.cancel_called
                 assert not i_scope.closed
-                assert o_scope._depth == 1
+                assert o_scope._level == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
                 assert not o_scope.cancel_called
                 assert not o_scope.closed
                 assert task._cancel_depth == 2
                 assert task._cancel_level is None
-            assert i_scope._depth == 2
+            assert i_scope._level == 2
             assert i_scope._task is None
             assert not i_scope.cancelled_caught
             assert not i_scope.cancel_called
             assert i_scope.closed
-            assert o_scope._depth == 1
+            assert o_scope._level == 1
             assert o_scope._task is task
             assert not o_scope.cancelled_caught
             assert not o_scope.cancel_called
             assert not o_scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
-        assert i_scope._depth == 2
+        assert i_scope._level == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
         assert not i_scope.cancel_called
         assert i_scope.closed
-        assert o_scope._depth == 1
+        assert o_scope._level == 1
         assert o_scope._task is None
         assert not o_scope.cancelled_caught
         assert not o_scope.cancel_called
@@ -125,12 +125,12 @@ def test_cancel_inner():
         async with ag.open_cancel_scope() as o_scope:
             async with ag.open_cancel_scope() as i_scope:
                 i_scope.cancel()
-                assert i_scope._depth == 2
+                assert i_scope._level == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
                 assert i_scope.cancel_called
                 assert not i_scope.closed
-                assert o_scope._depth == 1
+                assert o_scope._level == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
                 assert not o_scope.cancel_called
@@ -140,24 +140,24 @@ def test_cancel_inner():
 
                 await ag.sleep_forever()
                 pytest.fail("Failed to cancel")
-            assert i_scope._depth == 2
+            assert i_scope._level == 2
             assert i_scope._task is None
             assert i_scope.cancelled_caught
             assert i_scope.cancel_called
             assert i_scope.closed
-            assert o_scope._depth == 1
+            assert o_scope._level == 1
             assert o_scope._task is task
             assert not o_scope.cancelled_caught
             assert not o_scope.cancel_called
             assert not o_scope.closed
             assert task._cancel_depth == 1
             assert task._cancel_level is None
-        assert i_scope._depth == 2
+        assert i_scope._level == 2
         assert i_scope._task is None
         assert i_scope.cancelled_caught
         assert i_scope.cancel_called
         assert i_scope.closed
-        assert o_scope._depth == 1
+        assert o_scope._level == 1
         assert o_scope._task is None
         assert not o_scope.cancelled_caught
         assert not o_scope.cancel_called
@@ -177,12 +177,12 @@ def test_cancel_outer():
         async with ag.open_cancel_scope() as o_scope:
             async with ag.open_cancel_scope() as i_scope:
                 o_scope.cancel()
-                assert i_scope._depth == 2
+                assert i_scope._level == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
                 assert not i_scope.cancel_called
                 assert not i_scope.closed
-                assert o_scope._depth == 1
+                assert o_scope._level == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
                 assert o_scope.cancel_called
@@ -193,12 +193,12 @@ def test_cancel_outer():
                 await ag.sleep_forever()
                 pytest.fail("Failed to cancel")
             pytest.fail("Failed to cancel")
-        assert i_scope._depth == 2
+        assert i_scope._level == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
         assert not i_scope.cancel_called
         assert i_scope.closed
-        assert o_scope._depth == 1
+        assert o_scope._level == 1
         assert o_scope._task is None
         assert o_scope.cancelled_caught
         assert o_scope.cancel_called
@@ -218,12 +218,12 @@ def test_cancel_inner_first():
         async with ag.open_cancel_scope() as o_scope:
             async with ag.open_cancel_scope() as i_scope:
                 i_scope.cancel()
-                assert i_scope._depth == 2
+                assert i_scope._level == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
                 assert i_scope.cancel_called
                 assert not i_scope.closed
-                assert o_scope._depth == 1
+                assert o_scope._level == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
                 assert not o_scope.cancel_called
@@ -231,12 +231,12 @@ def test_cancel_inner_first():
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 2
                 o_scope.cancel()
-                assert i_scope._depth == 2
+                assert i_scope._level == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
                 assert i_scope.cancel_called
                 assert not i_scope.closed
-                assert o_scope._depth == 1
+                assert o_scope._level == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
                 assert o_scope.cancel_called
@@ -247,12 +247,12 @@ def test_cancel_inner_first():
                 await ag.sleep_forever()
                 pytest.fail("Failed to cancel")
             pytest.fail("Failed to cancel")
-        assert i_scope._depth == 2
+        assert i_scope._level == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
         assert i_scope.cancel_called
         assert i_scope.closed
-        assert o_scope._depth == 1
+        assert o_scope._level == 1
         assert o_scope._task is None
         assert o_scope.cancelled_caught
         assert o_scope.cancel_called
@@ -272,12 +272,12 @@ def test_cancel_outer_first():
         async with ag.open_cancel_scope() as o_scope:
             async with ag.open_cancel_scope() as i_scope:
                 o_scope.cancel()
-                assert i_scope._depth == 2
+                assert i_scope._level == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
                 assert not i_scope.cancel_called
                 assert not i_scope.closed
-                assert o_scope._depth == 1
+                assert o_scope._level == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
                 assert o_scope.cancel_called
@@ -285,12 +285,12 @@ def test_cancel_outer_first():
                 assert task._cancel_depth == 2
                 assert task._cancel_level == 1
                 i_scope.cancel()
-                assert i_scope._depth == 2
+                assert i_scope._level == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
                 assert i_scope.cancel_called
                 assert not i_scope.closed
-                assert o_scope._depth == 1
+                assert o_scope._level == 1
                 assert o_scope._task is task
                 assert not o_scope.cancelled_caught
                 assert o_scope.cancel_called
@@ -301,12 +301,12 @@ def test_cancel_outer_first():
                 await ag.sleep_forever()
                 pytest.fail("Failed to cancel")
             pytest.fail("Failed to cancel")
-        assert i_scope._depth == 2
+        assert i_scope._level == 2
         assert i_scope._task is None
         assert not i_scope.cancelled_caught
         assert i_scope.cancel_called
         assert i_scope.closed
-        assert o_scope._depth == 1
+        assert o_scope._level == 1
         assert o_scope._task is None
         assert o_scope.cancelled_caught
         assert o_scope.cancel_called
