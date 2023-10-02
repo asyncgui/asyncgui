@@ -298,7 +298,7 @@ class CancelScope:
     Equivalent of :class:`trio.CancelScope`.
     You should not directly instantiate this, use :func:`open_cancel_scope`.
     '''
-    __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancel_called', )
+    __slots__ = ('_task', '_level', 'cancelled_caught', 'cancel_called', )
 
     def __init__(self, task: Task, /):
         self._task = task
@@ -307,30 +307,30 @@ class CancelScope:
 
     def __enter__(self) -> 'CancelScope':
         t = self._task
-        t._cancel_depth = self._depth = t._cancel_depth + 1
+        t._cancel_depth = self._level = t._cancel_depth + 1
         return self
 
     def __exit__(self, exc_type, exc, __):
         # LOAD_FAST
         task = self._task
         level = task._cancel_level
-        depth = self._depth
+        scope_level = self._level
 
         self._task = None
         task._cancel_depth -= 1
         if level is not None:
-            if level == depth:
+            if level == scope_level:
                 task._cancel_level = None
             else:
-                assert level < depth, potential_bug_msg
+                assert level < scope_level, potential_bug_msg
         if exc_type is not _Cancelled:
             return
         level = exc.level
-        if level == depth:
+        if level == scope_level:
             self.cancelled_caught = True
             return True
         else:
-            assert level < depth, potential_bug_msg
+            assert level < scope_level, potential_bug_msg
 
     @property
     def closed(self) -> bool:
@@ -346,7 +346,7 @@ class CancelScope:
             return
         self.cancel_called = True
         if not self.closed:
-            self._task.cancel(self._depth)
+            self._task.cancel(self._level)
 
 
 class open_cancel_scope:
