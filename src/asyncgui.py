@@ -790,11 +790,12 @@ class Nursery:
     You should not directly instantiate this, use :func:`open_nursery`.
     '''
 
-    __slots__ = ('_closed', '_children', '_scope', '_counters', '_callbacks', )
+    __slots__ = ('_closed', '_children', '_scope', '_counters', '_callbacks', '_gc_in_every', '_n_until_gc', )
 
-    def __init__(self, children, scope, counter, daemon_counter):
+    def __init__(self, scope, counter, daemon_counter, gc_in_every):
+        self._gc_in_every = self._n_until_gc = gc_in_every
         self._closed = False
-        self._children = children
+        self._children = []
         self._scope = scope
         self._counters = (daemon_counter, counter, )
         self._callbacks = (
@@ -814,12 +815,22 @@ class Nursery:
         '''
         if self._closed:
             raise InvalidStateError("Nursery has been already closed")
+        if not self._n_until_gc:
+            self._collect_garbage()
+            self._n_until_gc = self._gc_in_every
+        self._n_until_gc -= 1
         child = aw if isinstance(aw, Task) else Task(aw)
         child._suppresses_exc = True
         child._on_end = self._callbacks[not daemon]
         self._counters[not daemon].increase()
         self._children.append(child)
         return start(child)
+
+    def _collect_garbage(self, STARTED=TaskState.STARTED):
+        self._children = [
+            c for c in self._children
+            if c.state is STARTED or c._exc_caught is not None
+        ]
 
     def close(self):
         '''Cancel all the child tasks in the nursery as soon as possible. '''
@@ -832,7 +843,7 @@ class Nursery:
 
 
 @asynccontextmanager
-async def open_nursery() -> T.AsyncIterator[Nursery]:
+async def open_nursery(*, _gc_in_every=1000) -> T.AsyncIterator[Nursery]:
     '''
     Similar to :func:`trio.open_nursery`.
 
@@ -842,7 +853,6 @@ async def open_nursery() -> T.AsyncIterator[Nursery]:
             nursery.start(async_fn1())
             nursery.start(async_fn2(), daemon=True)
     '''
-    children = []
     exc = None
     parent = await current_task()
     counter = TaskCounter()
@@ -850,13 +860,14 @@ async def open_nursery() -> T.AsyncIterator[Nursery]:
 
     try:
         with CancelScope(parent) as scope:
-            nursery = Nursery(children, scope, counter, daemon_counter)
+            nursery = Nursery(scope, counter, daemon_counter, _gc_in_every)
             yield nursery
             await counter.to_be_zero()
     except Exception as e:
         exc = e
     finally:
         nursery._closed = True
+        children = nursery._children
         for c in children:
             c.cancel()
         try:
