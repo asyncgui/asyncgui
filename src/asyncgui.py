@@ -169,10 +169,10 @@ class Task:
         else:
             raise InvalidStateError(f"Result of {self} is not ready")
 
-    async def _wrapper(self, awaitable, /):
+    async def _wrapper(self, aw, /):
         try:
             self._state = TaskState.STARTED
-            self._result = await awaitable
+            self._result = await aw
         except _Cancelled as e:
             self._state = TaskState.CANCELLED
             assert e.level == 0, potential_bug_msg
@@ -532,7 +532,7 @@ class Event:
         try:
             tasks = self._waiting_tasks
             idx = len(tasks)
-            yield self._waiting_tasks.append
+            yield tasks.append
         finally:
             tasks[idx] = None
 
