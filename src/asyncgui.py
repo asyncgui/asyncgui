@@ -58,6 +58,12 @@ Cancelled = (_Cancelled, GeneratorExit, )
 Exception class that represents cancellation.
 See :ref:`dealing-with-cancellation`.
 
+.. warning::
+
+    Actually, this is not an exception class but a tuple of exception classes for now.
+    But that's an implementation detail, and it might become an actual class in the future;
+    therefore, your code must be compatible in both cases.
+
 :meta hide-value:
 '''
 
