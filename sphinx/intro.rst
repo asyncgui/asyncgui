@@ -14,7 +14,7 @@ And Curio_, which seems to have had a big influence on Trio, though it now only 
 They may be different each other but all of them have in common is that they are not suitable for GUI programs.
 I'm not saying "Having a GUI library and an async library coexist in the same thread is problematic due to their individual event loops".
 In fact, Kivy_ and BeeWare_ have adapted themselves to work with async libraries,
-PyGame_ doesn't even have an event loop so you could implement it as an async loop,
+PyGame_ doesn't even own an event loop and expects the user to implement one so you could do that using an async loop,
 :mod:`tkinter` and PyQt_ seem to have 3rd party libraries that allow them to work with async libraries.
 Even if none of them are your options, Trio has `special mode`_ that makes it run without interfering with other event loop.
 Therefore, I think it's safe to say that the coexisting problem has been already solved.
@@ -25,7 +25,7 @@ For instance, :func:`asyncio.create_task` and :meth:`asyncio.TaskGroup.create_ta
 :mod:`asyncio`, but neither of them do it immediately.
 
 Let me clarify what I mean by "immediately" just in case.
-It means the following test passes.
+It means the following test should pass:
 
 .. code-block::
 
@@ -45,9 +45,9 @@ It means the following test passes.
 
     asyncio.run(main())
 
-This fails because :func:`asyncio.create_task` doesn't start a task immediately.
-The same applies to :meth:`asyncio.TaskGroup.create_task`, :meth:`trio.Nursery.start`, and :meth:`trio.Nursery.start_soon`
-(the last one has "soon" in its name so it's obvious).
+which does not.
+The same applies to :meth:`trio.Nursery.start` and :meth:`trio.Nursery.start_soon`
+(This has "soon" in its name so it's obvious).
 
 The same issue arises when they resume tasks.
 :meth:`asyncio.Event.set` and :meth:`trio.Event.set` don't immediately resume the tasks waiting for it to happen.
@@ -75,7 +75,7 @@ They schedule the tasks to *eventually* resume, thus, the following test fails.
     asyncio.run(main())
 
 Why does the inability to start/resume tasks make async libraries unsuitable for GUI programs?
-Let's say you have a piece of code that changes the background color of a button while it is pressed:
+Take a look at the following pseudo code that changes the background color of a button while it is pressed.
 
 .. code-block::
 
@@ -95,9 +95,9 @@ The task ends up waiting there until the user presses and releases the button ag
 As a result, the background color of the button remains ``different_color`` until that happens.
 
 Reacting to events without missing any occurrences is challenging for async libraries that cannot start/resume tasks immediately.
-The only idea I came up with is that, record events using the traditional callback functions,
-and supply them to the tasks that resume late a.k.a. buffering.
-I'm not sure it's possible or practical, but it certainly has an impact on performance.
+The only solution I came up with is that, recording events using traditional callback APIs,
+and supplying them to the tasks that resume late a.k.a. buffering.
+I'm not sure it's possible or practical, but it certainly has a non-small impact on performance.
 
 If you use ``asyncgui``, that never be a problem.
 

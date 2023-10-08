@@ -2,9 +2,9 @@
 Structured Concurrency |ja|
 ===========================
 
-ここでは `structured concurrency`_ (`構造化された並行性`_) 関連のapiについて解説していきます。
+ここでは `structured concurrency`_ (`構造化された並行性`_) 関連のAPIについて解説していきます。
 ``構造化された並行性`` が何であるか また何故素晴らしいのかはここでは触れませんので
-興味がある人は `Notes on structured concurrency`_ (`不完全な和訳`_) を読むことをお薦めします。
+興味がある人は `Notes on structured concurrency`_ (`不完全な和訳`_) を読んでください。
 
 
 wait_any

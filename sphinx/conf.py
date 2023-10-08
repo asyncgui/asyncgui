@@ -55,6 +55,7 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'trio': ('https://trio.readthedocs.io/en/stable/', None),
     'trio_util': ('https://trio-util.readthedocs.io/en/latest/', None),
+    'requests': ('https://docs.python-requests.org/en/latest/', None),
 }
 
 
@@ -70,7 +71,7 @@ def modify_signature(app, what: str, name: str, obj, options, signature, return_
                      prefix="asyncgui.",
                      len_prefix=len("asyncgui."),
                      group1={'CancelScope', 'Nursery', 'TaskState', 'Task.cancel', 'Task.close', },
-                     group2={'current_task', 'sleep_forever', },
+                     group2={'current_task', 'sleep_forever', 'open_nursery', },
                      # group3={"TaskState." + s for s in "CREATED STARTED CANCELLED FINISHED".split()},
                      group4={'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary', 'run_as_daemon', },
                      group5={'open_nursery', },

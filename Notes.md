@@ -144,7 +144,7 @@ main()
 
 # 子Taskを開始する時に中断保護を受け継がせるべき?
 
-structured concurrency系のapiに於いては、もしかすると子taskは親taskの中断保護の影響を受けるべきかもしれない。
+structured concurrency系のAPIに於いては、もしかすると子taskは親taskの中断保護の影響を受けるべきかもしれない。
 
 ```python
 async def _wait_xxx(...):
