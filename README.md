@@ -94,6 +94,7 @@ pip install "asyncgui>=0.6,<0.7"
 - CPython 3.9
 - CPython 3.10
 - CPython 3.11
+- CPython 3.12 (3.12.1 or later)
 
 ## Async-libraries who relies on this
 
