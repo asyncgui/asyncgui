@@ -1,6 +1,6 @@
 # AsyncGui
 
-A thin layer that helps to build async/await-based APIs using callback-based APIs.
+A thin layer that helps to wrap a callback-style API in an async/await-style API.
 
 ## How to use
 

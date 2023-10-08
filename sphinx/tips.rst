@@ -46,5 +46,5 @@ if you want the task to be cancellable because cancellations always must be done
         finally:
             await something  # <-- NOT ALLOWED
 
-This, of course, includes ``async for`` and ``async with`` as they call ``await __aiter__()``,
-``await __anext__()``, ``await __aenter__()`` and ``await __aexit__()``.
+This, of course, includes ``async for`` and ``async with`` as they await ``__aiter__()``,
+``__anext__()``, ``__aenter__()`` and ``__aexit__()``.

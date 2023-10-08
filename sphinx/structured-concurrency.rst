@@ -152,7 +152,7 @@ That's exactly where ``run_as_daemon`` comes into play.
         ...
 
 In this code, if the code within the with-block finishes first, it will cause the ``async_fn()`` to be cancelled.
-But if ``async_fn()`` finishes first, it will cause nothing, and just wait for the code within the with-block to
+But if ``async_fn()`` finishes first, it will cause nothing, and just waits for the code within the with-block to
 finish.
 You can think of this as the relation between a non-daemon thread and a daemon thread.
 
@@ -183,6 +183,7 @@ Exception Handling
 
 All the APIs explained here propagate exceptions in the same way as trio_ with the ``strict_exception_groups``
 parameter being True.
+In other words, they *always* wrap the exception(s) occurred in their child tasks in an :exc:`ExceptionGroup`.
 
 .. tabs::
 
