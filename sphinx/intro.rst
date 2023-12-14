@@ -19,10 +19,10 @@ PyGame_ doesn't even own an event loop and expects the user to implement one so 
 Even if none of them are your options, Trio has `special mode`_ that makes it run without interfering with other event loop.
 Therefore, I think it's safe to say that the coexisting problem has been already solved.
 
-Then why did I say "they are not suitable for GUI programs"?
+Then why do I say "they are not suitable for GUI programs"?
 It's because they cannot *immediately* start/resume tasks.
 For instance, :func:`asyncio.create_task` and :meth:`asyncio.TaskGroup.create_task` are the ones that start tasks in
-:mod:`asyncio`, but neither of them do it immediately.
+:mod:`asyncio`, but neither of them does it immediately.
 
 Let me clarify what I mean by "immediately" just in case.
 It means the following test should pass:
@@ -74,7 +74,7 @@ They schedule the tasks to *eventually* resume, thus, the following test fails.
 
     asyncio.run(main())
 
-Why does the inability to start/resume tasks make async libraries unsuitable for GUI programs?
+Why does the inability to immediately start/resume tasks make async libraries unsuitable for GUI programs?
 Take a look at the following pseudo code that changes the background color of a button while it is pressed.
 
 .. code-block::

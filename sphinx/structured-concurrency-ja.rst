@@ -10,8 +10,6 @@ Structured Concurrency |ja|
 wait_any
 --------
 
-.. autofunction:: asyncgui.wait_any
-
 おそらく最も需要があるのはこの機能になると思います。これは複数のタスクを同時に走らせその **いずれか** が完了するまで待ちます。
 そしてそれが起こり次第 残りのタスクを中断させます。
 
@@ -39,15 +37,13 @@ wait_any
 wait_all
 --------
 
-.. autofunction:: asyncgui.wait_all
-
 こちらは全てのタスクが完了/中断するまで待ちます。
 
 .. code-block::
 
     tasks = await wait_all(async_fn1(), async_fn2(), async_fn3())
 
-どのタスクが完了/中断したのか、完了した物の戻り値は何か等の調べ方は全て ``wait_any`` と同じなので説明を省きます。
+どのタスクが完了/中断したのか、完了した物の戻り値は何か等の調べ方は全て ``wait_any`` と同じです。
 
 
 好きなだけ入れ子に
@@ -103,10 +99,6 @@ wait_all
 wait_any_cm, wait_all_cm
 ------------------------
 
-.. autofunction:: asyncgui.wait_any_cm
-
-.. autofunction:: asyncgui.wait_all_cm
-
 ``wait_any`` を用いて二つのタスクを並行させるコードは
 
 .. code-block::
@@ -126,7 +118,7 @@ wait_any_cm, wait_all_cm
             # async_fn1 の中身
 
 この様に関数の中身をwithブロック内に移す事で関数を一つ減らす事に成功しました。
-この機能は ``async_fn1()`` 内で ``main()`` 内のローカル変数をたくさん読み書きした時に特に活きるでしょう。
+この機能は ``async_fn1()`` 内で ``main()`` 内のローカル変数をたくさん読み書きしたい時に特に活きるでしょう。
 例えば次のコードを見て下さい。
 
 .. code-block::
@@ -176,10 +168,6 @@ wait_any_cm, wait_all_cm
 run_as_secondary, run_as_daemon
 -------------------------------
 
-.. autofunction:: asyncgui.run_as_secondary
-
-.. autofunction:: asyncgui.run_as_daemon
-
 これまで解説してきたapiはどれも並行させたタスク達の関係が対等でした。
 ``wait_any_cm`` を例に挙げるならwithブロック内のコードと ``wait_any_cm`` に渡したタスクのどちらが完了した場合でももう片方を中断させるの
 でした。
@@ -200,8 +188,6 @@ withブロック内の完了を待つだけです。例えるなら非daemonス�
 run_as_primary
 --------------
 
-.. autofunction:: asyncgui.run_as_primary
-
 これは ``run_as_daemon`` の逆でwithブロック内がdaemonとなります。
 
 .. code-block::
@@ -217,8 +203,17 @@ open_nursery
 ------------
 
 :func:`trio.open_nursery` を真似たものです。
+このAPIの利は並行させたいタスクをあらかじめ用意しなくて良い事です。
+``nursery`` が開いている限りは後からいくらでも ``nursery.start()`` でタスクを加えられます。
 
-.. autofunction:: asyncgui.open_nursery
+.. code-block::
+
+    async with open_nursery() as nursery:
+        while True:
+            touch = await 画面に指が触れられるのを待つ
+            nursery.start(指に沿って線を引く(touch))
+
+但しタスクの戻り値を得る方法は無いので別の形で値を受け渡してください。
 
 .. seealso:: :class:`asyncgui.Nursery`, `Trio関連の日本語記事`_
 

@@ -10,8 +10,6 @@ since there is already an `amazing article`_ explaining it.
 wait_any
 --------
 
-.. autofunction:: asyncgui.wait_any
-
 This may be the most in-demand feature of all the structured concurrency APIs.
 It runs multiple tasks simultaneously and waits for any one of them to finish.
 Once that happens, it will cancel the remaining tasks.
@@ -43,8 +41,6 @@ However, in most cases, you don't need to worry about it.
 
 wait_all
 --------
-
-.. autofunction:: asyncgui.wait_all
 
 Run multiple tasks simultaneously and wait for all of them to finish/be-cancelled.
 
@@ -106,10 +102,6 @@ and passing it to the api as follows.
 wait_any_cm, wait_all_cm
 ------------------------
 
-.. autofunction:: asyncgui.wait_any_cm
-
-.. autofunction:: asyncgui.wait_all_cm
-
 ``wait_any`` and ``wait_all`` have an async context manager form.
 The following code
 
@@ -136,10 +128,6 @@ Read trio-util_'s documentation for details.
 run_as_secondary, run_as_daemon
 -------------------------------
 
-.. autofunction:: asyncgui.run_as_secondary
-
-.. autofunction:: asyncgui.run_as_daemon
-
 All the APIs explained so far treat tasks equally.
 Taking ``wait_any_cm`` as an example, when either the code within the with-block or the awaitable passed to the API
 completes, it will cause the other one to be cancelled.
@@ -160,8 +148,6 @@ You can think of this as the relation between a non-daemon thread and a daemon t
 run_as_primary
 --------------
 
-.. autofunction:: asyncgui.run_as_primary
-
 The opposite of ``run_as_daemon``.
 
 .. code-block::
@@ -175,7 +161,14 @@ If ``async_fn()`` finishes first, it will cause the code within the with-block t
 open_nursery
 ------------
 
-.. autofunction:: asyncgui.open_nursery
+An equivalence of :func:`trio.open_nursery`.
+
+.. code-block::
+
+    async with open_nursery() as nursery:
+        while True:
+            finger = await wait_for_the_user_to_touch_the_screen()
+            nursery.start(draw_line_along_with_a_finger(finger))
 
 
 Exception Handling
