@@ -97,5 +97,6 @@ pip install "asyncgui>=0.6,<0.7"
 
 ## Async-libraries who relies on this
 
-- [asynckivy](https://github.com/gottadiveintopython/asynckivy)
-- [asynctkinter](https://github.com/gottadiveintopython/asynctkinter)
+- [asyncsched](https://github.com/asyncgui/asyncsched)
+- [asynckivy](https://github.com/asyncgui/asynckivy)
+- [asynctkinter](https://github.com/asyncgui/asynctkinter)

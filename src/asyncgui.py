@@ -9,7 +9,7 @@ __all__ = (
     # utils
     'Event',
 
-    # utils (structured concurrency)
+    # core (structured concurrency)
     'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary',
     'open_nursery', 'Nursery',
 
@@ -40,7 +40,7 @@ else:
 
 potential_bug_msg = \
     r"This may be a bug of this library. Please make a minimal code that reproduces the bug, and open an issue at " \
-    r"the GitHub repository, then post the code there. (https://github.com/gottadiveintopython/asyncgui)."
+    r"the GitHub repository, then post the code there. (https://github.com/asyncgui/asyncgui)."
 
 
 class InvalidStateError(Exception):
@@ -214,7 +214,6 @@ class Task:
 
     def _actual_cancel(self):
         try:
-            # NOTE: _cancel_levelが0の時は末尾の関数呼び出し (self) は省いても良いかもしれない
             self._root_coro.throw(_Cancelled(self._cancel_level))(self)
         except StopIteration:
             pass
@@ -301,7 +300,7 @@ def start(aw: Aw_or_Task, /) -> Task:
 
 class CancelScope:
     '''
-    Equivalent of :class:`trio.CancelScope`.
+    An equivalence of :class:`trio.CancelScope`.
     You should not directly instantiate this, use :func:`open_cancel_scope`.
     '''
     __slots__ = ('_task', '_level', 'cancelled_caught', 'cancel_called', )
@@ -754,19 +753,15 @@ The context manager form of :func:`wait_all`.
 
     async with wait_all_cm(async_fn()) as bg_task:
         ...
-
-See :doc:`structured-concurrency` for details.
 '''
 wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
 '''
-The context manager form of :func:`wait_any`, an equivalent of :func:`trio_util.move_on_when`.
+The context manager form of :func:`wait_any`, an equivalence of :func:`trio_util.move_on_when`.
 
 .. code-block::
 
     async with wait_any_cm(async_fn()) as bg_task:
         ...
-
-See :doc:`structured-concurrency` for details.
 '''
 run_as_primary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_primary()", _on_child_end__ver_any, True)
 '''
@@ -774,8 +769,6 @@ run_as_primary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_primary()", _o
 
     async with run_as_primary(async_fn()) as task:
         ...
-
-See :doc:`structured-concurrency` for details.
 '''
 run_as_secondary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_secondary()", _on_child_end__ver_all, False)
 '''
@@ -785,8 +778,6 @@ An equivalent of :func:`trio_util.run_and_cancelling`.
 
     async with run_as_secondary(async_fn()) as bg_task:
         ...
-
-See :doc:`structured-concurrency` for details.
 '''
 
 
@@ -950,5 +941,5 @@ class IBox:
 # Aliases
 # -----------------------------------------------------------------------------
 run_as_daemon = run_as_secondary  #: An alias for :func:`run_as_secondary`.
-and_ = wait_all  #: An alias for :func:`wait_all`. This exists solely for backward compatibility.
-or_ = wait_any  #: An alias for :func:`wait_any`. This exists solely for backward compatibility.
+and_ = wait_all  #: An alias for :func:`wait_all`.
+or_ = wait_any  #: An alias for :func:`wait_any`.

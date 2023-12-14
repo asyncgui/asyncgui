@@ -8,5 +8,6 @@ Usage (incomplete)
 Glues
 =====
 
-* https://github.com/gottadiveintopython/asynckivy
-* https://github.com/gottadiveintopython/asynctkinter
+* https://github.com/asyncgui/asyncsched
+* https://github.com/asyncgui/asynckivy
+* https://github.com/asyncgui/asynctkinter
