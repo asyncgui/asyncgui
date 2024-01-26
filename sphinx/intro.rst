@@ -94,6 +94,12 @@ The task eventually resumes and pauses at the ``await button.gets_released`` lin
 The task ends up waiting there until the user presses and releases the button again.
 As a result, the background color of the button remains ``different_color`` until that happens.
 
+.. note::
+
+    The situation is worse in Kivy_. In Kivy, touch events are stateful objects.
+    If you fail to handle them promptly, their state might undergo changes,
+    leaving no time to wait for tasks to resume.
+
 Reacting to events without missing any occurrences is challenging for async libraries that cannot start/resume tasks immediately.
 The only solution I came up with is that, recording events using traditional callback APIs,
 and supplying them to the tasks that resume late a.k.a. buffering.

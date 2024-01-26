@@ -48,3 +48,15 @@ if you want the task to be cancellable because cancellations always must be done
 
 This, of course, includes ``async for`` and ``async with`` as they await ``__aiter__()``,
 ``__anext__()``, ``__aenter__()`` and ``__aexit__()``.
+
+-------------------------
+xxx ignored GeneratorExit
+-------------------------
+
+If this type of error occurs in your program, try explicitly canceling the corresponding 'root' task.
+All instances of :class:`asyncgui.Task` returned by :func:`asyncgui.start` are considered 'root' tasks.
+You should identify the relevant one from the error message and then use :meth:`asyncgui.Task.cancel` to terminate it.
+
+もしこのようなエラーが起きるようなら根タスクを明示的に中断してください。
+根タスクとは :func:`asyncgui.start` が返すタスクの事です。
+エラーメッセージを頼りに該当する根タスクを探して明示的に :meth:`asyncgui.Task.cancel` してください。

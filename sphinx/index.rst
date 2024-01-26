@@ -18,4 +18,4 @@ A thin layer that helps to wrap a callback-style API in an async/await-style API
 Links
 -----
 
-https://github.com/gottadiveintopython/asyncgui
+https://github.com/asyncgui/asyncgui

@@ -101,3 +101,4 @@ pip install "asyncgui>=0.6,<0.7"
 - [asyncsched](https://github.com/asyncgui/asyncsched)
 - [asynckivy](https://github.com/asyncgui/asynckivy)
 - [asynctkinter](https://github.com/asyncgui/asynctkinter)
+- [asyncpygame](https://github.com/asyncgui/asyncpygame)
