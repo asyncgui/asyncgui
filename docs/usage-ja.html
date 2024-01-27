@@ -1,0 +1,552 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Structured Concurrency" href="structured-concurrency.html" /><link rel="prev" title="Usage (incomplete)" href="usage.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2023.09.10 -->
+        <title>Usage 🇯🇵 - asyncgui 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=a5c4661c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">asyncgui 0.6.1 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">asyncgui 0.6.1 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro-ja.html">Introduction 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage (incomplete)</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Usage 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structured-concurrency.html">Structured Concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structured-concurrency-ja.html">Structured Concurrency 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Tips</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">API Reference</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="usage-ja">
+<h1>Usage 🇯🇵<a class="headerlink" href="#usage-ja" title="Permalink to this heading">#</a></h1>
+<p>ここでは <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> とコールバック型APIの繋げ方を見ていきます。</p>
+<section id="sched">
+<h2>schedと繋ぐ<a class="headerlink" href="#sched" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://docs.python.org/3/library/sched.html#module-sched" title="(in Python v3.12)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sched</span></code></a> はタイマー機能のみを提供する非常に簡素なモジュールなので試すにはうってつけでしょう。
+まずはこれをそのまま用いて</p>
+<ol class="arabic simple">
+<li><p>１秒待機</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">A</span></code> を出力</p></li>
+<li><p>２秒待機</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">B</span></code> を出力</p></li>
+<li><p>3秒待機</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">C</span></code> を出力</p></li>
+</ol>
+<p>といった処理を書くとどのようになるのか確認しておきます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sched</span>
+
+<span class="n">PRIORITY</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">sched</span><span class="o">.</span><span class="n">scheduler</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">やりたい事</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">step1</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">enter</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">PRIORITY</span><span class="p">,</span> <span class="n">step2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">step2</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">enter</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">PRIORITY</span><span class="p">,</span> <span class="n">step3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">step3</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+
+    <span class="n">s</span><span class="o">.</span><span class="n">enter</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">PRIORITY</span><span class="p">,</span> <span class="n">step1</span><span class="p">)</span>
+
+<span class="n">やりたい事</span><span class="p">()</span>
+<span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>コールバック型のコードはやはり読みづらいですね。
+ここでもしかすると「いや <a class="reference external" href="https://docs.python.org/3/library/time.html#time.sleep" title="(in Python v3.12)"><code class="xref py py-func docutils literal notranslate"><span class="pre">time.sleep()</span></code></a> 使えばいいのでは？」といった声が上がるかもしれないので反論しておきます。</p>
+<section id="time-sleep">
+<h3>「time.sleep 使えばいいのでは？」に対する反論<a class="headerlink" href="#time-sleep" title="Permalink to this heading">#</a></h3>
+<p>確かに <code class="docutils literal notranslate"><span class="pre">time.sleep</span></code> を用いれば次のように書けます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="k">def</span> <span class="nf">やりたい事</span><span class="p">():</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+
+<span class="n">やりたい事</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>しかしこれは <code class="docutils literal notranslate"><span class="pre">やりたい事</span></code> が一つしか無いとき限定であり複数あると話が変わってきます。
+<code class="docutils literal notranslate"><span class="pre">time.sleep</span></code> のやり方では複数のスレッドを建てないと複数の事ができないのに対し <code class="docutils literal notranslate"><span class="pre">sched</span></code> を用いたやり方はスレッドは一つで足ります。
+具体的にはコードの最後の部分で</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># あくまで一例</span>
+<span class="n">やりたい事</span><span class="p">()</span>
+<span class="n">やりたい事</span><span class="p">()</span>
+<span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>という風に <code class="docutils literal notranslate"><span class="pre">やりたい事</span></code> を複数回呼ぶだけです。なので <code class="docutils literal notranslate"><span class="pre">time.sleep</span></code> に <code class="docutils literal notranslate"><span class="pre">sched</span></code> の代わりは務まらないと言えます。</p>
+</section>
+<section id="api">
+<h3>APIの姿を決める<a class="headerlink" href="#api" title="Permalink to this heading">#</a></h3>
+<p>それではこれから糊を作っていくのですが先ずはいま繋げようとしているコールバック型APIである <a class="reference external" href="https://docs.python.org/3/library/sched.html#sched.scheduler.enter" title="(in Python v3.12)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sched.scheduler.enter()</span></code></a>
+を <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> からどのような形で利用したいかを考えないといけません。
+これは即ち <code class="docutils literal notranslate"><span class="pre">enter()</span></code> のasync/await版がどうあるべきかを考える事です。</p>
+<p>ここで先程出てきた <code class="docutils literal notranslate"><span class="pre">time.sleep</span></code> の例を思い出して欲しいのですが 確か以下のようなコードでした。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="k">def</span> <span class="nf">やりたい事</span><span class="p">():</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>このやり方はスレッドを占有するという短所がある反面、コードがすこぶる読みやすいという利点を持っています。
+きっと <code class="docutils literal notranslate"><span class="pre">enter()</span></code> のasync/await版もこのように読みやすいと使う側は嬉しいんじゃないでしょうか？
+具体的には以下の感じです。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">やりたい事</span><span class="p">():</span>
+    <span class="k">await</span> <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>これが実現すれば <code class="docutils literal notranslate"><span class="pre">time.sleep</span></code> の物とほぼ同等の読みやすさを保った上でスレッドを占有しないという良いとこ取りができた事になります <a class="footnote-reference brackets" href="#obtain-cancellation" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> 。
+なのでこの様な姿を目指す事にしましょう。</p>
+<p><code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">sleep(1)</span></code> という使い方をするという事は <code class="docutils literal notranslate"><span class="pre">sleep</span></code> は <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Awaitable</span></code></a> を返す <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Callable</span></code></a>
+でないといけません。
+その条件を満たす実装方法は幾つか有るのですが、とりあえずその一つであるasync関数 <a class="footnote-reference brackets" href="#async-func-mitasu" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> から考えてみます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">duration</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>こう書きたいところなのですが <code class="docutils literal notranslate"><span class="pre">enter()</span></code> はインスタンスメソッドなのでインスタンスを渡さないと呼びようがありませんし、
+このメソッドは <code class="docutils literal notranslate"><span class="pre">priority</span></code> という引数も取るのでそれも渡してあげた方が良いと思います。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">duration</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>というわけでこの姿を目指して実装にとりかかりましょう。</p>
+</section>
+<section id="id3">
+<h3>実装<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
+<p>コールバック型のAPIをasync/awaitの世界と繋ぐにはコールバック関数が呼ばれた時に処理が再開するように仕組んだ上で処理を停止させる必要があります。
+難しそうに聞こえますが <a class="reference external" href="https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Event</span></code></a> や <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#trio.Event" title="(in Trio v0.24.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">trio.Event</span></code></a> を使った事があればピンと来るんじゃないでしょうか？</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">糊</span><span class="p">():</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+    <span class="c1"># コールバック関数が呼ばれた時に処理が再開するように仕組む</span>
+    <span class="n">コールバック関数を登録</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">())</span>
+
+    <span class="c1"># 処理を停止する</span>
+    <span class="k">await</span> <span class="n">e</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">利用者</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">糊</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>このように <code class="docutils literal notranslate"><span class="pre">糊</span></code> を介する事で <code class="docutils literal notranslate"><span class="pre">利用者</span></code> 側のコードは読みやすさを保った状態でコールバック型のAPIを使えるようになります。
+そして同等の機能は <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> にもあります。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncgui</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">糊</span><span class="p">():</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+    <span class="n">コールバック関数を登録</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>  <span class="c1"># A</span>
+    <span class="k">await</span> <span class="n">e</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> の場合は <a class="reference internal" href="reference.html#asyncgui.Event.set" title="asyncgui.Event.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">asyncgui.Event.set()</span></code></a> がどんな引数でも受け取れるようになっているのでlambdaを挟まなくて済むのがちょっとした売りです(A行)。
+とはいえこれが繋げ方の本筋というわけではありません。 <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> にはこういった用途の為により特化された物があります。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncgui</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">糊</span><span class="p">():</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">ISignal</span><span class="p">()</span>
+    <span class="n">コールバック関数を登録</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">sig</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Event</span></code> というのは複数のタスクが <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">Event.wait()</span></code> を同時に呼んでも良い様になっています。
+しかし今回のような使われ方では絶対に一つのタスクからしか呼ばれません。
+であればそれ専用の物があってもいいのでは？と思って <a class="reference internal" href="reference.html#asyncgui.ISignal" title="asyncgui.ISignal"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncgui.ISignal</span></code></a> を作りました。
+<code class="docutils literal notranslate"><span class="pre">ISignal</span></code> は同時に複数のタスクが <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">sig.wait()</span></code> しようとすると例外を起こしてそれを許しません。
+その代わり <code class="docutils literal notranslate"><span class="pre">Event</span></code> のように複数のタスクを保持する為の <code class="docutils literal notranslate"><span class="pre">list</span></code> を持たずに済んでいます。
+せっかくなのでこれ用いて <code class="docutils literal notranslate"><span class="pre">sleep</span></code> を実装していきましょう。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncgui</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">duration</span><span class="p">):</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">ISignal</span><span class="p">()</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">enter</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">sig</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">sig</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>これでめでたく以下のように分かりやすく <code class="docutils literal notranslate"><span class="pre">やりたい事</span></code> が書けるようになりました…</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">sched</span>
+<span class="kn">import</span> <span class="nn">asyncgui</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="n">省略</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">sched</span><span class="o">.</span><span class="n">scheduler</span><span class="p">()</span>
+    <span class="n">asyncgui</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">やりたい事</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">やりたい事</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">sched</span><span class="o">.</span><span class="n">scheduler</span><span class="p">):</span>
+    <span class="n">slp</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">sleep</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">slp</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">slp</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">slp</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>と言いたい所なのですがもう一つやっておきたい事があり、それは中断への対応です。
+最低限の対応は <code class="docutils literal notranslate"><span class="pre">ISignal</span></code> が行っているので <code class="docutils literal notranslate"><span class="pre">sleep</span></code> 内で行うことは必須ではないのですがやっておく方がより良いです。
+(参考: <a class="reference internal" href="tips.html#dealing-with-cancellation"><span class="std std-ref">Dealing with Cancellation</span></a>)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncgui</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">duration</span><span class="p">):</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">ISignal</span><span class="p">()</span>
+    <span class="n">event</span> <span class="o">=</span> <span class="n">scheduler</span><span class="o">.</span><span class="n">enter</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">sig</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">sig</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">Cancelled</span><span class="p">:</span>
+        <span class="n">scheduler</span><span class="o">.</span><span class="n">cancel</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">raise</span>
+</pre></div>
+</div>
+<p>これで完璧に <code class="docutils literal notranslate"><span class="pre">sched</span></code> を <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> と繋ぐ事に成功しました。
+一度繋ぐ事ができれば <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> の持つ強力な <a class="reference internal" href="structured-concurrency-ja.html"><span class="doc">Structured Concurrency 🇯🇵</span></a> の恩恵を受けられます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">sched</span>
+<span class="kn">import</span> <span class="nn">asyncgui</span>
+<span class="kn">import</span> <span class="nn">string</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span> <span class="n">duration</span><span class="p">):</span>
+    <span class="n">省略</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">sched</span><span class="o">.</span><span class="n">scheduler</span><span class="p">()</span>
+    <span class="n">asyncgui</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">アルファベットと数字のどちらが先に出力し終わるかの競争</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">アルファベットと数字のどちらが先に出力し終わるかの競争</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">sched</span><span class="o">.</span><span class="n">scheduler</span><span class="p">):</span>
+    <span class="n">slp</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">sleep</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">tasks</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">wait_any</span><span class="p">(</span>
+        <span class="n">一文字づつ間を置いて出力</span><span class="p">(</span><span class="n">slp</span><span class="p">,</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">),</span>
+        <span class="n">一文字づつ間を置いて出力</span><span class="p">(</span><span class="n">slp</span><span class="p">,</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">アルファベットが先に終わりました&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">数字が先に終わりました&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">一文字づつ間を置いて出力</span><span class="p">(</span><span class="n">slp</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">slp</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="mi">0</span> <span class="n">b</span> <span class="mi">1</span> <span class="n">c</span> <span class="mi">2</span> <span class="n">d</span> <span class="mi">3</span> <span class="n">e</span> <span class="mi">4</span> <span class="n">f</span> <span class="mi">5</span> <span class="n">g</span> <span class="mi">6</span> <span class="n">h</span> <span class="mi">7</span> <span class="n">i</span> <span class="mi">8</span> <span class="n">j</span> <span class="mi">9</span> <span class="n">k</span>
+<span class="n">数字が先に終わりました</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id4">
+<h2>機能拡張<a class="headerlink" href="#id4" title="Permalink to this heading">#</a></h2>
+<p>ただ実際に上で作った物を用いて何かのプログラムを作ろうとするとまだ不便な気がします。
+<a class="reference external" href="https://docs.python.org/3/library/sched.html#module-sched" title="(in Python v3.12)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sched</span></code></a> がタイマー機能しか持たない事を考えると「何時間毎に何かを行う」や「この日時になったら何かを行う」といった目的に利用される事が思い浮かぶのですが、
+その”何か”は何である事が多いでしょうか？
+私はファイルシステムやネットワークとのやりとりが多い気がします。
+ところが <code class="docutils literal notranslate"><span class="pre">sched</span></code> は <a class="reference external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio" title="(in Python v3.12)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> や <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#module-trio" title="(in Trio v0.24.0)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">trio</span></code></a> のように入出力機能を備えていません。
+ということは現状 <a class="reference external" href="https://docs.python.org/3/library/functions.html#open" title="(in Python v3.12)"><code class="xref py py-func docutils literal notranslate"><span class="pre">open()</span></code></a> や <a class="reference external" href="https://docs.python-requests.org/en/latest/api/#module-requests" title="(in Requests v2.31.0)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">requests</span></code></a> のような同期APIに頼るしか無いことになります。</p>
+<p>(…執筆中)</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="obtain-cancellation" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>加えて強力な中断能力も手に入ります。</p>
+</aside>
+<aside class="footnote brackets" id="async-func-mitasu" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>async関数は関数なので勿論 <code class="docutils literal notranslate"><span class="pre">Callable</span></code> ですし戻り値は必ず <code class="docutils literal notranslate"><span class="pre">Awaitable</span></code> の一種である <code class="docutils literal notranslate"><span class="pre">Coroutine</span></code> なので条件を満たします。</p>
+</aside>
+</aside>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="structured-concurrency.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Structured Concurrency</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="usage.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Usage (incomplete)</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2023, Mitō Nattōsai
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Usage 🇯🇵</a><ul>
+<li><a class="reference internal" href="#sched">schedと繋ぐ</a><ul>
+<li><a class="reference internal" href="#time-sleep">「time.sleep 使えばいいのでは？」に対する反論</a></li>
+<li><a class="reference internal" href="#api">APIの姿を決める</a></li>
+<li><a class="reference internal" href="#id3">実装</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">機能拡張</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=09aae1b8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>
