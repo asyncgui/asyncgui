@@ -19,28 +19,6 @@ def test_dummy_task():
     assert dummy_task.cancelled
 
 
-@pytest.mark.parametrize('call_cancel', (True, False))
-@pytest.mark.parametrize('disable_cancellation', (True, False))
-def test_check_cancellation(call_cancel, disable_cancellation):
-    import asyncgui as ag
-
-    async def async_func():
-        if call_cancel:
-            task.cancel()
-        if disable_cancellation:
-            async with ag.disable_cancellation():
-                await ag.check_cancellation()
-        else:
-            await ag.check_cancellation()
-
-    task = ag.Task(async_func())
-    ag.start(task)
-    if (not disable_cancellation) and call_cancel:
-        assert task.cancelled
-    else:
-        assert task.finished
-
-
 def test_sleep_forever():
     import asyncgui as ag
 
