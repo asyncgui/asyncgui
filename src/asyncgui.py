@@ -4,8 +4,7 @@ __all__ = (
 
     # core
     'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope', 'CancelScope',
-    'sleep_forever', 'disable_cancellation', 'dummy_task', 'check_cancellation',
-
+    'sleep_forever', 'disable_cancellation', 'dummy_task',
     # utils
     'Event',
 
@@ -405,21 +404,6 @@ class disable_cancellation:
 
     async def __aexit__(self, *__):
         self._task._cancel_disabled -= 1
-
-
-@types.coroutine
-def check_cancellation():
-    '''
-    If the current task has been requested to be cancelled, and the task is not protected from cancellation,
-    cancel the task immediately. Otherwise, do nothing.
-
-    .. code-block::
-
-        await check_cancellation()
-    '''
-    task = (yield _current_task)[0][0]
-    if task._cancel_requested and not task._cancel_disabled:
-        yield _sleep_forever
 
 
 def _sleep_forever(task):
