@@ -108,7 +108,7 @@ _next_Task_uid = itertools.count().__next__
 
 class Task:
     __slots__ = (
-        'name', '_uid', '_root_coro', '_state', '_result', '_on_end',
+        '_uid', '_root_coro', '_state', '_result', '_on_end',
         '_exc_caught', '_suppresses_exc',
         '_cancel_disabled', '_cancel_depth', '_cancel_level',
     )
@@ -117,7 +117,6 @@ class Task:
         if not isawaitable(aw):
             raise ValueError(str(aw) + " is not awaitable.")
         self._uid = _next_Task_uid()
-        self.name = ""  #: :meta private:
         self._cancel_disabled = 0
         self._root_coro = self._wrapper(aw)
         self._state = TaskState.CREATED
@@ -128,7 +127,7 @@ class Task:
         self._suppresses_exc = False
 
     def __str__(self):
-        return f'Task(state={self._state.name}, uid={self._uid}, name={self.name!r})'
+        return f'Task(state={self._state.name}, uid={self._uid})'
 
     @property
     def uid(self) -> int:
@@ -476,7 +475,6 @@ This can be utilized to prevent the need for the common null validation mentione
             ...
 '''
 dummy_task.cancel()
-dummy_task.name = r"asyncgui.dummy_task"
 
 # -----------------------------------------------------------------------------
 # Utilities
