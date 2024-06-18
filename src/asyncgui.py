@@ -3,20 +3,19 @@ __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
 
     # core
-    'Aw_or_Task', 'start', 'Task', 'TaskState', 'current_task', 'open_cancel_scope', 'CancelScope',
-    'sleep_forever', 'disable_cancellation', 'dummy_task',
-    # utils
-    'Event',
+    'Aw_or_Task', 'start', 'Task', 'TaskState', 'disable_cancellation', 'open_cancel_scope', 'CancelScope',
+    'dummy_task', 'current_task', '_current_task', 'sleep_forever', '_sleep_forever',
 
-    # core (structured concurrency)
-    'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary',
+    # structured concurrency
+    'wait_all', 'wait_any', 'and_', 'or_', 'wait_all_cm', 'wait_any_cm',
+    'run_as_secondary', 'run_as_primary', 'run_as_daemon',
     'open_nursery', 'Nursery',
 
-    # utils (for async library developer)
-    'IBox', 'ISignal', '_current_task', '_sleep_forever',
+    # bridge between async-world and sync-world
+    'AsyncBox', 'AsyncEvent',
 
-    # aliases
-    'run_as_daemon', 'and_', 'or_',
+    # deprecated
+    'Event',
 )
 import types
 import typing as T
@@ -461,8 +460,127 @@ This can be utilized to prevent the need for the common null validation mentione
 dummy_task.cancel()
 
 # -----------------------------------------------------------------------------
-# Utilities
+# Bridge between async-world and sync-world
 # -----------------------------------------------------------------------------
+
+
+class AsyncEvent:
+    '''
+    .. code-block::
+
+        async def async_fn(e):
+            args, kwargs = await e.wait()
+            assert args == (2, )
+            assert kwargs == {'crow': 'raven', }
+
+            args, kwargs = await e.wait()
+            assert args == (3, )
+            assert kwargs == {'toad': 'frog', }
+
+        e = AsyncEvent()
+        e.fire(1, crocodile='alligator')
+        start(async_fn(e))
+        e.fire(2, crow='raven')
+        e.fire(3, toad='frog')
+
+    .. warning::
+
+        This class is not designed for inter-task synchronization, unlike :class:`asyncio.Event`.
+        When multiple tasks simultaneously try to wait for the same event to fire, it will raise an exception.
+    '''
+    __slots__ = ('_callback', )
+
+    def __init__(self):
+        self._callback = None
+
+    def fire(self, *args, **kwargs):
+        if (f := self._callback) is not None:
+            f(*args, **kwargs)
+
+    @types.coroutine
+    def wait(self):
+        if self._callback is not None:
+            raise InvalidStateError("There's already a task waiting for the event to fire.")
+        try:
+            return (yield self._attach_task)
+        finally:
+            self._callback = None
+
+    def _attach_task(self, task):
+        self._callback = task._step
+
+
+class AsyncBox:
+    '''
+    .. code-block::
+
+        async def async_fn(b1, b2):
+            args, kwargs = await b1.get()
+            assert args == (1, )
+            assert kwargs == {'crow': 'raven', }
+
+            args, kwargs = await b2.get()
+            assert args == (2, )
+            assert kwargs == {'frog': 'toad', }
+
+            args, kwargs = await b1.get()
+            assert args == (1, )
+            assert kwargs == {'crow': 'raven', }
+
+        b1 = AsyncBox()
+        b2 = AsyncBox()
+        b1.put(1, crow='raven')
+        start(async_fn(b1, b2))
+        b2.put(2, frog='toad')
+
+    .. warning::
+
+        This class is not designed for inter-task synchronization, unlike :class:`asyncio.Event`.
+        When multiple tasks simultaneously try to get an item from the same box, it will raise an exception.
+    '''
+    __slots__ = ('_item', '_callback', )
+
+    def __init__(self):
+        self._item = None
+        self._callback = None
+
+    def is_empty(self) -> bool:
+        '''Whether the box is empty.'''
+        return self._item is None
+
+    def put(self, *args, **kwargs):
+        '''Put an item into the box if it's empty.'''
+        if self._item is None:
+            self.put_or_update(*args, **kwargs)
+
+    def update(self, *args, **kwargs):
+        '''Replace the item in the box if there is one already.'''
+        if self._item is not None:
+            self.put_or_update(*args, **kwargs)
+
+    def put_or_update(self, *args, **kwargs):
+        self._item = (args, kwargs, )
+        if (callback := self._callback) is not None:
+            callback(*args, **kwargs)
+
+    @types.coroutine
+    def get(self):
+        '''Get the item from the box if there is one. Otherwise, wait until it's put.'''
+        if self._callback is not None:
+            raise InvalidStateError("There's already a task waiting for an item to be put in the box.")
+        if self._item is None:
+            try:
+                return (yield self._attach_task)
+            finally:
+                self._callback = None
+        else:
+            return self._item
+
+    def clear(self):
+        '''Remove the item from the box if there is one.'''
+        self._item = None
+
+    _attach_task = AsyncEvent._attach_task
 
 
 class Event:
@@ -524,64 +642,9 @@ class Event:
             tasks[idx] = None
 
 
-class ISignal:
-    '''
-    Same as :class:`Event` except:
-
-    * This one doesn't have ``clear()`` and ``is_set``.
-    * Only one task can :meth:`wait` at a time.
-
-    It's quite common that only one task waits for an event to be set.
-    Using :class:`Event` may be over-kill in that situation because it is designed to allow multiple tasks to
-    ``wait()`` simultaneously.
-
-    .. code-block::
-
-        sig = ISignal()
-        any_library.register_callback(sig.set)
-
-        async def async_func():
-            await sig.wait()
-
-    Read :doc:`usage` for details.
-    '''
-
-    __slots__ = ('_flag', '_task', )
-
-    def __init__(self):
-        self._flag = False
-        self._task = None
-
-    def set(self, *args, **kwargs):
-        '''
-        Set the event.
-        The task waiting for this signal to be set will be resumed *immediately* if there is one.
-        '''
-        if self._flag:
-            return
-        self._flag = True
-        if (t := self._task) is not None:
-            t._step()
-
-    _decrease_or_set = set
-
-    @types.coroutine
-    def wait(self) -> T.Awaitable:
-        '''
-        Wait for the signal to be set. Return *immediately* if it's already set.
-        Raise :exc:`InvalidStateError` if there is already a task waiting for it.
-        '''
-        if self._flag:
-            return
-        if self._task is not None:
-            raise InvalidStateError("There is already a task waiting for this signal to be set.")
-        try:
-            yield self._store_task
-        finally:
-            self._task = None
-
-    def _store_task(self, task):
-        self._task = task
+# -----------------------------------------------------------------------------
+# Structured concurrency
+# -----------------------------------------------------------------------------
 
 
 class TaskCounter:
@@ -591,11 +654,11 @@ class TaskCounter:
     親taskが自分の子task達の終了を待つのに用いる。
     '''
 
-    __slots__ = ('_signal', '_n_tasks', )
+    __slots__ = ('_box', '_n_tasks', )
 
     def __init__(self, initial=0, /):
         self._n_tasks = initial
-        self._signal = ISignal()
+        self._box = AsyncBox()
 
     def increase(self):
         self._n_tasks += 1
@@ -605,15 +668,13 @@ class TaskCounter:
         assert n >= 0, potential_bug_msg
         self._n_tasks = n
         if not n:
-            self._signal.set()
-
-    _decrease_or_set = decrease
+            self._box.put()
 
     async def to_be_zero(self) -> T.Awaitable:
         if self._n_tasks:
-            sig = self._signal
-            sig._flag = False
-            await sig.wait()
+            box = self._box
+            box._item = None
+            await box.get()
 
     def __bool__(self):
         return not not self._n_tasks  # 'not not' is not a typo
@@ -653,14 +714,14 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]) -> T.
     return children
 
 
-def _on_child_end__ver_all(scope, counter_or_signal, child):
-    counter_or_signal._decrease_or_set()
+def _on_child_end__ver_all(scope, counter, child):
+    counter.decrease()
     if child._exc_caught is not None:
         scope.cancel()
 
 
-def _on_child_end__ver_any(scope, counter_or_signal, child):
-    counter_or_signal._decrease_or_set()
+def _on_child_end__ver_any(scope, counter, child):
+    counter.decrease()
     if child._exc_caught is not None or child.finished:
         scope.cancel()
 
@@ -693,26 +754,26 @@ the caller, like :class:`trio.Nursery`.
 
 @asynccontextmanager
 async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
-    signal = ISignal()
+    counter = TaskCounter(1)
     fg_task = await current_task()
     bg_task = aw if isinstance(aw, Task) else Task(aw)
     exc = None
 
     try:
         with CancelScope(fg_task) as scope:
-            bg_task._on_end = partial(on_child_end, scope, signal)
+            bg_task._on_end = partial(on_child_end, scope, counter)
             bg_task._suppresses_exc = True
             yield start(bg_task)
             if wait_bg:
-                await signal.wait()
+                await counter.to_be_zero()
     except Exception as e:
         exc = e
     finally:
         bg_task.cancel()
-        if not signal._flag:
+        if counter:
             try:
                 fg_task._cancel_disabled += 1
-                await signal.wait()
+                await counter.to_be_zero()
             finally:
                 fg_task._cancel_disabled -= 1
         excs = tuple(
@@ -864,59 +925,6 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncIterator[Nursery]:
         if (parent._cancel_level is not None) and (not parent._cancel_disabled):
             await sleep_forever()
             assert False, potential_bug_msg
-
-
-class IBox:
-    '''
-    :class:`ISignal` + the capability to transfer values.
-
-    .. code-block::
-
-        box = IBox()
-        ...
-        box.put(1, 2, key='value')
-
-        async def async_func():
-            args, kwargs = await box.get()
-            assert args == (1, 2, )
-            assert kwargs == {'key': 'value', }
-
-    This is not a generic item storage, but is designed for a specific purpose.
-    Read :doc:`usage` for details.
-    '''
-
-    __slots__ = ('_item', '_getter', )
-
-    def __init__(self):
-        self._item = None
-        self._getter = None
-
-    def put(self, *args, **kwargs):
-        '''Put an item into the box. This has an effect only on the first call; subsequent calls will be ignored. '''
-        if self._item is not None:
-            return
-        self._item = (args, kwargs, )
-        if (getter := self._getter) is not None:
-            getter._step(*args, **kwargs)
-
-    @types.coroutine
-    def get(self) -> T.Awaitable[T.Tuple[tuple, dict]]:
-        '''
-        Get an item inside the box. If the box is empty, wait until one is available.
-        Raise :exc:`InvalidStateError` if there is already a task waiting for it.
-        '''
-        if self._getter is not None:
-            raise InvalidStateError("There is already a task trying to get an item from this box.")
-        if self._item is None:
-            try:
-                return (yield self._store_getter)
-            finally:
-                self._getter = None
-        else:
-            return self._item
-
-    def _store_getter(self, task):
-        self._getter = task
 
 
 # -----------------------------------------------------------------------------

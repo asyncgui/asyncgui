@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "asyncgui"
 version = "0.6.2.dev0"
-description = "A thin layer that helps to build async/await-based APIs using callback-based APIs"
+description = "A thin layer that helps to wrap a callback-style API in an async/await-style API"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
 readme = 'README.md'
