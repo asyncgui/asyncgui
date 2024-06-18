@@ -1,8 +1,6 @@
 AsyncGui
 ========
 
-A thin layer that helps to wrap a callback-style API in an async/await-style API.
-
 .. toctree::
    :maxdepth: 1
 

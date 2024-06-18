@@ -82,7 +82,7 @@ The downside of doing this is that it becomes cumbersome to access to tasks nest
 
 The deeper a task is nested, the longer the expression to access to it becomes, like ``tasks[i].result[j].result[k]``.
 If you don't like lengthy expressions, you can avoid that by creating a :class:`asyncgui.Task` instance by yourself,
-and passing it to the api as follows.
+and passing it to the API as follows.
 
 .. code-block::
 
@@ -122,7 +122,7 @@ can be written as follows.
             # content of async_fn1
 
 This form has a great advantage.
-Read trio-util_'s documentation for details.
+Read the trio-util_'s documentation for details.
 
 
 run_as_secondary, run_as_daemon
@@ -156,7 +156,8 @@ The opposite of ``run_as_daemon``.
         ...
 
 If ``async_fn()`` finishes first, it will cause the code within the with-block to be cancelled.
-
+But if the code within the with-block finishes first, it will cause nothing, and waits for the ``async_fn()`` to
+finish.
 
 open_nursery
 ------------
@@ -168,7 +169,7 @@ An equivalence of :func:`trio.open_nursery`.
     async with open_nursery() as nursery:
         while True:
             finger = await wait_for_the_user_to_touch_the_screen()
-            nursery.start(draw_line_along_with_a_finger(finger))
+            nursery.start(draw_line(finger))
 
 
 Exception Handling

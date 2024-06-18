@@ -6,7 +6,7 @@ Introduction
 The problem with existing libraries
 ===================================
 
-There are couple of async libraries already exist.
+There are a couple of async libraries for Python.
 One, of course, is :mod:`asyncio` from the standard library.
 Another one is Trio_, well-known for its `structured concurrency`_.
 And Curio_, which seems to have had a big influence on Trio, though it now only accepts bug fixes.
@@ -108,31 +108,31 @@ I'm not sure it's possible or practical, but it certainly has a non-small impact
 If you use ``asyncgui``, that never be a problem.
 
 
-asyncgui characteristics
-========================
+asyncgui
+========
 
-Start tasks immediately
------------------------
+Immediacy
+---------
 
 The problem mentioned above doesn't occur in ``asyncgui`` because:
 
-* :func:`asyncgui.start` and :meth:`asyncgui.Nursery.start` immediately start tasks.
-* :meth:`asyncgui.Event.set` immediately resumes tasks.
+* :func:`asyncgui.start` and :meth:`asyncgui.Nursery.start` immediately start a task.
+* :meth:`asyncgui.AsyncEvent.fire` and :meth:`asyncgui.AsyncBox.put` immediately resume a task.
 
 All other APIs work that way as well.
 
 No event loop
 -------------
 
-The coexistence problem I mentioned earlier doesn't occur in ``asyncgui`` because it doesn't have an event loop in the first place.
-Instead, ``asyncgui`` runs by piggybacking on another event loop (e.g. from a GUI library).
-To do that, however, you need to make a "glue" that connects ``asyncgui`` and the event loop it piggybacks.
-I'll explain it in :doc:`usage`.
+The coexistence problem I mentioned earlier doesn't occur in ``asyncgui`` because it doesn't have its own event loop.
+Instead, ``asyncgui`` runs by piggybacking on another event loop, such as one from a GUI library.
+To achieve this, however, you need to wrap the callback-style APIs associated with the event loop it piggybacks.
+I'll explain this further in the :doc:`usage` section.
 
 .. note::
 
     "another event loop" can be other async library's.
-    Yes, you can run ``asyncgui`` and other async library in the same thread (though there are some limitations).
+    Yes, you can even run ``asyncgui`` and other async library in the same thread (though there are some limitations).
 
 No global state
 ---------------
@@ -151,15 +151,15 @@ not:
 
     Other async libraries have global states.
 
-    Examples: `asyncio.tasks._current_tasks`_, `trio._core.GLOBAL_CONTEXT`_
+    `asyncio.tasks._current_tasks`_, `trio._core.GLOBAL_CONTEXT`_
 
 Cannot sleep by itself
 ----------------------
 
-It might surprise you, but ``asyncgui`` cannot even ``await sleep(...)`` by itself.
-It's because it requires an event loop, and ``asyncgui`` doesn't have one.
+It might surprise you, but ``asyncgui`` cannot ``await sleep(...)`` by itself.
+This is because it requires an event loop, which ``asyncgui`` lacks.
 
-However, such a task is possible with the help of a "glue".
+However, you can achieve this by wrapping the timer APIs of the event loop it piggybacks on, as I mentioned earlier.
 In fact, that is the intended usage of this library.
 ``asyncgui`` itself only provides the features that depend solely on the Python language (or its interpreter),
 and doesn't provides the ones that need to interact with the operating system.

@@ -5,8 +5,22 @@ def test_put_get():
     import asyncgui as ag
 
     async def async_fn():
-        box = ag.IBox()
+        box = ag.AsyncBox()
         box.put(None, python='awesome')
+        args, kwargs = await box.get()
+        assert args == (None, )
+        assert kwargs == {'python': 'awesome', }
+
+    task = ag.start(async_fn())
+    assert task.finished
+
+
+def test_update_get():
+    import asyncgui as ag
+
+    async def async_fn():
+        box = ag.AsyncBox()
+        box.put_or_update(None, python='awesome')
         args, kwargs = await box.get()
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
@@ -24,10 +38,25 @@ def test_get_put():
         assert kwargs == {'python': 'awesome', }
 
 
-    box = ag.IBox()
+    box = ag.AsyncBox()
     task = ag.start(async_fn(box))
     assert task.state is ag.TaskState.STARTED
     box.put(None, python='awesome')
+    assert task.finished
+
+
+def test_get_update():
+    import asyncgui as ag
+
+    async def async_fn(box):
+        args, kwargs = await box.get()
+        assert args == (None, )
+        assert kwargs == {'python': 'awesome', }
+
+    box = ag.AsyncBox()
+    task = ag.start(async_fn(box))
+    assert task.state is ag.TaskState.STARTED
+    box.put_or_update(None, python='awesome')
     assert task.finished
 
 
@@ -35,7 +64,7 @@ def test_put_put():
     import asyncgui as ag
 
     async def async_fn():
-        box = ag.IBox()
+        box = ag.AsyncBox()
         box.put(None)
         box.put(None)
 
@@ -46,7 +75,7 @@ def test_put_put():
 def test_get_get():
     import asyncgui as ag
 
-    box = ag.IBox()
+    box = ag.AsyncBox()
     ag.start(box.get())
     with pytest.raises(ag.InvalidStateError):
         ag.start(box.get())
@@ -56,7 +85,7 @@ def test_put_get_put():
     import asyncgui as ag
 
     async def async_fn():
-        box = ag.IBox()
+        box = ag.AsyncBox()
         box.put(None, python='awesome')
         args, kwargs = await box.get()
         assert args == (None, )
@@ -67,11 +96,29 @@ def test_put_get_put():
     assert task.finished
 
 
+def test_put_get_update_get():
+    import asyncgui as ag
+
+    async def async_fn():
+        box = ag.AsyncBox()
+        box.put(1)
+        args, kwargs = await box.get()
+        assert args == (1, )
+        assert kwargs == {}
+        box.update(2)
+        args, kwargs = await box.get()
+        assert args == (2, )
+        assert kwargs == {}
+
+    task = ag.start(async_fn())
+    assert task.finished
+
+
 def test_put_get_get():
     import asyncgui as ag
 
     async def async_fn():
-        box = ag.IBox()
+        box = ag.AsyncBox()
         box.put(None, python='awesome')
         args, kwargs = await box.get()
         assert args == (None, )
@@ -95,7 +142,7 @@ def test_get_put_get():
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
 
-    box = ag.IBox()
+    box = ag.AsyncBox()
     task = ag.start(async_fn(box))
     assert task.state is ag.TaskState.STARTED
     box.put(None, python='awesome')
@@ -110,7 +157,7 @@ def test_get_put_put():
         assert args == (None, )
         assert kwargs == {'python': 'awesome', }
 
-    box = ag.IBox()
+    box = ag.AsyncBox()
     task = ag.start(async_fn(box))
     assert task.state is ag.TaskState.STARTED
     box.put(None, python='awesome')
@@ -130,7 +177,7 @@ def test_cancel():
         await ag.sleep_forever()
 
     ctx = {}
-    box = ag.IBox()
+    box = ag.AsyncBox()
     task = ag.start(async_fn(ctx, box))
     assert task.state is TS.STARTED
     ctx['scope'].cancel()

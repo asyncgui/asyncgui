@@ -2,12 +2,7 @@
 Usage |ja|
 ==============
 
-ここでは ``asyncgui`` とコールバック型APIの繋げ方を見ていきます。
-
-schedと繋ぐ
-===================
-
-:mod:`sched` はタイマー機能のみを提供する非常に簡素なモジュールなので試すにはうってつけでしょう。
+ここではどのように ``asyncgui`` とコールバック型のAPIを繋ぐのかを :mod:`sched` を例に見ていきます。
 まずはこれをそのまま用いて
 
 #. １秒待機
@@ -17,7 +12,7 @@ schedと繋ぐ
 #. 3秒待機
 #. ``C`` を出力
 
-といった処理を書くとどのようになるのか確認しておきます。
+といった処理を書いてみましょう。
 
 .. code-block::
 
@@ -47,7 +42,7 @@ schedと繋ぐ
 ここでもしかすると「いや :func:`time.sleep` 使えばいいのでは？」といった声が上がるかもしれないので反論しておきます。
 
 「time.sleep 使えばいいのでは？」に対する反論
------------------------------------------------
+===============================================
 
 確かに ``time.sleep`` を用いれば次のように書けます。
 
@@ -66,7 +61,7 @@ schedと繋ぐ
     やりたい事()
 
 しかしこれは ``やりたい事`` が一つしか無いとき限定であり複数あると話が変わってきます。
-``time.sleep`` のやり方では複数のスレッドを建てないと複数の事ができないのに対し ``sched`` を用いたやり方はスレッドは一つで足ります。
+``time.sleep`` のやり方では複数のスレッドを建てないと複数の事ができないのに対し ``sched`` を用いたやり方は一つで足ります。
 具体的にはコードの最後の部分で
 
 .. code-block::
@@ -78,14 +73,14 @@ schedと繋ぐ
 
 という風に ``やりたい事`` を複数回呼ぶだけです。なので ``time.sleep`` に ``sched`` の代わりは務まらないと言えます。
 
-APIの姿を決める
----------------------
+APIを決める
+=================
 
-それではこれから糊を作っていくのですが先ずはいま繋げようとしているコールバック型APIである :meth:`sched.scheduler.enter`
+それではこれから繋げていくのですが先ずはいま繋げようとしているコールバック型APIである :meth:`sched.scheduler.enter`
 を ``asyncgui`` からどのような形で利用したいかを考えないといけません。
 これは即ち ``enter()`` のasync/await版がどうあるべきかを考える事です。
 
-ここで先程出てきた ``time.sleep`` の例を思い出して欲しいのですが 確か以下のようなコードでした。
+ここで上で出てきた ``time.sleep`` の例を思い出して欲しいのですが 以下のようなコードでした。
 
 .. code-block::
 
@@ -99,8 +94,8 @@ APIの姿を決める
         sleep(3)
         print('C')
 
-このやり方はスレッドを占有するという短所がある反面、コードがすこぶる読みやすいという利点を持っています。
-きっと ``enter()`` のasync/await版もこのように読みやすいと使う側は嬉しいんじゃないでしょうか？
+このやり方はスレッドを占有するという短所がある反面、コードがすこぶる読みやすいという利を持っています。
+``enter()`` のasync/await版もこのように読みやすいと使う側はきっと嬉しいんじゃないでしょうか？
 具体的には以下の感じです。
 
 .. code-block::
@@ -113,7 +108,7 @@ APIの姿を決める
         await sleep(3)
         print('C')
 
-これが実現すれば ``time.sleep`` の物とほぼ同等の読みやすさを保った上でスレッドを占有しないという良いとこ取りができた事になります [#obtain_cancellation]_ 。
+これが実現すれば ``time.sleep`` の物とほぼ同等の読みやすさな上にスレッドを占有しないという良いとこ取りができた事になります [#obtain_cancellation]_ 。
 なのでこの様な姿を目指す事にしましょう。
 
 ``await sleep(1)`` という使い方をするという事は ``sleep`` は :class:`collections.abc.Awaitable` を返す :class:`collections.abc.Callable`
@@ -126,14 +121,14 @@ APIの姿を決める
         ...
 
 こう書きたいところなのですが ``enter()`` はインスタンスメソッドなのでインスタンスを渡さないと呼びようがありませんし、
-このメソッドは ``priority`` という引数も取るのでそれも渡してあげた方が良いと思います。
+このメソッドは ``priority`` という引数も取るのでそれも渡してあげましょう。
 
 .. code-block::
 
     async def sleep(scheduler, priority, duration):
         ...
 
-というわけでこの姿を目指して実装にとりかかりましょう。
+というわけでこの姿を目指して実装にとりかかります。
 
 .. そもそもコールバック型のコードが読みづらいのはコードが細切れになってしまうからです。
    本来は一つの関数に纏めるべき処理であったとしてもその中に「〇秒経ってから〇〇する」や「〇〇が起こった時に〇〇する」のような"待ち"があると
@@ -142,87 +137,72 @@ APIの姿を決める
    "待ち"が必要な時には一時停止して文字通り待てばいいだけなのですから。
 
 実装
-----
+====
 
-コールバック型のAPIをasync/awaitの世界と繋ぐにはコールバック関数が呼ばれた時に処理が再開するように仕組んだ上で処理を停止させる必要があります。
+コールバック型のAPIをasync/awaitの世界と繋ぐにはコールバック関数が呼ばれた時に処理が再開するように仕組んだ上で処理を停める必要があります。
 難しそうに聞こえますが :class:`asyncio.Event` や :class:`trio.Event` を使った事があればピンと来るんじゃないでしょうか？
 
 .. code-block::
 
     import asyncio
 
-    async def 糊():
+    async def 仲介者():
         e = asyncio.Event()
 
         # コールバック関数が呼ばれた時に処理が再開するように仕組む
         コールバック関数を登録(lambda *args, **kwargs: e.set())
 
-        # 処理を停止する
+        # 処理を停める
         await e.wait()
 
     async def 利用者():
         print('A')
-        await 糊()
+        await 仲介者()
         print('B')
 
-このように ``糊`` を介する事で ``利用者`` 側のコードは読みやすさを保った状態でコールバック型のAPIを使えるようになります。
+このように ``仲介者`` を挟む事で ``利用者`` 側のコードは読みやすさを損なわずにコールバック型のAPIを使えるようになります。
 そして同等の機能は ``asyncgui`` にもあります。
 
 .. code-block::
 
-    import asyncgui
+    import asyncgui as ag
 
-    async def 糊():
-        e = asyncgui.Event()
-        コールバック関数を登録(e.set)  # A
-        await e.wait()
+    async def 仲介者():
+        e = ag.AsyncEvent()
+        コールバック関数を登録(e.fire)  # A
+        args, kwargs = await e.wait()  # B
 
-``asyncgui`` の場合は :meth:`asyncgui.Event.set` がどんな引数でも受け取れるようになっているのでlambdaを挟まなくて済むのがちょっとした売りです(A行)。
-とはいえこれが繋げ方の本筋というわけではありません。 ``asyncgui`` にはこういった用途の為により特化された物があります。
-
-.. code-block::
-
-    import asyncgui
-
-    async def 糊():
-        sig = asyncgui.ISignal()
-        コールバック関数を登録(sig.set)
-        await sig.wait()
-
-``Event`` というのは複数のタスクが ``await Event.wait()`` を同時に呼んでも良い様になっています。
-しかし今回のような使われ方では絶対に一つのタスクからしか呼ばれません。
-であればそれ専用の物があってもいいのでは？と思って :class:`asyncgui.ISignal` を作りました。
-``ISignal`` は同時に複数のタスクが ``await sig.wait()`` しようとすると例外を起こしてそれを許しません。
-その代わり ``Event`` のように複数のタスクを保持する為の ``list`` を持たずに済んでいます。
-せっかくなのでこれ用いて ``sleep`` を実装していきましょう。
+``asyncgui`` の場合は :meth:`asyncgui.AsyncEvent.fire` がどんな引数でも受け取れるようになっているのでlambdaを挟まなくて済むうえ(A行)、
+``fire`` に渡った引数を受け取れる(B行)というのが :class:`asyncio.Event` には無い強みです。
+これ用いて ``sleep`` を実装すると以下のようになります。
 
 .. code-block::
 
-    import asyncgui
+    import asyncgui as ag
 
     async def sleep(scheduler, priority, duration):
-        sig = asyncgui.ISignal()
-        scheduler.enter(duration, priority, sig.set)
-        await sig.wait()
+        e = ag.AsyncEvent()
+        scheduler.enter(duration, priority, e.fire)
+        await e.wait()
 
-これでめでたく以下のように分かりやすく ``やりたい事`` が書けるようになりました...
+これで以下のように分かりやすく ``やりたい事`` が書けるようになりました...
 
 .. code-block::
 
     import functools
     import sched
-    import asyncgui
+    import asyncgui as ag
 
     async def sleep(...):
         省略
 
     def main():
         s = sched.scheduler()
-        asyncgui.start(やりたい事(s))
+        slp = functools.partial(sleep, s, 0)
+        ag.start(やりたい事(slp))
         s.run()
 
-    async def やりたい事(s: sched.scheduler):
-        slp = functools.partial(sleep, s, 0)
+    async def やりたい事(slp):
         await slp(1)
         print('A')
         await slp(2)
@@ -233,19 +213,19 @@ APIの姿を決める
     main()
 
 と言いたい所なのですがもう一つやっておきたい事があり、それは中断への対応です。
-最低限の対応は ``ISignal`` が行っているので ``sleep`` 内で行うことは必須ではないのですがやっておく方がより良いです。
+最低限の対応は ``AsyncEvent`` が行っているので ``sleep`` 内で行うことは必須ではないのですがやっておく方がより良いです。
 (参考: :ref:`dealing-with-cancellation`)
 
 .. code-block::
 
-    import asyncgui
+    import asyncgui as ag
 
     async def sleep(scheduler, priority, duration):
-        sig = asyncgui.ISignal()
-        event = scheduler.enter(duration, priority, sig.set)
+        e = ag.AsyncEvent()
+        event = scheduler.enter(duration, priority, e.fire)
         try:
-            await sig.wait()
-        except asyncgui.Cancelled:
+            await e.wait()
+        except ag.Cancelled:
             scheduler.cancel(event)
             raise
 
@@ -256,7 +236,7 @@ APIの姿を決める
 
     import functools
     import sched
-    import asyncgui
+    import asyncgui as ag
     import string
 
     async def sleep(scheduler, priority, duration):
@@ -264,45 +244,29 @@ APIの姿を決める
 
     def main():
         s = sched.scheduler()
-        asyncgui.start(アルファベットと数字のどちらが先に出力し終わるかの競争(s))
+        slp = functools.partial(sleep, s, 0)
+        ag.start(async_main(slp))
         s.run()
 
-    async def アルファベットと数字のどちらが先に出力し終わるかの競争(s: sched.scheduler):
-        slp = functools.partial(sleep, s, 0)
+    async def async_main(slp):
+        # 0から9までの数字を0.3秒間隔で出力するが、その作業に2秒の制限時間を設ける
+        async with ag.wait_any_cm(slp(2)) as timeour_tracker:
+            for c in string.digits:
+                print(c, end=' ')
+                await slp(0.3)
+        print('')
 
-        tasks = await asyncgui.wait_any(
-            一文字づつ間を置いて出力(slp, string.ascii_lowercase),
-            一文字づつ間を置いて出力(slp, string.digits),
-        )
-        if tasks[0].finished:
-            print("\nアルファベットが先に終わりました")
+        if timeour_tracker.finished:
+            print("時間切れ")
         else:
-            print("\n数字が先に終わりました")
-
-    async def 一文字づつ間を置いて出力(slp, msg, *, interval=0.1):
-        for c in msg:
-            print(c, end=' ')
-            await slp(interval)
+            print("時間内に全ての数字を出力し終わりました")
 
     main()
 
 ::
 
-    a 0 b 1 c 2 d 3 e 4 f 5 g 6 h 7 i 8 j 9 k 
-    数字が先に終わりました
-
-
-機能拡張
-========
-
-ただ実際に上で作った物を用いて何かのプログラムを作ろうとするとまだ不便な気がします。
-:mod:`sched` がタイマー機能しか持たない事を考えると「何時間毎に何かを行う」や「この日時になったら何かを行う」といった目的に利用される事が思い浮かぶのですが、
-その"何か"は何である事が多いでしょうか？
-私はファイルシステムやネットワークとのやりとりが多い気がします。
-ところが ``sched`` は :mod:`asyncio` や :mod:`trio` のように入出力機能を備えていません。
-ということは現状 :func:`open` や :mod:`requests` のような同期APIに頼るしか無いことになります。
-
-(...執筆中)
+    0 1 2 3 4 5 6
+    時間切れ
 
 
 .. [#obtain_cancellation] 加えて強力な中断能力も手に入ります。
