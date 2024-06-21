@@ -596,6 +596,11 @@ class Event:
 
         e = Event()
         any_library.register_callback(e.set)
+
+    .. deprecated:: 0.6.2
+
+        This class is deprecated, and will be removed before 1.0.0.
+        Use :class:`asyncgui_ext.synctools.event.Event` instead.
     '''
 
     __slots__ = ('_flag', '_waiting_tasks', )

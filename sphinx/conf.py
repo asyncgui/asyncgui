@@ -53,6 +53,7 @@ intersphinx_mapping = {
     'trio': ('https://trio.readthedocs.io/en/stable/', None),
     'trio_util': ('https://trio-util.readthedocs.io/en/latest/', None),
     'requests': ('https://docs.python-requests.org/en/latest/', None),
+    'asyncgui_ext.synctools': ('https://asyncgui.github.io/asyncgui-ext-synctools/', None),
 }
 
 
