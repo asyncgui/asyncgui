@@ -125,8 +125,8 @@ This form has a great advantage.
 Read the trio-util_'s documentation for details.
 
 
-run_as_secondary, run_as_daemon
--------------------------------
+run_as_daemon
+-------------
 
 All the APIs explained so far treat tasks equally.
 Taking ``wait_any_cm`` as an example, when either the code within the with-block or the awaitable passed to the API
@@ -144,15 +144,19 @@ But if ``async_fn()`` finishes first, it will cause nothing, and just waits for 
 finish.
 You can think of this as the relation between a non-daemon thread and a daemon thread.
 
+.. note::
 
-run_as_primary
---------------
+    This is an equivalence of :func:`trio_util.run_and_cancelling`.
+
+
+run_as_main
+-----------
 
 The opposite of ``run_as_daemon``.
 
 .. code-block::
 
-    async with run_as_primary(async_fn()):
+    async with run_as_main(async_fn()):
         ...
 
 If ``async_fn()`` finishes first, it will cause the code within the with-block to be cancelled.

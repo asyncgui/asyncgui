@@ -14,7 +14,7 @@ def test_bg_finishes_immediately(fg_sleep):
         pass
 
     async def async_fn():
-        async with ag.run_as_primary(finish_imm()) as bg_task:
+        async with ag.run_as_main(finish_imm()) as bg_task:
             assert bg_task.finished
             if fg_sleep:
                 await ag.sleep_forever()
@@ -29,7 +29,7 @@ def test_bg_finishes_while_fg_is_running(fg_sleep):
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_primary(ag.sleep_forever()) as bg_task:
+        async with ag.run_as_main(ag.sleep_forever()) as bg_task:
             assert bg_task.state is TS.STARTED
             bg_task._step()
             assert bg_task.state is TS.FINISHED
@@ -46,7 +46,7 @@ def test_bg_finishes_while_fg_is_suspended():
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_primary(e.wait()) as bg_task:
+        async with ag.run_as_main(e.wait()) as bg_task:
             assert bg_task.state is TS.STARTED
             await ag.sleep_forever()
             pytest.fail()
@@ -68,7 +68,7 @@ def test_fg_finishes_while_bg_is_running():
         fg_task._step()
 
     async def async_fn():
-        async with ag.run_as_primary(bg_fn()) as bg_task:
+        async with ag.run_as_main(bg_fn()) as bg_task:
             assert bg_task.state is TS.STARTED
             await ag.sleep_forever()
             assert bg_task.state is TS.STARTED
@@ -86,7 +86,7 @@ def test_fg_finishes_while_bg_is_suspended():
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_primary(e.wait()) as bg_task:
+        async with ag.run_as_main(e.wait()) as bg_task:
             assert bg_task.state is TS.STARTED
         assert bg_task.state is TS.FINISHED
         
@@ -103,7 +103,7 @@ def test_bg_finishes_while_fg_is_protected():
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_primary(e.wait()) as bg_task:
+        async with ag.run_as_main(e.wait()) as bg_task:
             async with ag.disable_cancellation():
                 await ag.sleep_forever()
             assert bg_task.state is TS.FINISHED

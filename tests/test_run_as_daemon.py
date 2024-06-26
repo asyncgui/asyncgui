@@ -12,7 +12,7 @@ def test_bg_finishes_immediately():
         pass
 
     async def async_fn():
-        async with ag.run_as_secondary(finish_imm()) as bg_task:
+        async with ag.run_as_daemon(finish_imm()) as bg_task:
             assert bg_task.finished
 
     fg_task = ag.start(async_fn())
@@ -24,7 +24,7 @@ def test_bg_finishes_while_fg_is_running():
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_secondary(ag.sleep_forever()) as bg_task:
+        async with ag.run_as_daemon(ag.sleep_forever()) as bg_task:
             assert bg_task.state is TS.STARTED
             bg_task._step()
             assert bg_task.state is TS.FINISHED
@@ -39,7 +39,7 @@ def test_bg_finishes_while_fg_is_suspended():
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_secondary(e.wait()) as bg_task:
+        async with ag.run_as_daemon(e.wait()) as bg_task:
             assert bg_task.state is TS.STARTED
             await ag.sleep_forever()
             assert bg_task.state is TS.FINISHED
@@ -66,7 +66,7 @@ def test_fg_finishes_while_bg_is_running(bg_cancel):
             await ag.sleep_forever()
 
     async def async_fn(e):
-        async with ag.run_as_secondary(bg_fn()) as bg_task:
+        async with ag.run_as_daemon(bg_fn()) as bg_task:
             assert bg_task.state is TS.STARTED
             await ag.sleep_forever()
             assert bg_task.state is TS.STARTED
@@ -84,7 +84,7 @@ def test_fg_finishes_while_bg_is_suspended():
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_secondary(ag.sleep_forever()) as bg_task:
+        async with ag.run_as_daemon(ag.sleep_forever()) as bg_task:
             assert bg_task.state is TS.STARTED
         assert bg_task.state is TS.CANCELLED
 
@@ -101,7 +101,7 @@ def test_fg_finishes_while_bg_is_protected():
             await e.wait()
 
     async def async_fn():
-        async with ag.run_as_secondary(bg_func()) as bg_task:
+        async with ag.run_as_daemon(bg_func()) as bg_task:
             assert bg_task.state is TS.STARTED
         assert bg_task.state is TS.FINISHED
 

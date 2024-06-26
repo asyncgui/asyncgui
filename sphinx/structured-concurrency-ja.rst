@@ -165,8 +165,8 @@ wait_any_cm, wait_all_cm
             ...
 
 
-run_as_secondary, run_as_daemon
--------------------------------
+run_as_daemon
+-------------
 
 これまで解説してきたAPIはどれも並行させたタスク達の関係が対等でした。
 ``wait_any_cm`` を例に挙げるならwithブロック内のコードと ``wait_any_cm`` に渡したタスクのどちらが完了した場合でももう片方を中断させるの
@@ -182,17 +182,18 @@ run_as_secondary, run_as_daemon
 withブロック内の完了を待つだけです。例えるなら非daemonスレッドとdaemonスレッドの関係です。withブロック内のコードが非daemonで
 ``async_fn()`` がdaemonになっていると考えて下さい。
 
-また ``run_as_daemon`` は ``run_as_secondary`` の別名となっています。
+.. note::
 
+    これは :func:`trio_util.run_and_cancelling` に相当する機能です。
 
-run_as_primary
---------------
+run_as_main
+-----------
 
 これは ``run_as_daemon`` の逆でwithブロック内がdaemonとなります。
 
 .. code-block::
 
-    async with run_as_primary(async_fn()) as primary_task:
+    async with run_as_main(async_fn()) as primary_task:
         ...
 
 すなわちwithブロック内が先に完了した場合は ``async_fn()`` の完了を待つ事になり、
