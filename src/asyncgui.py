@@ -8,14 +8,14 @@ __all__ = (
 
     # structured concurrency
     'wait_all', 'wait_any', 'and_', 'or_', 'wait_all_cm', 'wait_any_cm',
-    'run_as_secondary', 'run_as_primary', 'run_as_daemon',
+    'run_as_main', 'run_as_daemon',
     'open_nursery', 'Nursery',
 
     # bridge between async-world and sync-world
     'AsyncBox', 'AsyncEvent',
 
     # deprecated
-    'Event',
+    'Event', 'run_as_primary', 'run_as_secondary',
 )
 import types
 import typing as T
@@ -153,7 +153,7 @@ class Task:
 
     @property
     def finished(self) -> bool:
-        '''Whether the task has been completed..'''
+        '''Whether the task has been completed.'''
         return self._state is TaskState.FINISHED
 
     @property
@@ -811,20 +811,22 @@ The context manager form of :func:`wait_any`, an equivalence of :func:`trio_util
     async with wait_any_cm(async_fn()) as bg_task:
         ...
 '''
-run_as_primary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_primary()", _on_child_end__ver_any, True)
+run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_any, True)
 '''
 .. code-block::
 
-    async with run_as_primary(async_fn()) as task:
+    async with run_as_main(async_fn()) as task:
         ...
-'''
-run_as_secondary: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_secondary()", _on_child_end__ver_all, False)
-'''
-An equivalent of :func:`trio_util.run_and_cancelling`.
 
+.. note::
+
+    You need to use its older name, ``run_as_primary``, if you are using ``asyncgui`` 0.6.2 or older.
+'''
+run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _on_child_end__ver_all, False)
+'''
 .. code-block::
 
-    async with run_as_secondary(async_fn()) as bg_task:
+    async with run_as_daemon(async_fn()) as bg_task:
         ...
 '''
 
@@ -935,6 +937,7 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncIterator[Nursery]:
 # -----------------------------------------------------------------------------
 # Aliases
 # -----------------------------------------------------------------------------
-run_as_daemon = run_as_secondary  #: An alias for :func:`run_as_secondary`.
+run_as_primary = run_as_main
+run_as_secondary = run_as_daemon
 and_ = wait_all  #: An alias for :func:`wait_all`.
 or_ = wait_any  #: An alias for :func:`wait_any`.

@@ -71,7 +71,7 @@ def modify_signature(app, what: str, name: str, obj, options, signature, return_
                      group1={'CancelScope', 'Nursery', 'TaskState', 'Task.cancel', 'Task.close', },
                      group2={'current_task', 'sleep_forever', 'open_nursery', },
                      # group3={"TaskState." + s for s in "CREATED STARTED CANCELLED FINISHED".split()},
-                     group4={'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary', 'run_as_daemon', },
+                     group4={'wait_all_cm', 'wait_any_cm', 'run_as_daemon', 'run_as_main', },
                      group5={'open_nursery', },
                      ):
     if not name.startswith(prefix):

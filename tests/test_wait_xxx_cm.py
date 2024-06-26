@@ -1,19 +1,19 @@
 import pytest
 
 
-@pytest.fixture(scope='module', params=('wait_all_cm', 'wait_any_cm',  'run_as_secondary', 'run_as_primary', ))
+@pytest.fixture(scope='module', params=('wait_all_cm', 'wait_any_cm',  'run_as_daemon', 'run_as_main', ))
 def any_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
 
-@pytest.fixture(scope='module', params=('wait_any_cm',  'run_as_secondary', ))
+@pytest.fixture(scope='module', params=('wait_any_cm',  'run_as_daemon', ))
 def fg_primary_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
 
-@pytest.fixture(scope='module', params=('wait_any_cm',  'run_as_primary', ))
+@pytest.fixture(scope='module', params=('wait_any_cm',  'run_as_main', ))
 def bg_primary_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
