@@ -7,7 +7,7 @@ __all__ = (
     'dummy_task', 'current_task', '_current_task', 'sleep_forever', '_sleep_forever',
 
     # structured concurrency
-    'wait_all', 'wait_any', 'and_', 'or_', 'wait_all_cm', 'wait_any_cm',
+    'wait_all', 'wait_any', 'and_', 'or_', 'wait_all_cm', 'wait_any_cm', 'move_on_when',
     'run_as_main', 'run_as_daemon',
     'open_nursery', 'Nursery',
 
@@ -942,3 +942,4 @@ run_as_primary = run_as_main
 run_as_secondary = run_as_daemon
 and_ = wait_all  #: An alias for :func:`wait_all`.
 or_ = wait_any  #: An alias for :func:`wait_any`.
+move_on_when = wait_any_cm  #: An alias for :func:`wait_any_cm`.
