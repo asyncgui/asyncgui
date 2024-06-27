@@ -186,3 +186,18 @@ def test_cancel():
     assert task.state is TS.STARTED
     task._step()
     assert task.state is TS.FINISHED
+
+
+def test_is_empty():
+    import asyncgui as ag
+
+    async def async_fn():
+        box = ag.AsyncBox()
+        assert box.is_empty
+        box.put(None)
+        assert not box.is_empty
+        box.clear()
+        assert box.is_empty
+
+    task = ag.start(async_fn())
+    assert task.finished

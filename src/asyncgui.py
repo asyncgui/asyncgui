@@ -544,6 +544,7 @@ class AsyncBox:
         self._item = None
         self._callback = None
 
+    @property
     def is_empty(self) -> bool:
         '''Whether the box is empty.'''
         return self._item is None
