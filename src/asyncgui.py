@@ -601,7 +601,7 @@ class Event:
     .. deprecated:: 0.6.2
 
         This class is deprecated, and will be removed before 1.0.0.
-        Use :class:`asyncgui_ext.synctools.event.Event` instead.
+        Use :class:`asyncgui_ext.synctools.box.Box` instead.
     '''
 
     __slots__ = ('_flag', '_waiting_tasks', )

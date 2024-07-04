@@ -250,7 +250,7 @@ APIを決める
 
     async def async_main(slp):
         # 0から9までの数字を0.3秒間隔で出力するが、その作業に2秒の制限時間を設ける
-        async with ag.wait_any_cm(slp(2)) as timeour_tracker:
+        async with ag.move_on_when(slp(2)) as timeour_tracker:
             for c in string.digits:
                 print(c, end=' ')
                 await slp(0.3)
