@@ -23,7 +23,7 @@ def main():
 
 async def async_main(slp):
     # Print digits from 0 to 9 at 0.3-second intervals, with a 2-second time limit
-    async with ag.wait_any_cm(slp(2)) as timeout_tracker:
+    async with ag.move_on_when(slp(2)) as timeout_tracker:
         for c in string.digits:
             print(c, end=' ')
             await slp(0.3)
