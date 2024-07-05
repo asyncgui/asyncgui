@@ -140,6 +140,8 @@ No global state
 Although it wasn't originally intended, ``asyncgui`` ended up having no global state. All states are represented as:
 
 * local variables inside functions
+    * Local variables can be state if there is an inner function that refers to them. (a.k.a. closure).
+    * Local variables inside a coroutine/generator can be state, obviously.
 * instance attributes
 
 not:
