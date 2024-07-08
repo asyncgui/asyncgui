@@ -87,8 +87,8 @@ class TaskState(enum.Enum):
 
     CANCELLED = enum.auto()
     '''
-    The execution has been cancelled.
-    The cause of cancellation can be either :meth:`Task.cancel` or an unhandled exception.
+    The execution has been cancelled. The cause of the cancellation is either an explicit or implicit call to
+    :meth:`Task.cancel` or an unhandled exception.
 
     :meta hide-value:
     '''
