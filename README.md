@@ -17,7 +17,6 @@ pip install "asyncgui>=0.6,<0.7"
 
 ## Tested on
 
-- CPython 3.8
 - CPython 3.9
 - CPython 3.10
 - CPython 3.11
