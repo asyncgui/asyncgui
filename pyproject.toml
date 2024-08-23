@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "asyncgui"
-version = "0.6.3"
+version = "0.7.0.dev0"
 description = "A thin layer that helps to wrap a callback-style API in an async/await-style API"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
 readme = 'README.md'
-repository = 'https://github.com/gottadiveintopython/asyncgui'
-homepage = 'https://github.com/gottadiveintopython/asyncgui'
+repository = 'https://github.com/asyncgui/asyncgui'
+homepage = 'https://github.com/asyncgui/asyncgui'
 keywords = ['async', ]
 classifiers=[
     'Development Status :: 5 - Production/Stable',
