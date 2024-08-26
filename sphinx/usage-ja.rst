@@ -161,18 +161,18 @@ APIを決める
         print('B')
 
 このように ``仲介者`` を挟む事で ``利用者`` 側のコードは読みやすさを損なわずにコールバック型のAPIを使えるようになります。
-そして同等の機能は ``asyncgui`` にもあります。
+そして ``asyncgui`` にはこの目的に特化したAPIがあります。
 
 .. code-block::
 
     import asyncgui as ag
 
     async def 仲介者():
-        e = ag.AsyncEvent()
+        e = ag.ExclusiveEvent()
         コールバック関数を登録(e.fire)  # A
         args, kwargs = await e.wait()  # B
 
-``asyncgui`` の場合は :meth:`asyncgui.AsyncEvent.fire` がどんな引数でも受け取れるようになっているのでlambdaを挟まなくて済むうえ(A行)、
+``asyncgui`` の場合は :meth:`asyncgui.ExclusiveEvent.fire` がどんな引数でも受け取れるようになっているのでlambdaを挟まなくて済むうえ(A行)、
 ``fire`` に渡った引数を受け取れる(B行)というのが :class:`asyncio.Event` には無い強みです。
 これ用いて ``sleep`` を実装すると以下のようになります。
 
@@ -181,7 +181,7 @@ APIを決める
     import asyncgui as ag
 
     async def sleep(scheduler, priority, duration):
-        e = ag.AsyncEvent()
+        e = ag.ExclusiveEvent()
         scheduler.enter(duration, priority, e.fire)
         await e.wait()
 
@@ -213,7 +213,7 @@ APIを決める
     main()
 
 と言いたい所なのですがもう一つやっておきたい事があり、それは中断への対応です。
-最低限の対応は ``AsyncEvent`` が行っているので ``sleep`` 内で行うことは必須ではないのですがやっておく方がより良いです。
+最低限の対応は ``ExclusiveEvent`` が行っているので ``sleep`` 内で行うことは必須ではないのですがやっておく方がより良いです。
 (参考: :ref:`dealing-with-cancellation`)
 
 .. code-block::
@@ -221,7 +221,7 @@ APIを決める
     import asyncgui as ag
 
     async def sleep(scheduler, priority, duration):
-        e = ag.AsyncEvent()
+        e = ag.ExclusiveEvent()
         event = scheduler.enter(duration, priority, e.fire)
         try:
             await e.wait()

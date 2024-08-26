@@ -5,7 +5,7 @@ import string
 
 
 async def sleep(scheduler, priority, duration):
-    e = ag.AsyncEvent()
+    e = ag.ExclusiveEvent()
     event = scheduler.enter(duration, priority, e.fire)
     try:
         await e.wait()
