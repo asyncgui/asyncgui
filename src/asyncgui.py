@@ -3,7 +3,7 @@ __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
 
     # core
-    'Aw_or_Task', 'start', 'Task', 'TaskState', 'disable_cancellation', 'open_cancel_scope', 'CancelScope',
+    'Aw_or_Task', 'start', 'Task', 'TaskState', 'disable_cancellation', 'open_cancel_scope',
     'dummy_task', 'current_task', '_current_task', 'sleep_forever', '_sleep_forever',
 
     # structured concurrency
@@ -297,6 +297,7 @@ def start(aw: Aw_or_Task, /) -> Task:
 
 class CancelScope:
     '''
+    (internal)
     An equivalence of :class:`trio.CancelScope`.
     You should not directly instantiate this, use :func:`open_cancel_scope`.
     '''
