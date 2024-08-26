@@ -11,11 +11,11 @@ __all__ = (
     'run_as_main', 'run_as_daemon',
     'open_nursery', 'Nursery',
 
-    # bridge between async-world and sync-world
-    'ExclusiveBox', 'AsyncEvent',
+    # synchronization
+    'ExclusiveEvent', 'ExclusiveBox',
 
     # deprecated
-    'Event', 'run_as_primary', 'run_as_secondary', 'AsyncBox',
+    'Event', 'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox',
 )
 import types
 import typing as T
@@ -460,11 +460,11 @@ This can be utilized to prevent the need for the common null validation mentione
 dummy_task.cancel()
 
 # -----------------------------------------------------------------------------
-# Bridge between async-world and sync-world
+# Synchronization
 # -----------------------------------------------------------------------------
 
 
-class AsyncEvent:
+class ExclusiveEvent:
     '''
     .. code-block::
 
@@ -477,7 +477,7 @@ class AsyncEvent:
             assert args == (3, )
             assert kwargs == {'toad': 'frog', }
 
-        e = AsyncEvent()
+        e = ExclusiveEvent()
         e.fire(1, crocodile='alligator')
         start(async_fn(e))
         e.fire(2, crow='raven')
@@ -581,7 +581,7 @@ class ExclusiveBox:
         '''Remove the item from the box if there is one.'''
         self._item = None
 
-    _attach_task = AsyncEvent._attach_task
+    _attach_task = ExclusiveEvent._attach_task
 
 
 class Event:
@@ -944,6 +944,7 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncIterator[Nursery]:
 # -----------------------------------------------------------------------------
 run_as_primary = run_as_main
 run_as_secondary = run_as_daemon
+AsyncEvent = ExclusiveEvent
 AsyncBox = ExclusiveBox
 
 and_ = wait_all  #: An alias for :func:`wait_all`.

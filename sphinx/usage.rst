@@ -157,12 +157,12 @@ And ``asyncgui`` has an API specifically designed for this purpose.
     import asyncgui as ag
 
     async def wrapper():
-        e = ag.AsyncEvent()
+        e = ag.ExclusiveEvent()
         register_callback(e.fire)  # A
         args, kwargs = await e.wait()  # B
 
-:class:`asyncgui.AsyncEvent` has two advantages over :class:`asyncio.Event`.
-One, you don't need to use a lambda because :meth:`asyncgui.AsyncEvent.fire` can take any arguments (line A).
+:class:`asyncgui.ExclusiveEvent` has two advantages over :class:`asyncio.Event`.
+One, you don't need to use a lambda because :meth:`asyncgui.ExclusiveEvent.fire` can take any arguments (line A).
 Two, you can receive the arguments passed to ``fire`` (line B).
 
 Let's implement our API with this.
@@ -172,7 +172,7 @@ Let's implement our API with this.
     import asyncgui as ag
 
     async def sleep(scheduler, priority, duration):
-        e = ag.AsyncEvent()
+        e = ag.ExclusiveEvent()
         scheduler.enter(duration, priority, e.fire)
         await e.wait()
 
@@ -206,7 +206,7 @@ Now we can use it like this:
 We successfully achieved the best of both worlds; our API doesn't occupy a thread, and the user side code is as readable as the :func:`time.sleep` example.
 
 However, there's one more thing to address: :ref:`dealing-with-cancellation`.
-It is not strictly necessary in this case because ``AsyncEvent`` handles it to a certain extent,
+It is not strictly necessary in this case because ``ExclusiveEvent`` handles it to a certain extent,
 but it's better to handle it within ``sleep`` itself to cover some edge cases.
 
 .. code-block::
@@ -214,7 +214,7 @@ but it's better to handle it within ``sleep`` itself to cover some edge cases.
     import asyncgui as ag
 
     async def sleep(scheduler, priority, duration):
-        e = ag.AsyncEvent()
+        e = ag.ExclusiveEvent()
         event = scheduler.enter(duration, priority, e.fire)
         try:
             await e.wait()
