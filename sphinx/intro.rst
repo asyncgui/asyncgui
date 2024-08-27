@@ -117,7 +117,7 @@ Immediacy
 The problem mentioned above doesn't occur in ``asyncgui`` because:
 
 * :func:`asyncgui.start` and :meth:`asyncgui.Nursery.start` immediately start a task.
-* :meth:`asyncgui.AsyncEvent.fire` and :meth:`asyncgui.AsyncBox.put` immediately resume a task.
+* :meth:`asyncgui.Event.fire` immediately resumes a task.
 
 All other APIs work that way as well.
 

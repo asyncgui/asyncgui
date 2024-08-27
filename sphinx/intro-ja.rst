@@ -114,7 +114,7 @@ asyncguiの特徴
 上で挙げた問題は ``asyncgui`` では起きません。何故なら
 
 * :func:`asyncgui.start` と :meth:`asyncgui.Nursery.start` は即座にタスクを立ち上げ
-* :meth:`asyncgui.AsyncEvent.fire` と :meth:`asyncgui.AsyncBox.put` は即座にタスクを再開するからです。
+* :meth:`asyncgui.Event.fire` は即座にタスクを再開するからです。
 
 また他の機能も全て即座にタスクを開始/再開します。
 ようするに ``asyncgui`` の全ての機能がそのように動くという事です。
