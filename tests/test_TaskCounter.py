@@ -17,7 +17,7 @@ def test_decr_decr():
         tc.decrease()
     with pytest.raises(AssertionError):
         tc.decrease()
-    assert tc._n_tasks == 0
+    assert tc._n_children == 0
 
 
 def test_incr_wait_decr():

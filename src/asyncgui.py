@@ -660,30 +660,34 @@ class TaskCounter:
     親taskが自分の子task達の終了を待つのに用いる。
     '''
 
-    __slots__ = ('_box', '_n_tasks', )
+    __slots__ = ('_parent', '_n_children', )
 
     def __init__(self, initial=0, /):
-        self._n_tasks = initial
-        self._box = AsyncBox()
+        self._n_children = initial
+        self._parent = None
 
     def increase(self):
-        self._n_tasks += 1
+        self._n_children += 1
 
-    def decrease(self):
-        n = self._n_tasks - 1
+    def decrease(self, potential_bug_msg=potential_bug_msg):
+        n = self._n_children - 1
         assert n >= 0, potential_bug_msg
-        self._n_tasks = n
-        if not n:
-            self._box.put()
+        self._n_children = n
+        if (parent := self._parent) is not None and (not n):
+            parent._step()
 
-    async def to_be_zero(self) -> T.Awaitable:
-        if self._n_tasks:
-            box = self._box
-            box._item = None
-            await box.get()
+    @types.coroutine
+    def to_be_zero(self, _current_task=_current_task, _sleep_forever=_sleep_forever):
+        if not self._n_children:
+            return
+        self._parent = (yield _current_task)[0][0]
+        try:
+            yield _sleep_forever
+        finally:
+            self._parent = None
 
     def __bool__(self):
-        return not not self._n_tasks  # 'not not' is not a typo
+        return not not self._n_children  # 'not not' is not a typo
 
 
 async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]) -> T.Awaitable[T.Sequence[Task]]:
