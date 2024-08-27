@@ -12,10 +12,10 @@ __all__ = (
     'open_nursery', 'Nursery',
 
     # bridge between async-world and sync-world
-    'AsyncBox', 'AsyncEvent',
+    'ExclusiveBox', 'AsyncEvent',
 
     # deprecated
-    'Event', 'run_as_primary', 'run_as_secondary',
+    'Event', 'run_as_primary', 'run_as_secondary', 'AsyncBox',
 )
 import types
 import typing as T
@@ -510,7 +510,7 @@ class AsyncEvent:
         self._callback = task._step
 
 
-class AsyncBox:
+class ExclusiveBox:
     '''
     .. code-block::
 
@@ -527,8 +527,8 @@ class AsyncBox:
             assert args == (1, )
             assert kwargs == {'crow': 'raven', }
 
-        b1 = AsyncBox()
-        b2 = AsyncBox()
+        b1 = ExclusiveBox()
+        b2 = ExclusiveBox()
         b1.put(1, crow='raven')
         start(async_fn(b1, b2))
         b2.put(2, frog='toad')
@@ -944,6 +944,8 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncIterator[Nursery]:
 # -----------------------------------------------------------------------------
 run_as_primary = run_as_main
 run_as_secondary = run_as_daemon
+AsyncBox = ExclusiveBox
+
 and_ = wait_all  #: An alias for :func:`wait_all`.
 or_ = wait_any  #: An alias for :func:`wait_any`.
 move_on_when = wait_any_cm  #: An alias for :func:`wait_any_cm`.
