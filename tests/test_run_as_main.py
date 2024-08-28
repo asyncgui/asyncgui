@@ -55,7 +55,7 @@ def test_bg_finishes_while_fg_is_suspended():
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
-    e.set()
+    e.fire()
     assert fg_task.state is TS.FINISHED
 
 
@@ -77,7 +77,7 @@ def test_fg_finishes_while_bg_is_running():
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
-    e.set()
+    e.fire()
     assert fg_task.state is TS.FINISHED
 
 
@@ -94,7 +94,7 @@ def test_fg_finishes_while_bg_is_suspended():
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
-    e.set()
+    e.fire()
     assert fg_task.state is TS.FINISHED
 
 
@@ -112,7 +112,7 @@ def test_bg_finishes_while_fg_is_protected():
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
-    e.set()
+    e.fire()
     assert fg_task.state is TS.STARTED
     fg_task._step()
     assert fg_task.state is TS.FINISHED

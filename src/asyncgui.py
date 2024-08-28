@@ -12,10 +12,10 @@ __all__ = (
     'open_nursery', 'Nursery',
 
     # synchronization
-    'ExclusiveEvent', 'ExclusiveBox',
+    'Event', 'ExclusiveEvent', 'ExclusiveBox',
 
     # deprecated
-    'Event', 'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox',
+    'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox',
 )
 import types
 import typing as T
@@ -467,27 +467,8 @@ dummy_task.cancel()
 
 class ExclusiveEvent:
     '''
-    .. code-block::
-
-        async def async_fn(e):
-            args, kwargs = await e.wait()
-            assert args == (2, )
-            assert kwargs == {'crow': 'raven', }
-
-            args, kwargs = await e.wait()
-            assert args == (3, )
-            assert kwargs == {'toad': 'frog', }
-
-        e = ExclusiveEvent()
-        e.fire(1, crocodile='alligator')
-        start(async_fn(e))
-        e.fire(2, crow='raven')
-        e.fire(3, toad='frog')
-
-    .. warning::
-
-        This class is not designed for inter-task synchronization, unlike :class:`asyncio.Event`.
-        When multiple tasks simultaneously try to wait for the same event to fire, it will raise an exception.
+    Similar to :class:`Event`, but this version does not allow multiple tasks to :meth:`wait` simultaneously.
+    As a result, it operates faster.
     '''
     __slots__ = ('_callback', )
 
@@ -499,7 +480,7 @@ class ExclusiveEvent:
             f(*args, **kwargs)
 
     @types.coroutine
-    def wait(self):
+    def wait(self) -> T.Awaitable[tuple]:
         if self._callback is not None:
             raise InvalidStateError("There's already a task waiting for the event to fire.")
         try:
@@ -587,64 +568,56 @@ class ExclusiveBox:
 
 class Event:
     '''
-    Similar to :class:`asyncio.Event`.
-    The differences are:
-
-    * :meth:`set` accepts any number of arguments but doesn't use them at all so it can be used as a callback function
-      in any library.
-    * :attr:`is_set` is a property not a function.
-
     .. code-block::
 
+        async def async_fn(e):
+            args, kwargs = await e.wait()
+            assert args == (2, )
+            assert kwargs == {'crow': 'raven', }
+
+            args, kwargs = await e.wait()
+            assert args == (3, )
+            assert kwargs == {'toad': 'frog', }
+
         e = Event()
-        any_library.register_callback(e.set)
+        e.fire(1, crocodile='alligator')
+        task = start(async_fn(e))
+        e.fire(2, crow='raven')
+        e.fire(3, toad='frog')
+        assert task.finished
 
-    .. deprecated:: 0.6.2
+    .. warning::
 
-        This class is deprecated, and will be removed before 1.0.0.
-        Use :class:`asyncgui_ext.synctools.box.Box` instead.
+        This differs significantly from :class:`asyncio.Event`, as this one does not have a "set" state.
+        When a Task calls its :meth:`wait` method, it will always be blocked until :meth:`fire` is called after that.
+        Use :class:`Box` if you want something closer to :class:`asyncio.Event`.
+
+    .. versionchanged:: 0.7.0
+
+        This is now completely different from the previous version's.
     '''
 
-    __slots__ = ('_flag', '_waiting_tasks', )
+    __slots__ = ('_waiting_tasks', )
 
     def __init__(self):
-        self._flag = False
         self._waiting_tasks = []
 
-    @property
-    def is_set(self) -> bool:
-        return self._flag
-
-    def set(self, *args, **kwargs):
-        '''
-        Set the event.
-        Unlike asyncio's, all tasks waiting for this event to be set will be resumed *immediately*.
-        '''
-        if self._flag:
-            return
-        self._flag = True
+    def fire(self, *args, **kwargs):
         tasks = self._waiting_tasks
         self._waiting_tasks = []
         for t in tasks:
             if t is not None:
-                t._step()
-
-    def clear(self):
-        '''Unset the event.'''
-        self._flag = False
+                t._step(*args, **kwargs)
 
     @types.coroutine
-    def wait(self) -> T.Awaitable:
+    def wait(self) -> T.Awaitable[tuple]:
         '''
-        Wait for the event to be set.
-        Return *immediately* if it's already set.
+        Waits for the event to be fired.
         '''
-        if self._flag:
-            return
         try:
             tasks = self._waiting_tasks
             idx = len(tasks)
-            yield tasks.append
+            return (yield tasks.append)
         finally:
             tasks[idx] = None
 

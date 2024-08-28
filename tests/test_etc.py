@@ -47,7 +47,7 @@ def test_disable_cancellation():
     assert task._cancel_disabled == 1
     assert not task.cancelled
     assert not task._is_cancellable
-    e.set()
+    e.fire()
     assert task._cancel_disabled == 0
     assert task.cancelled
 
@@ -76,7 +76,7 @@ def test_disable_cancellation__ver_nested():
     task.cancel()
     assert not task.cancelled
     assert not task._is_cancellable
-    e.set()
+    e.fire()
     assert task._cancel_disabled == 0
     assert task.cancelled
 
