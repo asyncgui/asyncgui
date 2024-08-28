@@ -272,7 +272,7 @@ def test_garbage_collection():
     assert len(nursery._children) == 3
     nursery.start(do_nothing())
     assert len(nursery._children) == 4
-    e.set()
+    e.fire()
     nursery.start(do_nothing())
     assert len(nursery._children) == 5
     nursery.start(do_nothing())  # GC-ed

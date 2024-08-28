@@ -56,7 +56,7 @@ def test_bg_fails_while_fg_is_suspended(any_cm):
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
-    e.set()
+    e.fire()
     assert fg_task.state is TS.FINISHED
 
 
@@ -119,7 +119,7 @@ def test_fg_fails_while_bg_is_running(any_cm):
 
     e = ag.Event()
     fg_task = ag.start(async_fn())
-    e.set()
+    e.fire()
     assert fg_task.finished
 
 
@@ -142,7 +142,7 @@ def test_bg_fails_after_fg_finishes(any_cm):
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
-    e.set()
+    e.fire()
     assert fg_task.state is TS.FINISHED
 
 
@@ -205,7 +205,7 @@ def test_fg_fails_then_bg_fails_2(any_cm):
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert not fg_task.finished
-    e.set()
+    e.fire()
     assert fg_task.finished
 
 
@@ -229,7 +229,7 @@ def test_fg_fails_then_bg_fails_3(any_cm):
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert not fg_task.finished
-    e.set()
+    e.fire()
     assert fg_task.finished
 
 
@@ -274,7 +274,7 @@ def test_bg_fails_then_fg_fails_2(any_cm):
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert not fg_task.finished
-    e.set()
+    e.fire()
     assert fg_task.finished
 
 
