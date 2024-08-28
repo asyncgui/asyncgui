@@ -12,7 +12,7 @@ __all__ = (
     'open_nursery', 'Nursery',
 
     # synchronization
-    'Event', 'ExclusiveEvent', 'ExclusiveBox',
+    'Event', 'Box', 'ExclusiveEvent', 'ExclusiveBox',
 
     # deprecated
     'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox',
@@ -494,31 +494,8 @@ class ExclusiveEvent:
 
 class ExclusiveBox:
     '''
-    .. code-block::
-
-        async def async_fn(b1, b2):
-            args, kwargs = await b1.get()
-            assert args == (1, )
-            assert kwargs == {'crow': 'raven', }
-
-            args, kwargs = await b2.get()
-            assert args == (2, )
-            assert kwargs == {'frog': 'toad', }
-
-            args, kwargs = await b1.get()
-            assert args == (1, )
-            assert kwargs == {'crow': 'raven', }
-
-        b1 = ExclusiveBox()
-        b2 = ExclusiveBox()
-        b1.put(1, crow='raven')
-        start(async_fn(b1, b2))
-        b2.put(2, frog='toad')
-
-    .. warning::
-
-        This class is not designed for inter-task synchronization, unlike :class:`asyncio.Event`.
-        When multiple tasks simultaneously try to get an item from the same box, it will raise an exception.
+    Similar to :class:`Box`, but this version does not allow multiple tasks to :meth:`get` simultaneously.
+    As a result, it operates faster.
     '''
     __slots__ = ('_item', '_callback', )
 
@@ -547,7 +524,7 @@ class ExclusiveBox:
             callback(*args, **kwargs)
 
     @types.coroutine
-    def get(self):
+    def get(self) -> T.Awaitable[tuple]:
         '''Get the item from the box if there is one. Otherwise, wait until it's put.'''
         if self._callback is not None:
             raise InvalidStateError("There's already a task waiting for an item to be put in the box.")
@@ -617,6 +594,76 @@ class Event:
         try:
             tasks = self._waiting_tasks
             idx = len(tasks)
+            return (yield tasks.append)
+        finally:
+            tasks[idx] = None
+
+
+class Box:
+    '''
+    .. code-block::
+
+        async def async_fn(box):
+            args, kwargs = await box.get()
+            assert args == (1, )
+            assert kwargs == {'crow': 'raven', }
+
+        box = Box()
+        box.put(1, crow='raven')
+
+        # This task will immediately end because the 'box' already has an item.
+        task = start(async_fn(box))
+        assert task.finished
+
+        box.clear()
+        # Now the box is empty, so this task will wait until an item is added.
+        task = start(async_fn(box))
+        assert not task.finished
+
+        # Put an item into the box, which will cause the task to end.
+        box.put(1, crow='raven')
+        assert task.finished
+    '''
+    __slots__ = ('_item', '_waiting_tasks', )
+
+    def __init__(self):
+        self._item = None
+        self._waiting_tasks = []
+
+    @property
+    def is_empty(self) -> bool:
+        return self._item is None
+
+    def put(self, *args, **kwargs):
+        '''Put an item into the box if it's empty.'''
+        if self._item is None:
+            self.put_or_update(*args, **kwargs)
+
+    def update(self, *args, **kwargs):
+        '''Replace the item in the box if there is one already.'''
+        if self._item is not None:
+            self.put_or_update(*args, **kwargs)
+
+    def put_or_update(self, *args, **kwargs):
+        self._item = (args, kwargs, )
+        tasks = self._waiting_tasks
+        self._waiting_tasks = []
+        for t in tasks:
+            if t is not None:
+                t._step(*args, **kwargs)
+
+    def clear(self):
+        '''Remove the item from the box if there is one.'''
+        self._item = None
+
+    @types.coroutine
+    def get(self) -> T.Awaitable[tuple]:
+        '''Get the item from the box if there is one. Otherwise, wait until it's put.'''
+        if self._item is not None:
+            return self._item
+        tasks = self._waiting_tasks
+        idx = len(tasks)
+        try:
             return (yield tasks.append)
         finally:
             tasks[idx] = None

@@ -1,5 +1,5 @@
 '''
-親がa,b,cの３つの子を持っていて、bが'Event.set()'を呼んだことでaが再開し、
+親がa,b,cの３つの子を持っていて、bが'Box.put()'を呼んだことでaが再開し、
 aがそこでbに中断をかけた状況のtest。
 '''
 import pytest
@@ -8,8 +8,8 @@ import pytest
 async def child_a(ctx):
     from inspect import getcoroutinestate, CORO_RUNNING
     import asyncgui as ag
-    await ctx['e_begin'].wait()
-    await ctx['e'].wait()
+    await ctx['e_begin'].get()
+    await ctx['e'].get()
     task_b = ctx['task_b']
     assert getcoroutinestate(task_b.root_coro) == CORO_RUNNING
     task_b.cancel()
@@ -31,8 +31,8 @@ async def child_a(ctx):
 async def child_b(ctx):
     import asyncgui as ag
     try:
-        await ctx['e_begin'].wait()
-        ctx['e'].set()
+        await ctx['e_begin'].get()
+        ctx['e'].put()
     finally:
         if ctx['should_b_fail']:
             raise ZeroDivisionError
@@ -41,7 +41,7 @@ async def child_b(ctx):
 async def child_c(ctx):
     import asyncgui as ag
     try:
-        await ctx['e_begin'].wait()
+        await ctx['e_begin'].get()
     finally:
         if ctx['should_c_fail']:
             raise ZeroDivisionError
@@ -57,8 +57,8 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
     TS = ag.TaskState
 
     ctx = {
-        'e_begin': ag.Event(),
-        'e': ag.Event(),
+        'e_begin': ag.Box(),
+        'e': ag.Box(),
         'what_a_should_do': what_a_should_do,
         'should_b_fail': should_b_fail,
         'should_c_fail': should_c_fail,
@@ -83,10 +83,10 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
             await ag.wait_all(task_a, task_b, task_c)
 
     if starts_immediately:
-        ctx['e_begin'].set()
+        ctx['e_begin'].put()
     main_task = ag.start(main(ctx))
     if not starts_immediately:
-        ctx['e_begin'].set()
+        ctx['e_begin'].put()
     if should_c_fail or should_b_fail or what_a_should_do != 'suspend':
         assert main_task.state is TS.FINISHED
     else:

@@ -10,11 +10,11 @@ async def fail_immediately(e=None):
 
 
 async def finish_soon(e):
-    await e.wait()
+    await e.get()
 
 
 async def fail_soon(e):
-    await e.wait()
+    await e.get()
     raise ZeroDivisionError
 
 
@@ -29,7 +29,7 @@ async def fail_on_cancel(e=None):
 async def finish_soon_but_protected(e):
     import asyncgui as ag
     async with ag.disable_cancellation():
-        await e.wait()
+        await e.get()
 
 
 def test_no_child():
@@ -98,10 +98,10 @@ def test_one_child_finishes_soon():
         tasks = await ag.wait_all(finish_soon(e))
         assert [True, ] == [task.finished for task in tasks]
 
-    e = ag.Event()
+    e = ag.Box()
     main_task = ag.start(main(e))
     assert not main_task.finished
-    e.set()
+    e.put()
     assert main_task.finished
 
 
@@ -112,10 +112,10 @@ def test_multiple_children_finish_soon():
         tasks = await ag.wait_all(finish_soon(e), finish_soon(e))
         assert [True, True] == [task.finished for task in tasks]
 
-    e = ag.Event()
+    e = ag.Box()
     main_task = ag.start(main(e))
     assert not main_task.finished
-    e.set()
+    e.put()
     assert main_task.finished
 
 
@@ -129,10 +129,10 @@ def test_one_child_fails_soon():
         assert len(child_exceptions) == 1
         assert type(child_exceptions[0]) is ZeroDivisionError
 
-    e = ag.Event()
+    e = ag.Box()
     main_task = ag.start(main(e))
     assert not main_task.finished
-    e.set()
+    e.put()
     assert main_task.finished
 
 
@@ -150,10 +150,10 @@ def test_multiple_children_fail_soon():
         assert len(child_exceptions) == 1
         assert type(child_exceptions[0]) is ZeroDivisionError
 
-    e = ag.Event()
+    e = ag.Box()
     main_task = ag.start(main(e))
     assert not main_task.finished
-    e.set()
+    e.put()
     assert main_task.finished
 
 
@@ -169,10 +169,10 @@ def test_multiple_children_fail():
             await ag.wait_all(fail_soon(e), fail_on_cancel())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
-    e = ag.Event()
+    e = ag.Box()
     main_task = ag.start(main(e))
     assert not main_task.finished
-    e.set()
+    e.put()
     assert main_task.finished
 
 
@@ -254,13 +254,13 @@ class Test_disable_cancellation:
             assert len(child_exceptions) == 1
             assert type(child_exceptions[0]) is ZeroDivisionError
 
-        e = ag.Event()
+        e = ag.Box()
         main_task = ag.Task(main(e))
         ag.start(main_task)
         assert not main_task.finished
         main_task.cancel()
         assert not main_task.finished
-        e.set()
+        e.put()
         assert main_task.finished
 
     @pytest.mark.parametrize('other_child', (fail_soon, finish_immediately, finish_soon, finish_soon_but_protected))
@@ -271,13 +271,13 @@ class Test_disable_cancellation:
             await ag.wait_all(finish_soon_but_protected(e), other_child(e))
             pytest.fail("Failed to cancel")
 
-        e = ag.Event()
+        e = ag.Box()
         main_task = ag.Task(main(e))
         ag.start(main_task)
         assert not main_task.cancelled
         main_task.cancel()
         assert not main_task.cancelled
-        e.set()
+        e.put()
         assert main_task.cancelled
 
 
