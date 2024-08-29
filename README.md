@@ -11,8 +11,8 @@ An async library that focuses on fast reaction.
 Pin the minor version.
 
 ```text
-poetry add asyncgui@~0.6
-pip install "asyncgui>=0.6,<0.7"
+poetry add asyncgui@~0.7
+pip install "asyncgui>=0.7,<0.8"
 ```
 
 ## Tested on
