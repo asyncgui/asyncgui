@@ -139,7 +139,8 @@ No global state
 
 Although it wasn't originally intended, ``asyncgui`` ended up having no global state. All states are represented as:
 
-* local variables inside functions
+* free variables
+* local variables inside coroutines/generators
 * instance attributes
 
 not:

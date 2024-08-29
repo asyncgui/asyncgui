@@ -8,16 +8,8 @@ Tips
 Dealing with Cancellation
 -------------------------
 
-:func:`asyncgui.start` returns a :class:`asyncgui.Task` instance, which can be used to cancel its execution.
-
-.. code-block::
-
-    task = asyncgui.start(async_func())
-    ...
-    task.cancel()
-
-When ``task.cancel()`` is called, :exc:`asyncgui.Cancelled` exception will occur inside the task,
-which means you can prepare for a cancellation as follows:
+When the execution of a :class:`asyncgui.Task` instance is cancelled, a :exc:`asyncgui.Cancelled` exception is raised within it.
+You can take advantage of this opportunity as follows:
 
 .. code-block::
 
@@ -25,10 +17,10 @@ which means you can prepare for a cancellation as follows:
         try:
             ...
         except Cancelled:
-            print('cancelled')
+            something_you_want_to_do_only_when_cancelled()
             raise  # You must re-raise !!
         finally:
-            print('cleanup resources here')
+            cleanup_resources()
 
 You are not allowed to ``await`` anything inside the except-Cancelled-clause and the finally-clause
 if you want the task to be cancellable because cancellations always must be done immediately.
@@ -56,7 +48,3 @@ xxx ignored GeneratorExit
 If this type of error occurs in your program, try explicitly canceling the corresponding 'root' task.
 All instances of :class:`asyncgui.Task` returned by :func:`asyncgui.start` are considered 'root' tasks.
 You should identify the relevant one from the error message and then use :meth:`asyncgui.Task.cancel` to terminate it.
-
-もしこのようなエラーが起きるようなら根タスクを明示的に中断してください。
-根タスクとは :func:`asyncgui.start` が返すタスクの事です。
-エラーメッセージを頼りに該当する根タスクを探して明示的に :meth:`asyncgui.Task.cancel` してください。
