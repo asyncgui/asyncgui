@@ -38,7 +38,7 @@ Our code would look like this:
     task()
     s.run()
 
-:mod:sched provides callback-style APIs, and the code that uses them can be hard to read.
+:mod:`sched` provides callback-style APIs, and the code that uses them can be hard to read.
 You might wonder, "Why not just use :func:`time.sleep`?" So let me address that first.
 
 Counter to 'Why not just use ``time.sleep``?'
@@ -128,7 +128,7 @@ Implementation
 ==============
 
 To wrap a callback-style API in an async/await-style API,
-you need to set up the process to be resumed when the callback function is called, then pause the process.
+we need to set up the process to be resumed when the callback function is called, then pause the process.
 This might sound unclear, but if you've ever used :class:`asyncio.Event` or :class:`trio.Event`, you already know it.
 
 .. code-block::
