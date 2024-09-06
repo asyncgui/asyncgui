@@ -38,7 +38,7 @@ Our code would look like this:
     task()
     s.run()
 
-:mod:`sched` provides callback-style APIs, and the code that uses them can be hard to read.
+:mod:`sched` provides callback-style APIs, and the code that uses them is not easy to understand.
 You might wonder, "Why not just use :func:`time.sleep`?" So let me address that first.
 
 Counter to 'Why not just use ``time.sleep``?'
@@ -71,7 +71,7 @@ For example, you can just call the ``task()`` multiple times at the end of the c
     task()
     s.run()
 
-Therefore, ``time.sleep`` cannot replace ``sched``.
+Therefore, ``sched`` cannot be replaced with ``time.sleep``.
 
 API Design
 ==========
@@ -128,7 +128,7 @@ Implementation
 ==============
 
 To wrap a callback-style API in an async/await-style API,
-we need to set up the process to be resumed when the callback function is called, then pause the process.
+we need to set up execution to resume when a callback function is called, and then pause it.
 This might sound unclear, but if you've ever used :class:`asyncio.Event` or :class:`trio.Event`, you already know it.
 
 .. code-block::
@@ -138,10 +138,10 @@ This might sound unclear, but if you've ever used :class:`asyncio.Event` or :cla
     async def wrapper():
         e = asyncio.Event()
 
-        # Set up the process to be resumed when the callback function is called
+        # Set up the execution to resume when a callback function is called
         register_callback(lambda *args, **kwargs: e.set())
 
-        # Pause the process
+        # Pause the execution
         await e.wait()
 
     async def user():
