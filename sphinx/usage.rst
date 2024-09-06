@@ -62,7 +62,7 @@ Indeed, if you use ``time.sleep``, it'll be easier to understand.
 
 However, this approach works only when there's a single task.
 If there are multiple ones, the story changes.
-With the ``time.sleep`` method, you need multiple threads to run multiple tasks, whereas with the ``sched`` method, one thread is enough.
+With the ``time.sleep`` method, you need multiple threads to run multiple tasks simultaneously, whereas with the ``sched`` method, one thread is sufficient.
 For example, you can just call the ``task()`` multiple times at the end of the code:
 
 .. code-block::
