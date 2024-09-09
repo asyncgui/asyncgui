@@ -37,12 +37,12 @@ else:
     ExceptionGroup = ExceptionGroup  #: :meta private:
 
 potential_bug_msg = \
-    r"This may be a bug of this library. Please make a minimal code that reproduces the bug, and open an issue at " \
-    r"the GitHub repository, then post the code there. (https://github.com/asyncgui/asyncgui)."
+    r"You might found a bug in the library. Please make a minimal code that reproduces it, " \
+    r"and open an issue at the GitHub repository, then post the code there. (https://github.com/asyncgui/asyncgui)."
 
 
 class InvalidStateError(Exception):
-    """The operation is not allowed in the current state."""
+    """Operation is not allowed in the current state."""
 
 
 class _Cancelled(BaseException):
@@ -131,7 +131,6 @@ class Task:
     def uid(self) -> int:
         '''
         An unique integer assigned to the task.
-        This exists solely for inspection purposes.
         '''
         return self._uid
 
@@ -139,7 +138,6 @@ class Task:
     def root_coro(self) -> T.Coroutine:
         '''
         The starting point of the coroutine chain for the task.
-        This exists solely for inspection purposes.
         '''
         return self._root_coro
 
@@ -147,7 +145,6 @@ class Task:
     def state(self) -> TaskState:
         '''
         The current state of the task.
-        This exists solely for inspection purposes.
         '''
         return self._state
 
