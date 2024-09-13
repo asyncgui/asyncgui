@@ -913,7 +913,7 @@ class Nursery:
 
 
 @asynccontextmanager
-async def open_nursery(*, _gc_in_every=1000) -> T.AsyncIterator[Nursery]:
+async def open_nursery(*, _gc_in_every=1000) -> T.AsyncContextManager[Nursery]:
     '''
     Similar to :func:`trio.open_nursery`.
 
