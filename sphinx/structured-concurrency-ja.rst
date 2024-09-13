@@ -23,7 +23,7 @@ wait_any
 
     tasks = await wait_any(async_fn1(), async_fn2(), async_fn3())
 
-    while t, idx in zip(tasks, "123"):
+    for t, idx in zip(tasks, "123"):
         if t.finished:
             print(f"async_fn{idx}()の戻り値 :", t.result)
         else:
