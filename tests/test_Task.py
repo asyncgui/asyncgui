@@ -1,3 +1,4 @@
+import sys
 import pytest
 
 
@@ -263,7 +264,8 @@ def test_try_to_cancel_self_but_no_opportunity_for_that():
     assert task.finished
 
 
-def test_weakref():
+@pytest.mark.skipif(sys.implementation.name == "pypy", reason="Couldn't figure out how to prevent weakrefs from being created")
+def test_making_a_weakref_should_raise_an_exception():
     import weakref
     import asyncgui as ag
     with pytest.raises(Exception):
