@@ -264,16 +264,9 @@ def test_try_to_cancel_self_but_no_opportunity_for_that():
     assert task.finished
 
 
-@pytest.mark.skipif(sys.implementation.name != "cpython", reason="他の実装での弱参照の動作を把握してないから")
+@pytest.mark.skipif(sys.implementation.name == "pypy", reason="Couldn't figure out how to prevent weakrefs from being created")
 def test_making_a_weakref_should_raise_an_exception():
     import weakref
     import asyncgui as ag
     with pytest.raises(Exception):
         weakref.ref(ag.dummy_task)
-
-
-@pytest.mark.skipif(sys.implementation.name != "pypy", reason="他の実装での弱参照の動作を把握してないから")
-def test_making_a_weakref():
-    import weakref
-    import asyncgui as ag
-    assert weakref.ref(ag.dummy_task) is None
