@@ -179,4 +179,5 @@ def test_GeneratorExit_occurs_when_a_coroutine_gets_garbage_collected():
     coro.send(None)
     assert not occurred
     del coro
+    import gc; gc.collect(); gc.collect(); gc.collect()
     assert occurred
