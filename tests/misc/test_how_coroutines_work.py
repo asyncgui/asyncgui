@@ -4,6 +4,7 @@ Pythonのcoro周りの挙動が変わりないかを確かめるだけのテス�
 
 from inspect import getcoroutinestate, CORO_CLOSED, CORO_CREATED, CORO_SUSPENDED, CORO_RUNNING
 import types
+import sys
 import pytest
 from contextlib import nullcontext
 
@@ -165,6 +166,7 @@ class Test_CORO_RUNNING:
         assert called
 
 
+@pytest.mark.skipif(sys.implementation.name == "pypy", reason="Couldn't figure out how to force the garbage collector to dispose of a coroutine.")
 def test_GeneratorExit_occurs_when_a_coroutine_gets_garbage_collected():
     async def async_fn():
         try:
