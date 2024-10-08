@@ -492,7 +492,9 @@ class ExclusiveEvent:
 class ExclusiveBox:
     '''
     Similar to :class:`Box`, but this version does not allow multiple tasks to :meth:`get` simultaneously.
-    As a result, it operates faster.
+
+    .. deprecated:: 0.7.1
+        Use :class:`Box` instead.
     '''
     __slots__ = ('_item', '_callback', )
 
