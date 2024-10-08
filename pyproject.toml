@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "asyncgui"
 version = "0.7.0"
-description = "A thin layer that helps to wrap a callback-style API in an async/await-style API"
+description = "A minimalistic async library that focuses on fast reaction"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
 readme = 'README.md'

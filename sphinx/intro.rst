@@ -14,7 +14,7 @@ And Curio_, which seems to have had a big influence on Trio, though it now only 
 They may be different each other but all of them have in common is that they are not suitable for GUI programs.
 I'm not saying "Having a GUI library and an async library coexist in the same thread is problematic due to their individual event loops".
 In fact, Kivy_ and BeeWare_ have adapted themselves to work with async libraries,
-PyGame_ doesn't even own an event loop and expects the user to implement one so you could do that using an async loop,
+PyGame_ doesn't even own an event loop and expects the user to implement one so you could do that by putting an ``await asyncio.sleep()`` inside an event loop [#pygame_with_asyncio]_,
 :mod:`tkinter` and PyQt_ seem to have 3rd party libraries that allow them to work with async libraries.
 Even if none of them are your options, Trio has `special mode`_ that makes it run without interfering with other event loop.
 Therefore, I think it's safe to say that the coexisting problem has been already solved.
@@ -81,18 +81,18 @@ Take a look at the following pseudo code that changes the background color of a 
 
     async def toggle_button_background_color(button):
         while True:
-            await button.gets_pressed
+            await button.to_be_pressed()
             button.background_color = different_color
-            await button.gets_released
+            await button.to_be_released()
             button.background_color = original_color
 
-Consider a situation where the task is paused at the ``await button.gets_pressed`` line and the user presses the button.
+Consider a situation where the task is paused at the ``await button.to_be_pressed()`` line and the user presses the button.
 As I mentioned, neither of :mod:`asyncio` nor :mod:`trio` resumes tasks immediately, so the background color won't change immediately.
 Now, what happens if the user releases the button *before* the task resumes?
-The task eventually resumes and pauses at the ``await button.gets_released`` line...
+The task eventually resumes and pauses at the ``await button.to_be_released()`` line...
 **but the user has already released the button**.
 The task ends up waiting there until the user presses and releases the button again.
-As a result, the background color of the button remains ``different_color`` until that happens.
+As a result, the background color of the button remains the ``different_color`` until that happens.
 
 .. note::
 
@@ -162,8 +162,8 @@ This is because it requires an event loop, which ``asyncgui`` lacks.
 
 However, you can achieve this by wrapping the timer APIs of the event loop it piggybacks on, as I mentioned earlier.
 In fact, that is the intended usage of this library.
-``asyncgui`` itself only provides the features that depend solely on the Python language (or its interpreter),
-and doesn't provides the ones that need to interact with the operating system.
+``asyncgui`` itself only provides the features that depend solely on the Python language (or maybe its interpreter),
+and doesn't provides the ones that need to interact with the operating system [#timer_requires_system_call]_.
 
 .. figure:: ./figure/core-concept-en.*
 
@@ -179,3 +179,20 @@ and doesn't provides the ones that need to interact with the operating system.
 
 .. _asyncio.tasks._current_tasks: https://github.com/python/cpython/blob/4890bfe1f906202ef521ffd327cae36e1afa0873/Lib/asyncio/tasks.py#L970-L972
 .. _trio._core.GLOBAL_CONTEXT: https://github.com/python-trio/trio/blob/722f1b577d4753de5ea1ca5b5b9f2f1a7c6cb56d/trio/_core/_run.py#L1356
+
+.. [#pygame_with_asyncio]
+    .. code-block::
+
+        # NOTE: I haven't tested whether this code actually works.
+
+        async def main_loop():
+            while True:
+                for event in pygame.event.get():
+                    ...
+                await asyncio.sleep(...)
+                ...
+
+        asyncio.create_task(main_loop())
+
+.. [#timer_requires_system_call]
+    To implement timer APIs, you need to use functions that provide the current time, such as :func:`time.time` or :func:`time.perf_counter`, which probably involves a system call.

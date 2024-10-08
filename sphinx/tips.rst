@@ -48,3 +48,15 @@ xxx ignored GeneratorExit
 If this type of error occurs in your program, try explicitly canceling the corresponding 'root' task.
 All instances of :class:`asyncgui.Task` returned by :func:`asyncgui.start` are considered 'root' tasks.
 You should identify the relevant one from the error message and then use :meth:`asyncgui.Task.cancel` to terminate it.
+
+
+----------------------
+Structured Concurrency
+----------------------
+
+Ultimately, your program should have only one "root" task, with all other tasks as children of this root or other tasks.
+You can achieve this by calling :func:`asyncgui.start` only once in your program,
+and then using the :doc:`structured-concurrency` APIs to create child tasks.
+
+And don't forget to explicitly cancel the root task when your program exits.
+If you don't, it will be cancelled during garbage collection, which can cause a lot of trouble.
