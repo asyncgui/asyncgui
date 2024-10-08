@@ -115,7 +115,7 @@ There are several options that meet this condition, and we choose an async funct
         ...
 
 But hold on, since :meth:`sched.scheduler.enter` is an instance method, our API needs to take a :class:`sched.scheduler` instance.
-And since it has the ``priority`` parameter, our API might better have one as well in order not to lose any functionality of the original API.
+And since it has a ``priority`` parameter, our API might better have one as well in order not to lose any functionality of the original API.
 
 .. code-block::
 
@@ -138,7 +138,7 @@ This might sound unclear, but if you've ever used :class:`asyncio.Event` or :cla
     async def wrapper():
         e = asyncio.Event()
 
-        # Set up the execution to resume when a callback function is called
+        # Set up the execution to resume when this callback function is called
         register_callback(lambda *args, **kwargs: e.set())
 
         # Pause the execution
@@ -163,7 +163,7 @@ And ``asyncgui`` has an API specifically designed for this purpose.
 
 :class:`asyncgui.ExclusiveEvent` has two advantages over :class:`asyncio.Event`.
 One, you don't need to use a lambda because :meth:`asyncgui.ExclusiveEvent.fire` can take any arguments (line A).
-Two, you can receive the arguments passed to ``fire`` (line B).
+Two, you can receive the arguments passed to it (line B).
 
 Let's implement our API with this.
 

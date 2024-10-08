@@ -14,7 +14,7 @@ Pythonには既に幾つかasyncライブラリがあります。
 
 それぞれ違いはあると思うのですがどれにも共通して言えるのはGUIプログラムとの相性が悪い事です。
 私は何も「GUIライブラリとasyncライブラリはそれぞれがイベントループを持つから同じスレッド内で同居できないよね」と言いたいわけではありません。
-実際 PyGame_ の様に利用者側にイベントループの実装を委ねている場合は ``PyGame`` のイベントループをasyncライブラリのいちタスクとして実装してしまえば同居できそうですし、
+実際 PyGame_ の様に利用者側にイベントループの実装を委ねている場合は ``PyGame`` のイベントループをasyncライブラリのいちタスクとして実装してしまえば同居できそうですし [#pygame_with_asyncio]_、
 Kivy_ や BeeWare_ に関しては自身でasyncライブラリに対応してくれてますし、
 :mod:`tkinter` や PyQt_ にはそれを可能にする外部ライブラリがあるようです。
 仮にそのどれにも当てはまらなかったとしても ``Trio`` には `guest mode`_ という「他のイベントループの邪魔をせずに動作するモード」があるため
@@ -102,7 +102,7 @@ Kivy_ や BeeWare_ に関しては自身でasyncライブラリに対応して�
 このやり方が速度面で実用的なのか分かりませんがとにかく私にはそれぐらいしか思い浮かびませんでした。
 それにたとえそれでうまくいったとしてもユーザーがボタンの反応を悪く感じる問題は残ったままです。
 
-以上が ``asyncgui`` が解決した問題であり ``asyncgui`` の存在理由となります。
+以上が ``asyncgui`` が解決した問題でありその存在理由となります。
 
 
 asyncguiの特徴
@@ -164,7 +164,7 @@ asyncguiの特徴
 
 ただそれはあくまで単独での話であって上で触れた"作業"を行えば可能です。
 むしろ其れがこのライブラリの想定された使い方であり、
-``asyncgui`` 自体はPython言語(或いはその処理系)にのみに依存する機能の実装が主で外界(OS)とのやりとりはしません。
+``asyncgui`` 自体はPython言語(或いはインタープリター特有の部分)にのみに依存する機能の実装が主で外界(OS)とのやりとりはしません [#timer_requires_system_call]_。
 
 .. figure:: ./figure/core-concept-ja.*
 
@@ -209,3 +209,22 @@ asyncguiの特徴
 
 .. _asyncio.tasks._current_tasks: https://github.com/python/cpython/blob/4890bfe1f906202ef521ffd327cae36e1afa0873/Lib/asyncio/tasks.py#L970-L972
 .. _trio._core.GLOBAL_CONTEXT: https://github.com/python-trio/trio/blob/722f1b577d4753de5ea1ca5b5b9f2f1a7c6cb56d/trio/_core/_run.py#L1356
+
+.. [#pygame_with_asyncio]
+    .. code-block::
+
+        # NOTE: これが実際に使い物になるのか試したことはありません。
+
+        async def main_loop():
+            while True:
+                for event in pygame.event.get():
+                    ...
+                await asyncio.sleep(...)
+                ...
+
+        asyncio.create_task(main_loop())
+
+.. [#timer_requires_system_call]
+    組み込み環境ではどうか分かりませんが、WindowsやAndroidのような汎用OSの上でタイマー機能を実現するには現在時刻を取得する機能が必要なはずです。
+    例えば :func:`time.time` や :func:`time.perf_counter` などです。
+    そしてこれらのAPIは最終的にはOSのAPIを呼び出しているはずです。(事実 :mod:`time` モジュールは `Generic Operating System Services` に分類されている)。
