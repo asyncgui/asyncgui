@@ -2,11 +2,11 @@
 
 ...is a minimalistic async library that:
 
-- doesn't provide features involving system calls, such as I/O, time, or threads.
+- does not provide features involving system calls, such as I/O, time retrieval, thread suspension, or thread spawning.
 - has no external dependencies when using Python 3.11 or later.
-- doesn't own an event loop, but is designed to integrate with an existing one.
+- does not own a main loop, but is designed to integrate with an existing one.
 - avoids global state.
-- focuses on fast reaction, allowing immediate task start and resumption.
+- focuses on fast responsiveness, allowing immediate task start and resumption.
 - offers powerful structured concurrency APIs inspired by [Trio](https://trio.readthedocs.io/en/stable/) and [trio-util](https://trio-util.readthedocs.io/en/latest/).
 
 [Documentation](https://asyncgui.github.io/asyncgui/)
