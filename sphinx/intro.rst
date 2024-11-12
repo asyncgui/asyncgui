@@ -12,11 +12,11 @@ Another one is Trio_, well-known for its `structured concurrency`_.
 And Curio_, which seems to have had a big influence on Trio, though it now only accepts bug fixes.
 
 They may be different each other but all of them have in common is that they are not suitable for GUI programs.
-I'm not saying "Having a GUI library and an async library coexist in the same thread is problematic due to their individual event loops".
+I'm not saying "Having a GUI library and an async library coexist in the same thread is problematic due to their individual main loops".
 In fact, Kivy_ and BeeWare_ have adapted themselves to work with async libraries,
-PyGame_ doesn't even own an event loop and expects the user to implement one so you could do that by putting an ``await asyncio.sleep()`` inside an event loop [#pygame_with_asyncio]_,
+PyGame_ doesn't even own a main loop and expects the user to implement one so you could do that by putting an ``await asyncio.sleep()`` inside a main loop [#pygame_with_asyncio]_,
 :mod:`tkinter` and PyQt_ seem to have 3rd party libraries that allow them to work with async libraries.
-Even if none of them are your options, Trio has `special mode`_ that makes it run without interfering with other event loop.
+Even if none of them are your options, Trio has `special mode`_ that makes it run without interfering with other main loop.
 Therefore, I think it's safe to say that the coexisting problem has been already solved.
 
 Then why do I say "they are not suitable for GUI programs"?
@@ -121,17 +121,17 @@ The problem mentioned above doesn't occur in ``asyncgui`` because:
 
 All other APIs work that way as well.
 
-No event loop
+No main loop
 -------------
 
-The coexistence problem I mentioned earlier doesn't occur in ``asyncgui`` because it doesn't have its own event loop.
-Instead, ``asyncgui`` runs by piggybacking on another event loop, such as one from a GUI library.
-To achieve this, however, you need to wrap the callback-style APIs associated with the event loop it piggybacks.
+The coexistence problem I mentioned earlier doesn't occur in ``asyncgui`` because it doesn't have its own main loop.
+Instead, ``asyncgui`` runs by piggybacking on another main loop, such as one from a GUI library.
+To achieve this, however, you need to wrap the callback-style APIs associated with the main loop it piggybacks.
 I'll explain this further in the :doc:`usage` section.
 
 .. note::
 
-    "another event loop" can be other async library's.
+    "another main loop" can be other async library's.
     Yes, you can even run ``asyncgui`` and other async library in the same thread (though there are some limitations).
 
 No global state
@@ -158,11 +158,11 @@ Cannot sleep by itself
 ----------------------
 
 It might surprise you, but ``asyncgui`` cannot ``await sleep(...)`` by itself.
-This is because it requires an event loop, which ``asyncgui`` lacks.
+This is because it requires a main loop, which ``asyncgui`` lacks.
 
-However, you can achieve this by wrapping the timer APIs of the event loop it piggybacks on, as I mentioned earlier.
+However, you can achieve this by wrapping the timer APIs of the main loop it piggybacks on, as I mentioned earlier.
 In fact, that is the intended usage of this library.
-``asyncgui`` itself only provides the features that depend solely on the Python language (or maybe its interpreter),
+``asyncgui`` itself only provides the features that depend solely on the Python language (or maybe some CPython-specific behavior),
 and doesn't provides the ones that need to interact with the operating system [#timer_requires_system_call]_.
 
 .. figure:: ./figure/core-concept-en.*
