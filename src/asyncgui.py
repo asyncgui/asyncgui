@@ -12,10 +12,10 @@ __all__ = (
     'open_nursery', 'Nursery',
 
     # synchronization
-    'Event', 'Box', 'ExclusiveEvent', 'ExclusiveBox',
+    'Event', 'ExclusiveEvent', 'StatefulEvent',
 
     # deprecated
-    'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox',
+    'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox', 'Box', 'ExclusiveBox',
 )
 import types
 import typing as T
@@ -494,7 +494,7 @@ class ExclusiveBox:
     Similar to :class:`Box`, but this version does not allow multiple tasks to :meth:`get` simultaneously.
 
     .. deprecated:: 0.7.1
-        Use :class:`Box` instead.
+        Use :class:`StatefulEvent` instead.
     '''
     __slots__ = ('_item', '_callback', )
 
@@ -566,7 +566,7 @@ class Event:
 
         This differs significantly from :class:`asyncio.Event`, as this one does not have a "set" state.
         When a Task calls its :meth:`wait` method, it will always be blocked until :meth:`fire` is called after that.
-        Use :class:`Box` if you want something closer to :class:`asyncio.Event`.
+        Use :class:`StatefulEvent` if you want something closer to :class:`asyncio.Event`.
 
     .. versionchanged:: 0.7.0
 
@@ -598,6 +598,112 @@ class Event:
             tasks[idx] = None
 
 
+class StatefulEvent:
+    '''
+    The closest thing to :class:`asyncio.Event` in this library.
+
+    .. code-block::
+
+        async def async_fn(e):
+            args, kwargs = await e.wait()
+            assert args == (1, )
+            assert kwargs == {'crow': 'raven', }
+
+        e = StatefulEvent()
+        assert not e.is_fired
+        e.fire(1, crow='raven')
+        assert e.is_fired
+
+        # This task will end immediately because the event is in a "fired" state.
+        task = start(async_fn(e))
+        assert task.finished
+
+        # The event is still in the "fired" state, so this task will end immediately as well.
+        task = start(async_fn(e))
+        assert task.finished
+
+        e.clear()
+        assert not e.is_fired
+        # Now the event is not in the "fired" state, so this task will wait until it fires.
+        task = start(async_fn(e))
+        assert not task.finished
+
+        # Fire the event, which will cause the task to end.
+        e.fire(1, crow='raven')
+        assert task.finished
+
+    .. versionadded:: 0.7.2
+    '''
+    __slots__ = ('_params', '_waiting_tasks', )
+
+    def __init__(self):
+        self._params = None
+        self._waiting_tasks = []
+
+    @property
+    def is_fired(self) -> bool:
+        return self._params is not None
+
+    def fire(self, *args, **kwargs):
+        '''Fires the event if :attr:`is_fired` is False.'''
+        if self._params is None:
+            self.fire_or_refire(*args, **kwargs)
+
+    def refire(self, *args, **kwargs):
+        '''Fires the event if :attr:`is_fired` is True.'''
+        if self._params is not None:
+            self.fire_or_refire(*args, **kwargs)
+
+    def fire_or_refire(self, *args, **kwargs):
+        '''Fires the event regardless of the value of :attr:`is_fired`.'''
+        self._params = (args, kwargs, )
+        tasks = self._waiting_tasks
+        self._waiting_tasks = []
+        for t in tasks:
+            if t is not None:
+                t._step(*args, **kwargs)
+
+    def clear(self):
+        '''Sets the event to a non-fired state.'''
+        self._params = None
+
+    @types.coroutine
+    def wait(self) -> T.Awaitable[tuple]:
+        if self._params is not None:
+            return self._params
+        tasks = self._waiting_tasks
+        idx = len(tasks)
+        try:
+            return (yield tasks.append)
+        finally:
+            tasks[idx] = None
+
+    @property
+    def params(self) -> tuple:
+        '''
+        The parameters passed to the last fire. Raises :exc:`InvalidStateError` if the event is not in a "fired" state.
+        This is a convenient way to access the parameters from synchronous code.
+
+        .. code-block::
+
+            e = StatefulEvent()
+
+            e.fire(1, crow='raven')
+            args, kwargs = e.params
+            assert args == (1, )
+            assert kwargs == {'crow': 'raven', }
+
+            e.refire(2, parasol='umbrella')
+            args, kwargs = e.params
+            assert args == (2, )
+            assert kwargs == {'parasol': 'umbrella', }
+        '''
+        p = self._params
+        if p is None:
+            raise InvalidStateError("The event is not in a 'fired' state.")
+        return p
+
+
 class Box:
     '''
     .. code-block::
@@ -622,6 +728,9 @@ class Box:
         # Put an item into the box, which will cause the task to end.
         box.put(1, crow='raven')
         assert task.finished
+
+    .. deprecated:: 0.7.2
+        Use :class:`StatefulEvent` instead.
     '''
     __slots__ = ('_item', '_waiting_tasks', )
 
