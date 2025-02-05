@@ -8,15 +8,15 @@ import pytest
 async def protected(e):
     import asyncgui
     async with asyncgui.disable_cancellation():
-        await e.get()
+        await e.wait()
 
 
 async def main(e1, e2):
     from asyncgui import wait_all
     await wait_all(
-        e1.get(), protected(e1), e2.get(), protected(e2),
+        e1.wait(), protected(e1), e2.wait(), protected(e2),
         wait_all(
-            e1.get(), protected(e1), e2.get(), protected(e2),
+            e1.wait(), protected(e1), e2.wait(), protected(e2),
         ),
     )
 
@@ -28,12 +28,12 @@ def test_nested(set_immediately_1, set_immediately_2):
     import asyncgui as ag
     TS = ag.TaskState
 
-    e1 = ag.Box()
-    e2 = ag.Box()
+    e1 = ag.StatefulEvent()
+    e2 = ag.StatefulEvent()
     if set_immediately_1:
-        e1.put()
+        e1.fire()
     if set_immediately_2:
-        e2.put()
+        e2.fire()
 
     main_task = ag.Task(main(e1, e2))
     ag.start(main_task)
@@ -44,11 +44,11 @@ def test_nested(set_immediately_1, set_immediately_2):
         return
     assert main_task.state is TS.STARTED
     if set_immediately_1 or set_immediately_2:
-        e1.put()
-        e2.put()
+        e1.fire()
+        e2.fire()
         assert main_task.state is TS.CANCELLED
         return
-    e1.put()
+    e1.fire()
     assert main_task.state is TS.STARTED
-    e2.put()
+    e2.fire()
     assert main_task.state is TS.CANCELLED

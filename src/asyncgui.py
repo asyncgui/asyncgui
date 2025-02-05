@@ -7,15 +7,12 @@ __all__ = (
     'dummy_task', 'current_task', '_current_task', 'sleep_forever', '_sleep_forever',
 
     # structured concurrency
-    'wait_all', 'wait_any', 'and_', 'or_', 'wait_all_cm', 'wait_any_cm', 'move_on_when',
+    'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'move_on_when',
     'run_as_main', 'run_as_daemon',
     'open_nursery', 'Nursery',
 
     # synchronization
     'Event', 'ExclusiveEvent', 'StatefulEvent', 'StatelessEvent',
-
-    # deprecated
-    'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox', 'Box', 'ExclusiveBox',
 )
 import types
 import typing as T
@@ -489,59 +486,6 @@ class ExclusiveEvent:
         self._callback = task._step
 
 
-class ExclusiveBox:
-    '''
-    Similar to :class:`Box`, but this version does not allow multiple tasks to :meth:`get` simultaneously.
-
-    .. deprecated:: 0.7.1
-        Use :class:`StatefulEvent` instead.
-    '''
-    __slots__ = ('_item', '_callback', )
-
-    def __init__(self):
-        self._item = None
-        self._callback = None
-
-    @property
-    def is_empty(self) -> bool:
-        '''Whether the box is empty.'''
-        return self._item is None
-
-    def put(self, *args, **kwargs):
-        '''Put an item into the box if it's empty.'''
-        if self._item is None:
-            self.put_or_update(*args, **kwargs)
-
-    def update(self, *args, **kwargs):
-        '''Replace the item in the box if there is one already.'''
-        if self._item is not None:
-            self.put_or_update(*args, **kwargs)
-
-    def put_or_update(self, *args, **kwargs):
-        self._item = (args, kwargs, )
-        if (callback := self._callback) is not None:
-            callback(*args, **kwargs)
-
-    @types.coroutine
-    def get(self) -> T.Awaitable[tuple]:
-        '''Get the item from the box if there is one. Otherwise, wait until it's put.'''
-        if self._callback is not None:
-            raise InvalidStateError("There's already a task waiting for an item to be put in the box.")
-        if self._item is None:
-            try:
-                return (yield self._attach_task)
-            finally:
-                self._callback = None
-        else:
-            return self._item
-
-    def clear(self):
-        '''Remove the item from the box if there is one.'''
-        self._item = None
-
-    _attach_task = ExclusiveEvent._attach_task
-
-
 class Event:
     '''
     .. code-block::
@@ -710,79 +654,6 @@ class StatefulEvent:
         if p is None:
             raise InvalidStateError("The event is not in a 'fired' state.")
         return p
-
-
-class Box:
-    '''
-    .. code-block::
-
-        async def async_fn(box):
-            args, kwargs = await box.get()
-            assert args == (1, )
-            assert kwargs == {'crow': 'raven', }
-
-        box = Box()
-        box.put(1, crow='raven')
-
-        # This task will immediately end because the 'box' already has an item.
-        task = start(async_fn(box))
-        assert task.finished
-
-        box.clear()
-        # Now the box is empty, so this task will wait until an item is added.
-        task = start(async_fn(box))
-        assert not task.finished
-
-        # Put an item into the box, which will cause the task to end.
-        box.put(1, crow='raven')
-        assert task.finished
-
-    .. deprecated:: 0.7.2
-        Use :class:`StatefulEvent` instead.
-    '''
-    __slots__ = ('_item', '_waiting_tasks', )
-
-    def __init__(self):
-        self._item = None
-        self._waiting_tasks = []
-
-    @property
-    def is_empty(self) -> bool:
-        return self._item is None
-
-    def put(self, *args, **kwargs):
-        '''Put an item into the box if it's empty.'''
-        if self._item is None:
-            self.put_or_update(*args, **kwargs)
-
-    def update(self, *args, **kwargs):
-        '''Replace the item in the box if there is one already.'''
-        if self._item is not None:
-            self.put_or_update(*args, **kwargs)
-
-    def put_or_update(self, *args, **kwargs):
-        self._item = (args, kwargs, )
-        tasks = self._waiting_tasks
-        self._waiting_tasks = []
-        for t in tasks:
-            if t is not None:
-                t._step(*args, **kwargs)
-
-    def clear(self):
-        '''Remove the item from the box if there is one.'''
-        self._item = None
-
-    @types.coroutine
-    def get(self) -> T.Awaitable[tuple]:
-        '''Get the item from the box if there is one. Otherwise, wait until it's put.'''
-        if self._item is not None:
-            return self._item
-        tasks = self._waiting_tasks
-        idx = len(tasks)
-        try:
-            return (yield tasks.append)
-        finally:
-            tasks[idx] = None
 
 
 # -----------------------------------------------------------------------------
@@ -1079,11 +950,4 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncContextManager[Nursery]:
 # -----------------------------------------------------------------------------
 # Aliases
 # -----------------------------------------------------------------------------
-run_as_primary = run_as_main
-run_as_secondary = run_as_daemon
-AsyncEvent = ExclusiveEvent
-AsyncBox = ExclusiveBox
-
-and_ = wait_all  #: An alias for :func:`wait_all`.
-or_ = wait_any  #: An alias for :func:`wait_any`.
 move_on_when = wait_any_cm  #: An alias for :func:`wait_any_cm`.
