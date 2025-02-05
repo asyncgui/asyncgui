@@ -12,7 +12,7 @@ __all__ = (
     'open_nursery', 'Nursery',
 
     # synchronization
-    'Event', 'ExclusiveEvent', 'StatefulEvent',
+    'Event', 'ExclusiveEvent', 'StatefulEvent', 'StatelessEvent',
 
     # deprecated
     'run_as_primary', 'run_as_secondary', 'AsyncEvent', 'AsyncBox', 'Box', 'ExclusiveBox',
@@ -596,6 +596,14 @@ class Event:
             return (yield tasks.append)
         finally:
             tasks[idx] = None
+
+
+StatelessEvent = Event
+'''
+An alias for :class:`Event`.
+
+.. versionadded:: 0.7.2
+'''
 
 
 class StatefulEvent:
