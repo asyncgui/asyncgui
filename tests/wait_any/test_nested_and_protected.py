@@ -22,28 +22,28 @@ async def main(e1, e2):
 
 
 p = pytest.mark.parametrize
-@p('set_immediately_1', (True, False, ))
-@p('set_immediately_2', (True, False, ))
-def test_nested(set_immediately_1, set_immediately_2):
+@p('fire_immediately_1', (True, False, ))
+@p('fire_immediately_2', (True, False, ))
+def test_nested(fire_immediately_1, fire_immediately_2):
     import asyncgui as ag
     TS = ag.TaskState
 
     e1 = ag.StatefulEvent()
     e2 = ag.StatefulEvent()
-    if set_immediately_1:
+    if fire_immediately_1:
         e1.fire()
-    if set_immediately_2:
+    if fire_immediately_2:
         e2.fire()
 
     main_task = ag.Task(main(e1, e2))
     ag.start(main_task)
     main_task.cancel()
-    if set_immediately_1 and set_immediately_2:
+    if fire_immediately_1 and fire_immediately_2:
         # 中断の機会を与えられずに終わる為 FINISHED
         assert main_task.state is TS.FINISHED
         return
     assert main_task.state is TS.STARTED
-    if set_immediately_1 or set_immediately_2:
+    if fire_immediately_1 or fire_immediately_2:
         e1.fire()
         e2.fire()
         assert main_task.state is TS.CANCELLED
