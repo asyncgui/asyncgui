@@ -354,6 +354,8 @@ class open_cancel_scope:
 
         async with open_cancel_scope() as scope:
             ...
+
+    .. deprecated:: 0.8.0
     '''
     __slots__ = ('_scope', )
 
@@ -388,6 +390,9 @@ class disable_cancellation:
 
         async with disable_cancellation():
             await something  # <- never gets cancelled
+
+    .. deprecated:: 0.8.0
+        Disabling cancellation hinders clean-up, so avoid using this API unless absolutely necessary.
     '''
 
     __slots__ = ('_task', )
