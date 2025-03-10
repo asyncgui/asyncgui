@@ -105,7 +105,7 @@ class Task:
     __slots__ = (
         '_uid', '_root_coro', '_state', '_result', '_on_end',
         '_exc_caught', '_suppresses_exc',
-        '_cancel_disabled', '_cancel_depth', '_cancel_level',
+        '_cancel_disabled', '_current_depth', '_requested_cancel_level',
     )
 
     def __init__(self, aw: T.Awaitable, /):
@@ -116,8 +116,8 @@ class Task:
         self._root_coro = self._wrapper(aw)
         self._state = TaskState.CREATED
         self._on_end = None
-        self._cancel_depth = 0
-        self._cancel_level = None
+        self._current_depth = 0
+        self._requested_cancel_level = None
         self._exc_caught = None
         self._suppresses_exc = False
 
@@ -173,7 +173,7 @@ class Task:
         except _Cancelled as e:
             self._state = TaskState.CANCELLED
             assert e.level == 0, potential_bug_msg
-            assert self._cancel_level == 0, potential_bug_msg
+            assert self._requested_cancel_level == 0, potential_bug_msg
         except Exception as e:
             self._state = TaskState.CANCELLED
             self._exc_caught = e
@@ -185,14 +185,14 @@ class Task:
         else:
             self._state = TaskState.FINISHED
         finally:
-            assert self._cancel_depth == 0, potential_bug_msg
+            assert self._current_depth == 0, potential_bug_msg
             if (on_end := self._on_end) is not None:
                 on_end(self)
 
     def cancel(self, _level=0, /):
         '''Cancel the task as soon as possible.'''
-        if self._cancel_level is None:
-            self._cancel_level = _level
+        if self._requested_cancel_level is None:
+            self._requested_cancel_level = _level
             state = getcoroutinestate(self._root_coro)
             if state is CORO_SUSPENDED:
                 if not self._cancel_disabled:
@@ -201,11 +201,11 @@ class Task:
                 self._root_coro.close()
                 self._state = TaskState.CANCELLED
         else:
-            self._cancel_level = min(self._cancel_level, _level)
+            self._requested_cancel_level = min(self._requested_cancel_level, _level)
 
     def _actual_cancel(self):
         try:
-            self._root_coro.throw(_Cancelled(self._cancel_level))(self)
+            self._root_coro.throw(_Cancelled(self._requested_cancel_level))(self)
         except StopIteration:
             pass
         else:
@@ -216,18 +216,15 @@ class Task:
 
     @property
     def _cancel_requested(self) -> bool:
-        return self._cancel_level is not None
+        return self._requested_cancel_level is not None
 
     @property
-    def _is_cancellable(self) -> bool:
+    def _is_cancellable(self, get_state=getcoroutinestate, CORO_SUSPENDED=CORO_SUSPENDED) -> bool:
         '''Whether the task can be cancelled immediately.'''
-        return (not self._cancel_disabled) and getcoroutinestate(self._root_coro) is CORO_SUSPENDED
+        return (not self._cancel_disabled) and get_state(self._root_coro) is CORO_SUSPENDED
 
-    def _cancel_if_needed(self, getcoroutinestate=getcoroutinestate, CORO_SUSPENDED=CORO_SUSPENDED):
-        if (self._cancel_level is None) or self._cancel_disabled or \
-                (getcoroutinestate(self._root_coro) is not CORO_SUSPENDED):
-            pass
-        else:
+    def _cancel_if_needed(self):
+        if (self._requested_cancel_level is not None) and self._is_cancellable:
             self._actual_cancel()
 
     def _step(self, *args, **kwargs):
@@ -295,7 +292,7 @@ class CancelScope:
     An equivalence of :class:`trio.CancelScope`.
     You should not directly instantiate this, use :func:`open_cancel_scope`.
     '''
-    __slots__ = ('_task', '_level', 'cancelled_caught', 'cancel_called', )
+    __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancel_called', )
 
     def __init__(self, task: Task, /):
         self._task = task
@@ -303,31 +300,31 @@ class CancelScope:
         self.cancel_called = False  #: Whether the :meth:`cancel` has been called.
 
     def __enter__(self) -> 'CancelScope':
-        t = self._task
-        t._cancel_depth = self._level = t._cancel_depth + 1
+        task = self._task
+        task._current_depth = self._depth = task._current_depth + 1
         return self
 
     def __exit__(self, exc_type, exc, __):
         # LOAD_FAST
         task = self._task
-        level = task._cancel_level
-        scope_level = self._level
+        req_level = task._requested_cancel_level
+        depth = self._depth
 
         self._task = None
-        task._cancel_depth -= 1
-        if level is not None:
-            if level == scope_level:
-                task._cancel_level = None
+        task._current_depth -= 1
+        if req_level is not None:
+            if req_level == depth:
+                task._requested_cancel_level = None
             else:
-                assert level < scope_level, potential_bug_msg
+                assert req_level < depth, potential_bug_msg
         if exc_type is not _Cancelled:
             return
         level = exc.level
-        if level == scope_level:
+        if level == depth:
             self.cancelled_caught = True
             return True
         else:
-            assert level < scope_level, potential_bug_msg
+            assert level < depth, potential_bug_msg
 
     @property
     def closed(self) -> bool:
@@ -343,7 +340,7 @@ class CancelScope:
             return
         self.cancel_called = True
         if not self.closed:
-            self._task.cancel(self._level)
+            self._task.cancel(self._depth)
 
 
 class open_cancel_scope:
@@ -731,7 +728,7 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]) -> T.
         exceptions = tuple(e for c in children if (e := c._exc_caught) is not None)
         if exceptions:
             raise ExceptionGroup(debug_msg, exceptions)
-        if (parent._cancel_level is not None) and (not parent._cancel_disabled):
+        if (parent._requested_cancel_level is not None) and (not parent._cancel_disabled):
             await sleep_forever()
             assert False, potential_bug_msg
     return children
@@ -805,7 +802,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
         )
         if excs:
             raise ExceptionGroup(debug_msg, excs)
-        if (fg_task._cancel_level is not None) and (not fg_task._cancel_disabled):
+        if (fg_task._requested_cancel_level is not None) and (not fg_task._cancel_disabled):
             await sleep_forever()
             assert False, potential_bug_msg
 
@@ -947,7 +944,7 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncContextManager[Nursery]:
         )
         if excs:
             raise ExceptionGroup("Nursery", excs)
-        if (parent._cancel_level is not None) and (not parent._cancel_disabled):
+        if (parent._requested_cancel_level is not None) and (not parent._cancel_disabled):
             await sleep_forever()
             assert False, potential_bug_msg
 
