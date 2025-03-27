@@ -106,7 +106,7 @@ So, let's aim for it.
         await sleep(3)
         print('C')
 
-Using it like ``await sleep(1)`` means the ``sleep`` must be a :class:`collections.abc.Callable` that returns an :class:`collections.abc.Awaitable`.
+In order for our API to be used like  ``await sleep(1)``, ``sleep`` must be a :class:`~collections.abc.Callable` that returns an :class:`~collections.abc.Awaitable`.
 There are several options that meet this condition, and we choose an async function [#async_func_mitasu]_.
 
 .. code-block::
@@ -263,4 +263,4 @@ Once connected, we can benefit from the powerful :doc:`structured-concurrency` A
     Timeout
 
 .. [#get_cancellation] Additionally, we will get a powerful cancellation mechanism.
-.. [#async_func_mitasu] Async function is a function, so it's obviously a ``Callable``, and it returns a coroutine, one of the ``Awaitable`` objects.
+.. [#async_func_mitasu] Async function is a function, so it's obviously a ``Callable``, and it returns a coroutine, which is one of the ``Awaitable`` objects.

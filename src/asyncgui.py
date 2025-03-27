@@ -511,7 +511,7 @@ class Event:
     .. warning::
 
         This differs significantly from :class:`asyncio.Event`, as this one does not have a "set" state.
-        When a Task calls its :meth:`wait` method, it will always be blocked until :meth:`fire` is called after that.
+        When a Task calls its :meth:`wait` method, the Task will always be blocked until :meth:`fire` is called *after* that.
         Use :class:`StatefulEvent` if you want something closer to :class:`asyncio.Event`.
 
     .. versionchanged:: 0.7.0
@@ -832,10 +832,6 @@ run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_chil
 
     async with run_as_main(async_fn()) as task:
         ...
-
-.. note::
-
-    You need to use its older name, ``run_as_primary``, if you are using ``asyncgui`` 0.6.2 or older.
 '''
 run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _on_child_end__ver_all, False)
 '''

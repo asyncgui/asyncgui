@@ -11,10 +11,11 @@ One, of course, is :mod:`asyncio` from the standard library.
 Another one is Trio_, well-known for its `structured concurrency`_.
 And Curio_, which seems to have had a big influence on Trio, though it now only accepts bug fixes.
 
-They may be different each other but all of them have in common is that they are not suitable for GUI programs.
+They may differ from each other but all of them have in common is that they are not suitable for GUI programs.
 I'm not saying "Having a GUI library and an async library coexist in the same thread is problematic due to their individual main loops".
-In fact, Kivy_ and BeeWare_ have adapted themselves to work with async libraries,
-PyGame_ doesn't even own a main loop and expects the user to implement one so you could do that by putting an ``await asyncio.sleep()`` inside a main loop [#pygame_with_asyncio]_,
+In fact, Kivy_ and BeeWare_ have adapted themselves to work with async libraries;
+PyGame_ doesn't even own a main loop and expects the user to implement one,
+so you could do that by putting an ``await asyncio.sleep()`` inside a main loop [#pygame_with_asyncio]_;
 :mod:`tkinter` and PyQt_ seem to have 3rd party libraries that allow them to work with async libraries.
 Even if none of them are your options, Trio has `special mode`_ that makes it run without interfering with other main loop.
 Therefore, I think it's safe to say that the coexisting problem has been already solved.
@@ -100,10 +101,10 @@ As a result, the background color of the button remains the ``different_color`` 
     If you fail to handle them promptly, their state might undergo changes,
     leaving no time to wait for tasks to resume.
 
-Reacting to events without missing any occurrences is challenging for async libraries that cannot start/resume tasks immediately.
-The only solution I came up with is that, recording events using traditional callback APIs,
-and supplying them to the tasks that resume late a.k.a. buffering.
-I'm not sure it's possible or practical, but it certainly has a non-small impact on performance.
+Responding to events without missing any occurrences is challenging for async libraries that cannot start or resume tasks immediately.
+The only solution I came up with is recording events using traditional callback APIs,
+and supplying them to tasks that resume late a.k.a. buffering.
+I'm not sure if it's possible or practical, but it certainly adds huge complexity into your program.
 
 If you use ``asyncgui``, that never be a problem.
 
@@ -117,14 +118,14 @@ Immediacy
 The problem mentioned above doesn't occur in ``asyncgui`` because:
 
 * :func:`asyncgui.start` and :meth:`asyncgui.Nursery.start` immediately start a task.
-* :meth:`asyncgui.Event.fire` immediately resumes a task.
+* :meth:`asyncgui.Event.fire` immediately resumes the tasks waiting for it to happen.
 
 All other APIs work that way as well.
 
 No main loop
 -------------
 
-The coexistence problem I mentioned earlier doesn't occur in ``asyncgui`` because it doesn't have its own main loop.
+The coexistence problem I mentioned earlier doesn't occur in ``asyncgui`` because it doesn't own a main loop.
 Instead, ``asyncgui`` runs by piggybacking on another main loop, such as one from a GUI library.
 To achieve this, however, you need to wrap the callback-style APIs associated with the main loop it piggybacks.
 I'll explain this further in the :doc:`usage` section.
@@ -132,7 +133,8 @@ I'll explain this further in the :doc:`usage` section.
 .. note::
 
     "another main loop" can be other async library's.
-    Yes, you can even run ``asyncgui`` and other async library in the same thread (though there are some limitations).
+    Yes, you can even run ``asyncgui`` and other async library in the same thread.
+    However, there is a major caveat: :ref:`coexistence-with-other-async-libraries`.
 
 No global state
 ---------------
