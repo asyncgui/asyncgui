@@ -22,8 +22,8 @@ You can take advantage of this opportunity as follows:
         finally:
             cleanup_resources()
 
-You are not allowed to ``await`` anything inside the except-Cancelled-clause and the finally-clause
-if you want the task to be cancellable because cancellations always must be done immediately.
+You are not allowed to 'await' anything inside an except-Cancelled-clause and a finally-clause
+because cancellations always must be handled immediately in ``asyncgui``.
 
 .. code-block::
 
@@ -38,7 +38,7 @@ if you want the task to be cancellable because cancellations always must be done
         finally:
             await something  # <-- NOT ALLOWED
 
-This, of course, includes ``async for`` and ``async with`` as they await ``__aiter__()``,
+This includes ``async for`` and ``async with`` as they 'await' ``__aiter__()``,
 ``__anext__()``, ``__aenter__()`` and ``__aexit__()``.
 
 -------------------------
@@ -46,9 +46,10 @@ xxx ignored GeneratorExit
 -------------------------
 
 If this type of error occurs in your program, try explicitly canceling the corresponding 'root' task.
-All instances of :class:`asyncgui.Task` returned by :func:`asyncgui.start` are considered 'root' tasks.
-You should identify the relevant one from the error message and then use :meth:`asyncgui.Task.cancel` to terminate it.
+All the :class:`asyncgui.Task` instances returned by :func:`asyncgui.start` are 'root' tasks.
+You should identify the relevant one from the error message and then call :meth:`asyncgui.Task.cancel` to terminate it.
 
+.. note:: Calling :func:`asyncgui.start` multiple times results in multiple task trees.
 
 ----------------------
 Structured Concurrency
@@ -60,3 +61,17 @@ and then using the :doc:`structured-concurrency` APIs to create child tasks.
 
 And don't forget to explicitly cancel the root task when your program exits.
 If you don't, it will be cancelled during garbage collection, which can cause a lot of trouble.
+
+
+.. _coexistence-with-other-async-libraries:
+
+--------------------------------------
+Coexistence with other async libraries
+--------------------------------------
+
+:mod:`asyncio` and :mod:`trio` do some hacky stuff, :func:`sys.set_asyncgen_hooks` and :func:`sys.get_asyncgen_hooks`,
+which likely hinders asyncgui-flavored async generators.
+You can see its details `here <https://peps.python.org/pep-0525/#finalization>`__.
+
+Because of this, ``asyncgui`` does not guarantee proper functioning when ``asyncio`` or ``trio`` is running.
+This doesn't mean it won't work--just that the library does not *officially* support this scenario.
