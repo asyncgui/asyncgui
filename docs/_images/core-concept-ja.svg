@@ -1,0 +1,28 @@
+<svg width="530" height="530" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <radialGradient id="svg_21" spreadMethod="pad" cx="0.5" cy="0.5" r="0.8045">
+   <stop stop-color="#3f7f00" offset="0.36328" stop-opacity="0.99609"/>
+   <stop stop-color="#aa56ff" offset="1" stop-opacity="0.99609"/>
+  </radialGradient>
+  <radialGradient id="svg_22" spreadMethod="pad" r="1.57744" cx="0.5" cy="0.5">
+   <stop stop-color="#ffffff" offset="0" stop-opacity="0.99609"/>
+   <stop stop-color="#007fff" offset="0.24609" stop-opacity="0.99609"/>
+  </radialGradient>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <ellipse fill="url(#svg_22)" cx="269" cy="265.99999" id="svg_7" rx="252.5" ry="259.75872"/>
+  <ellipse fill="url(#svg_21)" cx="269" cy="266" id="svg_1" rx="134" ry="134"/>
+  <text fill="#ffffff" x="249.78377" y="243.98532" id="svg_3" stroke-width="0" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(1.97417, 0, 0, 2.04606, -328.841, -259.006)" font-weight="normal" stroke="#000000">asyncgui</text>
+  <text fill="#ffffff" x="130.17872" y="260.03416" id="svg_5" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.564933, 0, 0, 0.564933, 127.04, 137.885)" font-weight="bold">基本的なタスク処理</text>
+  <text fill="#ffffff" x="126.91562" y="359.16096" id="svg_6" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.564933, 0, 0, 0.564933, 127.04, 137.885)" font-weight="bold">構造化された並行性</text>
+  <text fill="#ffffff" x="126.23671" y="307.82744" id="svg_8" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.564933, 0, 0, 0.564933, 127.04, 137.885)" font-weight="bold">キャンセルスコープ</text>
+  <text fill="#ffffff" x="321.98899" y="75.54945" id="svg_23" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(3.13793, 0, 0, 3.13793, -783.034, -137.625)">糊</text>
+  <text fill="#ffffff" x="56.50624" y="444.26114" id="svg_24" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.75581, 0, 0, 0.75581, 82.292, 120.248)">GUIイベント</text>
+  <text fill="#e5e5e5" x="-75.32612" y="174.70135" id="svg_25" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.707364, 0, 0, 0.707364, 104.829, 68.6198)">プロセス</text>
+  <text fill="#e5e5e5" x="306.16463" y="503.10598" id="svg_26" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.674603, 0, 0, 0.674603, 115.889, 113.739)">ネットワーク</text>
+  <text fill="#e5e5e5" x="-82.48656" y="346.07563" id="svg_27" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.717054, 0, 0, 0.717054, 103.729, 80.3562)">スレッド</text>
+  <text fill="#ffffff" x="381.96873" y="185.24097" id="svg_29" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.828062, 0, 0, 0.828062, 95.4254, 37.7361)">タイマー</text>
+  <text fill="#ffffff" x="350.02822" y="374.60207" id="svg_30" font-size="24" font-family="Noto Sans JP" text-anchor="start" xml:space="preserve" transform="matrix(0.652606, 0, 0, 0.652606, 193.981, 85.9968)">ファイル</text>
+ </g>
+</svg>
