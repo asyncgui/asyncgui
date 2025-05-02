@@ -155,16 +155,22 @@ asyncguiの特徴
 
     例: `asyncio.tasks._current_tasks`_, `trio._core.GLOBAL_CONTEXT`_
 
-単独ではsleepすらできない
+OSとは戯れない
 --------------------------
 
-驚くかもしれませんが ``asyncgui`` 単独では入出力はおろか ``await sleep(...)`` すらできません。
-その実現にはメインループが要るからです。
-そして上で述べたように ``asyncgui`` はメインループを持ちません...なのでできないわけです。
+驚くかもしれませんが ``asyncgui`` 自体はPython言語(及びおそらくCPython固有の部分)のみで実現可能な機能しか持たず、
+入出力のようなOSの力が必要な機能は提供しません。
+これは即ち :func:`asyncio.sleep` のような基本的な機能すら持てない事を意味します。
+何故ならその実現には
+
+* 現在時刻の取得 (:func:`time.time` や :func:`time.perf_counter`)
+* スレッドの一時停止 (:func:`time.sleep`)
+
+の二種のシステムコールを要するからです。(加えてメインループも要ります)。
+
 
 ただそれはあくまで単独での話であって上で触れた"作業"を行えば可能です。
 むしろ其れがこのライブラリの想定された使い方であり、
-``asyncgui`` 自体はPython言語(或いはCPython特有の振る舞い)にのみに依存する機能の実装が主で外界(OS)とのやりとりはしません [#timer_requires_system_call]_。
 
 .. figure:: ./figure/core-concept-ja.*
 

@@ -141,7 +141,7 @@ No global state
 
 Although it wasn't originally intended, ``asyncgui`` ended up having no global state. All states are represented as:
 
-* free variables
+* free variables (local variables in an outer function that are accessed by an inner function)
 * local variables inside coroutines/generators
 * instance attributes
 
@@ -156,16 +156,16 @@ not:
 
     `asyncio.tasks._current_tasks`_, `trio._core.GLOBAL_CONTEXT`_
 
-Cannot sleep by itself
-----------------------
+No system calls
+---------------
 
-It might surprise you, but ``asyncgui`` cannot ``await sleep(...)`` by itself.
+It might surprise you, but ``asyncgui`` by itself cannot provide a feature equivalent to :func:`asyncio.sleep`.
 This is because it requires a main loop, which ``asyncgui`` lacks.
 
 However, you can achieve this by wrapping the timer APIs of the main loop it piggybacks on, as I mentioned earlier.
 In fact, that is the intended usage of this library.
-``asyncgui`` itself only provides the features that depend solely on the Python language (or maybe some CPython-specific behavior),
-and doesn't provides the ones that need to interact with the operating system [#timer_requires_system_call]_.
+``asyncgui`` itself only plays with the Python language (and maybe some CPython-specific stuff),
+and doesn't interact with the operating system [#timer_requires_system_call]_.
 
 .. figure:: ./figure/core-concept-en.*
 
