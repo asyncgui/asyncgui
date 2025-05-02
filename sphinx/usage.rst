@@ -149,7 +149,7 @@ This might sound unclear, but if you've ever used :class:`asyncio.Event` or :cla
         await wrapper()
         print('B')
 
-By introducing a wrapper like this, the ``user`` side code can use a callback-style API without losing readability.
+By introducing a wrapper like this, the ``user`` side code can use a callback-style API without sacrificing readability.
 And ``asyncgui`` has an API specifically designed for this purpose.
 
 .. code-block::
