@@ -3,7 +3,7 @@ __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
 
     # core
-    'Aw_or_Task', 'start', 'Task', 'TaskState', 'disable_cancellation', 'open_cancel_scope',
+    'Aw_or_Task', 'start', 'Task', 'TaskState', 'disable_cancellation',
     'dummy_task', 'current_task', '_current_task', 'sleep_forever', '_sleep_forever',
 
     # structured concurrency
@@ -290,7 +290,6 @@ class CancelScope:
     '''
     (internal)
     An equivalence of :class:`trio.CancelScope`.
-    You should not directly instantiate this, use :func:`open_cancel_scope`.
     '''
     __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancel_called', )
 
@@ -341,27 +340,6 @@ class CancelScope:
         self.cancel_called = True
         if not self.closed:
             self._task.cancel(self._depth)
-
-
-class open_cancel_scope:
-    '''
-    Same as :class:`trio.CancelScope` except this one returns an async context manager.
-
-    .. code-block::
-
-        async with open_cancel_scope() as scope:
-            ...
-
-    .. deprecated:: 0.8.0
-    '''
-    __slots__ = ('_scope', )
-
-    async def __aenter__(self) -> T.Awaitable[CancelScope]:
-        self._scope = CancelScope(await current_task())
-        return self._scope.__enter__()
-
-    async def __aexit__(self, *args):
-        return self._scope.__exit__(*args)
 
 
 def _current_task(task):
