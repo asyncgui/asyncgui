@@ -34,8 +34,7 @@ from the return value of this function.
 Note that there is no guarantee that only one task will finish.
 There is a possibility that all tasks are cancelled.
 There is also a possibility that multiple tasks finish.
-The reasons for this could be due to :func:`asyncgui.disable_cancellation` or tasks that finish before
-they have a chance to be cancelled.
+This is because tasks might complete their execution before they have a chance to be cancelled.
 However, in most cases, you don't need to worry about it.
 
 

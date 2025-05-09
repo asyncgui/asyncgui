@@ -3,7 +3,7 @@ __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
 
     # core
-    'Aw_or_Task', 'start', 'Task', 'TaskState', 'disable_cancellation',
+    'Aw_or_Task', 'start', 'Task', 'TaskState',
     'dummy_task', 'current_task', '_current_task', 'sleep_forever', '_sleep_forever',
 
     # structured concurrency
@@ -112,7 +112,7 @@ class Task:
         if not isawaitable(aw):
             raise ValueError(str(aw) + " is not awaitable.")
         self._uid = _next_Task_uid()
-        self._cancel_disabled = 0
+        self._cancel_disabled = False
         self._root_coro = self._wrapper(aw)
         self._state = TaskState.CREATED
         self._on_end = None
@@ -147,7 +147,7 @@ class Task:
 
     @property
     def finished(self) -> bool:
-        '''Whether the task has been completed.'''
+        '''Whether the task has completed execution.'''
         return self._state is TaskState.FINISHED
 
     @property
@@ -355,29 +355,6 @@ def current_task(_f=_current_task) -> T.Awaitable[Task]:
         task = await current_task()
     '''
     return (yield _f)[0][0]
-
-
-class disable_cancellation:
-    '''
-    Return an async context manager that protects its code-block from cancellation.
-
-    .. code-block::
-
-        async with disable_cancellation():
-            await something  # <- never gets cancelled
-
-    .. deprecated:: 0.8.0
-        Disabling cancellation hinders clean-up, so avoid using this API unless absolutely necessary.
-    '''
-
-    __slots__ = ('_task', )
-
-    async def __aenter__(self):
-        self._task = task = await current_task()
-        task._cancel_disabled += 1
-
-    async def __aexit__(self, *__):
-        self._task._cancel_disabled -= 1
 
 
 def _sleep_forever(task):
@@ -699,10 +676,10 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]) -> T.
                 c.cancel()
             if counter:
                 try:
-                    parent._cancel_disabled += 1
+                    parent._cancel_disabled = True
                     await counter.to_be_zero()
                 finally:
-                    parent._cancel_disabled -= 1
+                    parent._cancel_disabled = False
         exceptions = tuple(e for c in children if (e := c._exc_caught) is not None)
         if exceptions:
             raise ExceptionGroup(debug_msg, exceptions)
@@ -770,10 +747,10 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
         bg_task.cancel()
         if counter:
             try:
-                fg_task._cancel_disabled += 1
+                fg_task._cancel_disabled = True
                 await counter.to_be_zero()
             finally:
-                fg_task._cancel_disabled -= 1
+                fg_task._cancel_disabled = False
         excs = tuple(
             e for e in (exc, bg_task._exc_caught, )
             if e is not None
@@ -907,11 +884,11 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncContextManager[Nursery]:
         for c in children:
             c.cancel()
         try:
-            parent._cancel_disabled += 1
+            parent._cancel_disabled = True
             await daemon_counter.to_be_zero()
             await counter.to_be_zero()
         finally:
-            parent._cancel_disabled -= 1
+            parent._cancel_disabled = False
         excs = tuple(
             e for e in itertools.chain((exc, ), (c._exc_caught for c in children))
             if e is not None
