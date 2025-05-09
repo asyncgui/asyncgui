@@ -54,7 +54,7 @@ def test_cancel():
     TS = ag.TaskState
 
     async def async_fn(ctx):
-        async with ag.open_cancel_scope() as scope:
+        with ag.CancelScope(await ag.current_task()) as scope:
             ctx['scope'] = scope
             await e.wait()
             pytest.fail()

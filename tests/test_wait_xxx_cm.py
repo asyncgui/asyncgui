@@ -443,9 +443,9 @@ def test_disable_cancellation_3(bg_primary_cm):
         await ag.sleep_forever()
 
     async def async_fn(ctx):
-        ctx['fg_task'] = await ag.current_task()
+        ctx['fg_task'] = task = await ag.current_task()
         async with bg_primary_cm(bg_func(ctx)) as bg_task:
-            async with ag.open_cancel_scope() as scope:
+            with ag.CancelScope(task) as scope:
                 ctx['scope'] = scope
                 async with ag.disable_cancellation():
                     assert bg_task.state is TS.STARTED

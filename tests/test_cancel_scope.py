@@ -6,7 +6,7 @@ def test_no_cancel():
 
     async def async_fn():
         task = await ag.current_task()
-        async with ag.open_cancel_scope() as scope:
+        with ag.CancelScope(task) as scope:
             assert scope._depth == 1
             assert scope._task is task
             assert not scope.cancelled_caught
@@ -31,7 +31,7 @@ def test_cancel():
 
     async def async_fn():
         task = await ag.current_task()
-        async with ag.open_cancel_scope() as scope:
+        with ag.CancelScope(task) as scope:
             assert scope._depth == 1
             assert scope._task is task
             assert not scope.cancelled_caught
@@ -67,7 +67,7 @@ def test_cancel_neither():
 
     async def async_fn():
         task = await ag.current_task()
-        async with ag.open_cancel_scope() as o_scope:  # o_ -> outer
+        with ag.CancelScope(task) as o_scope:  # o_ -> outer
             assert o_scope._depth == 1
             assert o_scope._task is task
             assert not o_scope.cancelled_caught
@@ -75,7 +75,7 @@ def test_cancel_neither():
             assert not o_scope.closed
             assert task._current_depth == 1
             assert task._requested_cancel_level is None
-            async with ag.open_cancel_scope() as i_scope:  # i_ -> inner
+            with ag.CancelScope(task) as i_scope:  # i_ -> inner
                 assert i_scope._depth == 2
                 assert i_scope._task is task
                 assert not i_scope.cancelled_caught
@@ -122,8 +122,8 @@ def test_cancel_inner():
 
     async def async_fn():
         task = await ag.current_task()
-        async with ag.open_cancel_scope() as o_scope:
-            async with ag.open_cancel_scope() as i_scope:
+        with ag.CancelScope(task) as o_scope:
+            with ag.CancelScope(task) as i_scope:
                 i_scope.cancel()
                 assert i_scope._depth == 2
                 assert i_scope._task is task
@@ -174,8 +174,8 @@ def test_cancel_outer():
 
     async def async_fn():
         task = await ag.current_task()
-        async with ag.open_cancel_scope() as o_scope:
-            async with ag.open_cancel_scope() as i_scope:
+        with ag.CancelScope(task) as o_scope:
+            with ag.CancelScope(task) as i_scope:
                 o_scope.cancel()
                 assert i_scope._depth == 2
                 assert i_scope._task is task
@@ -215,8 +215,8 @@ def test_cancel_inner_first():
 
     async def async_fn():
         task = await ag.current_task()
-        async with ag.open_cancel_scope() as o_scope:
-            async with ag.open_cancel_scope() as i_scope:
+        with ag.CancelScope(task) as o_scope:
+            with ag.CancelScope(task) as i_scope:
                 i_scope.cancel()
                 assert i_scope._depth == 2
                 assert i_scope._task is task
@@ -269,8 +269,8 @@ def test_cancel_outer_first():
 
     async def async_fn():
         task = await ag.current_task()
-        async with ag.open_cancel_scope() as o_scope:
-            async with ag.open_cancel_scope() as i_scope:
+        with ag.CancelScope(task) as o_scope:
+            with ag.CancelScope(task) as i_scope:
                 o_scope.cancel()
                 assert i_scope._depth == 2
                 assert i_scope._task is task
@@ -318,20 +318,6 @@ def test_cancel_outer_first():
     assert task.finished
 
 
-def test_reuse():
-    import asyncgui as ag
-
-    async def async_fn():
-        scope = ag.open_cancel_scope()
-        async with scope:
-            pass
-        async with scope:
-            pass
-
-    task = ag.start(async_fn())
-    assert task.finished
-
-
 def test_reuse_the_internal_one():
     import asyncgui as ag
 
@@ -356,10 +342,11 @@ def test_cancel_does_not_affect_the_next_scope(inside, outside):
         return
 
     async def async_fn():
-        async with ag.open_cancel_scope() as scope:
+        task = await ag.current_task()
+        with ag.CancelScope(task) as scope:
             if inside: scope.cancel()
         if outside: scope.cancel()
-        async with ag.open_cancel_scope() as scope:
+        with ag.CancelScope(task) as scope:
             await ag.sleep_forever()
 
     task = ag.start(async_fn())
