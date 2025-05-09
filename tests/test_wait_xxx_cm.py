@@ -7,14 +7,14 @@ def any_cm(request):
     return getattr(asyncgui, request.param)
 
 
-@pytest.fixture(scope='module', params=('wait_any_cm',  'run_as_daemon', ))
-def fg_primary_cm(request):
+@pytest.fixture(scope='module', params=('wait_all_cm',  'run_as_daemon', ))
+def wait_fg_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
 
-@pytest.fixture(scope='module', params=('wait_any_cm',  'run_as_main', ))
-def bg_primary_cm(request):
+@pytest.fixture(scope='module', params=('wait_all_cm',  'run_as_main', ))
+def wait_bg_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
@@ -85,7 +85,6 @@ def test_bg_fails_while_fg_is_running(any_cm):
 
 def test_fg_fails_while_bg_is_suspended(any_cm):
     import asyncgui as ag
-    TS = ag.TaskState
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
@@ -123,18 +122,17 @@ def test_fg_fails_while_bg_is_running(any_cm):
     assert fg_task.finished
 
 
-def test_bg_fails_after_fg_finishes(any_cm):
+def test_bg_fails_after_fg_finishes(wait_bg_cm):
     import asyncgui as ag
     TS = ag.TaskState
 
     async def fail_soon():
-        async with ag.disable_cancellation():
-            await e.wait()
+        await e.wait()
         raise ZeroDivisionError
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(fail_soon()) as bg_task:
+            async with wait_bg_cm(fail_soon()) as bg_task:
                 assert bg_task.state is TS.STARTED
             pytest.fail()
         assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
@@ -146,7 +144,7 @@ def test_bg_fails_after_fg_finishes(any_cm):
     assert fg_task.state is TS.FINISHED
 
 
-def test_fg_fails_after_bg_finishes(any_cm):
+def test_fg_fails_after_bg_finishes(wait_fg_cm):
     import asyncgui as ag
     TS = ag.TaskState
 
@@ -155,7 +153,7 @@ def test_fg_fails_after_bg_finishes(any_cm):
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(finish_imm()) as bg_task:
+            async with wait_fg_cm(finish_imm()) as bg_task:
                 raise ZeroDivisionError
             pytest.fail()
         assert bg_task.finished
@@ -183,29 +181,6 @@ def test_fg_fails_then_bg_fails_1(any_cm):
         assert [ZeroDivisionError, ] * 2 == [type(exc) for exc in excinfo.value.exceptions]
 
     fg_task = ag.start(async_fn())
-    assert fg_task.finished
-
-
-def test_fg_fails_then_bg_fails_2(any_cm):
-    # 裏が停止 -> 表で例外 -> 裏は保護下 -> 発火 -> 裏で例外
-    import asyncgui as ag
-
-    async def bg_func():
-        async with ag.disable_cancellation():
-            await e.wait()
-            raise ZeroDivisionError
-
-    async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(bg_func()):
-                raise ZeroDivisionError
-            pytest.fail()
-        assert [ZeroDivisionError, ] * 2 == [type(exc) for exc in excinfo.value.exceptions]
-
-    e = ag.Event()
-    fg_task = ag.start(async_fn())
-    assert not fg_task.finished
-    e.fire()
     assert fg_task.finished
 
 
@@ -278,28 +253,6 @@ def test_bg_fails_then_fg_fails_2(any_cm):
     assert fg_task.finished
 
 
-def test_bg_fails_then_fg_fails_3(any_cm):
-    # 裏で例外 -> 表は保護下 -> 根で表を再開 -> 表で例外
-    import asyncgui as ag
-
-    async def fail_imm():
-        raise ZeroDivisionError
-
-    async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(fail_imm()):
-                async with ag.disable_cancellation():
-                    await ag.sleep_forever()
-                    raise ZeroDivisionError
-            pytest.fail()
-        assert [ZeroDivisionError, ] * 2 == [type(exc) for exc in excinfo.value.exceptions]
-
-    fg_task = ag.start(async_fn())
-    assert not fg_task.finished
-    fg_task._step()
-    assert fg_task.finished
-
-
 def test_both_fail_on_cancel(any_cm):
     # 裏が停止 -> 表が停止 -> 根で中断 -> 両方で例外
     import asyncgui as ag
@@ -367,134 +320,3 @@ def test_fg_fails_on_cancel(any_cm):
         fg_task.cancel()
     assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
     assert fg_task.cancelled
-
-
-def test_disable_cancellation_1(fg_primary_cm):
-    import asyncgui as ag
-    TS = ag.TaskState
-
-    async def bg_func(ctx):
-        ctx['bg_task'] = await ag.current_task()
-        await ag.sleep_forever()
-        ctx['fg_task'].cancel()
-        await ag.sleep_forever()
-
-    async def async_fn(ctx):
-        ctx['fg_task'] = await ag.current_task()
-        async with fg_primary_cm(bg_func(ctx)) as bg_task:
-            async with ag.disable_cancellation():
-                await ag.sleep_forever()
-            assert bg_task.state is TS.STARTED
-        pytest.fail()
-
-    ctx = {}
-    fg_task = ag.start(async_fn(ctx))
-    bg_task = ctx['bg_task']
-    assert fg_task.state is TS.STARTED
-    assert bg_task.state is TS.STARTED
-    bg_task._step()
-    assert fg_task.state is TS.STARTED
-    assert bg_task.state is TS.STARTED
-    fg_task._step()
-    assert fg_task.state is TS.CANCELLED
-    assert bg_task.state is TS.CANCELLED
-
-
-def test_disable_cancellation_2(fg_primary_cm):
-    # 1とは違い中断保護を fg_primary_cm の外側で行う
-    import asyncgui as ag
-    TS = ag.TaskState
-
-    async def bg_func(ctx):
-        ctx['bg_task'] = await ag.current_task()
-        await ag.sleep_forever()
-        ctx['fg_task'].cancel()
-        await ag.sleep_forever()
-
-    async def async_fn(ctx):
-        ctx['fg_task'] = await ag.current_task()
-        async with ag.disable_cancellation():
-            async with fg_primary_cm(bg_func(ctx)) as bg_task:
-                await ag.sleep_forever()
-            assert bg_task.state is TS.CANCELLED
-        assert bg_task.state is TS.CANCELLED
-
-    ctx = {}
-    fg_task = ag.start(async_fn(ctx))
-    bg_task = ctx['bg_task']
-    assert fg_task.state is TS.STARTED
-    assert bg_task.state is TS.STARTED
-    bg_task._step()
-    assert fg_task.state is TS.STARTED
-    assert bg_task.state is TS.STARTED
-    fg_task._step()
-    assert fg_task.state is TS.FINISHED
-    assert bg_task.state is TS.CANCELLED
-
-
-def test_disable_cancellation_3(bg_primary_cm):
-    import asyncgui as ag
-    TS = ag.TaskState
-
-    async def bg_func(ctx):
-        ctx['bg_task'] = await ag.current_task()
-        await ag.sleep_forever()
-        ctx['scope'].cancel()
-        await ag.sleep_forever()
-
-    async def async_fn(ctx):
-        ctx['fg_task'] = task = await ag.current_task()
-        async with bg_primary_cm(bg_func(ctx)) as bg_task:
-            with ag.CancelScope(task) as scope:
-                ctx['scope'] = scope
-                async with ag.disable_cancellation():
-                    assert bg_task.state is TS.STARTED
-                    bg_task._step()
-                    assert bg_task.state is TS.STARTED
-                    await ag.sleep_forever()
-                await ag.sleep_forever()
-                pytest.fail()
-            await ag.sleep_forever()
-            pytest.fail()
-
-    ctx = {}
-    fg_task = ag.start(async_fn(ctx))
-    bg_task = ctx['bg_task']
-    assert fg_task.state is TS.STARTED
-    assert bg_task.state is TS.STARTED
-    fg_task._step()
-    assert fg_task.state is TS.STARTED
-    assert bg_task.state is TS.STARTED
-    bg_task._step()
-    assert fg_task.state is TS.FINISHED
-    assert bg_task.state is TS.FINISHED
-
-
-def test_disable_cancellation_4(bg_primary_cm):
-    # 3とは違い中断保護を bg_primary_cm の外側で行う
-    import asyncgui as ag
-    TS = ag.TaskState
-
-    async def bg_func(ctx):
-        ctx['bg_task'] = await ag.current_task()
-        await ag.sleep_forever()
-        ctx['fg_task'].cancel()
-
-    async def async_fn(ctx):
-        ctx['fg_task'] = await ag.current_task()
-        async with ag.disable_cancellation():
-            async with bg_primary_cm(bg_func(ctx)) as bg_task:
-                assert bg_task.state is TS.STARTED
-                bg_task._step()
-                assert bg_task.state is TS.FINISHED
-                await ag.sleep_forever()
-            assert bg_task.state is TS.FINISHED
-
-    ctx = {}
-    fg_task = ag.start(async_fn(ctx))
-    bg_task = ctx['bg_task']
-    assert fg_task.state is TS.STARTED
-    assert bg_task.state is TS.FINISHED
-    fg_task._step()
-    assert fg_task.state is TS.FINISHED
-    assert bg_task.state is TS.FINISHED

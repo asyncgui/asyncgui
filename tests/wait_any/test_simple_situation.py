@@ -26,12 +26,6 @@ async def fail_on_cancel(e=None):
         raise ZeroDivisionError
 
 
-async def finish_soon_but_protected(e):
-    import asyncgui as ag
-    async with ag.disable_cancellation():
-        await e.wait()
-
-
 def test_no_child():
     import asyncgui as ag
 
@@ -258,48 +252,6 @@ def test_例外を起こさない子_を複数持つ親を中断():
     assert main_task.state is TS.STARTED
     main_task.cancel()
     assert main_task.state is TS.CANCELLED
-
-
-class Test_disable_cancellation:
-
-    @pytest.mark.parametrize('other_child', (fail_on_cancel, fail_immediately))
-    def test_other_child_fails(self, other_child):
-        import asyncgui as ag
-
-        async def main(e):
-            with pytest.raises(ag.ExceptionGroup) as excinfo:
-                await ag.wait_any(finish_soon_but_protected(e), other_child(e))
-            child_exceptions = excinfo.value.exceptions
-            assert len(child_exceptions) == 1
-            assert type(child_exceptions[0]) is ZeroDivisionError
-
-
-        e = ag.StatefulEvent()
-        main_task = ag.Task(main(e))
-        ag.start(main_task)
-        assert not main_task.finished
-        main_task.cancel()
-        assert not main_task.finished
-        e.fire()
-        assert main_task.finished
-
-    @pytest.mark.parametrize('other_child', (fail_soon, finish_immediately, finish_soon, finish_soon_but_protected))
-    def test_other_child_does_not_fail(self, other_child):
-        import asyncgui as ag
-
-        async def main(e):
-            tasks = await ag.wait_any(finish_soon_but_protected(e), other_child(e))
-            await ag.sleep_forever()
-            pytest.fail("Failed to cancel")
-
-        e = ag.StatefulEvent()
-        main_task = ag.Task(main(e))
-        ag.start(main_task)
-        assert not main_task.cancelled
-        main_task.cancel()
-        assert not main_task.cancelled
-        e.fire()
-        assert main_task.cancelled
 
 
 def test_no_errors_on_GeneratorExit():

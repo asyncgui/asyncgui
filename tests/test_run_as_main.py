@@ -96,23 +96,3 @@ def test_fg_finishes_while_bg_is_suspended():
     assert fg_task.state is TS.STARTED
     e.fire()
     assert fg_task.state is TS.FINISHED
-
-
-def test_bg_finishes_while_fg_is_protected():
-    import asyncgui as ag
-    TS = ag.TaskState
-
-    async def async_fn():
-        async with ag.run_as_main(e.wait()) as bg_task:
-            async with ag.disable_cancellation():
-                await ag.sleep_forever()
-            assert bg_task.state is TS.FINISHED
-        assert bg_task.state is TS.FINISHED
-
-    e = ag.Event()
-    fg_task = ag.start(async_fn())
-    assert fg_task.state is TS.STARTED
-    e.fire()
-    assert fg_task.state is TS.STARTED
-    fg_task._step()
-    assert fg_task.state is TS.FINISHED
