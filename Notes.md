@@ -161,3 +161,23 @@ async def _wait_xxx(...):
             await counter.to_be_zero()
     ...
 ```
+
+# Task._step() 最適化案
+
+*(2025/05/11)*
+
+以下の状態確認は無くとも単体テストは成功するので、取り除いた上で派生プロジェクト達(`asynckivy`,`asynctkinter`...)の単体テストも成功するなら取り除いてみる？
+
+```python
+        if getcoroutinestate(coro) is not CORO_SUSPENDED:
+            return
+```
+
+また `self._root_coro.send()` のままだと二度の属性アクセスが生じているので、あらかじめ
+
+```python
+    def __init__(self, aw):
+        self._root_coro_send = self._root_coro.send
+```
+
+としておく？
