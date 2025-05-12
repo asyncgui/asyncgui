@@ -21,7 +21,7 @@ import sys
 import itertools
 from functools import cached_property, partial
 import enum
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 
 # -----------------------------------------------------------------------------
 # Core
@@ -250,6 +250,48 @@ class Task:
         else:
             self._cancel_if_needed()
 
+    class CancelScope:
+        __slots__ = ('_task', '_depth', 'cancel_called', )
+
+        def __init__(self, task, depth):
+            self._task = task
+            self._depth = depth
+            self.cancel_called = False
+
+        @property
+        def closed(self) -> bool:
+            return self._task is None
+
+        def cancel(self):
+            if self.cancel_called:
+                return
+            self.cancel_called = True
+            if (t := self._task) is not None:
+                t.cancel(self._depth)
+
+    @contextmanager
+    def _open_cancel_scope(self, CancelScope=CancelScope):
+        self._current_depth = depth = self._current_depth + 1
+        scope = CancelScope(self, depth)
+        try:
+            yield scope
+        except _Cancelled as exc:
+            level = exc.level
+            if level != depth:
+                assert level < depth, potential_bug_msg
+                raise
+        finally:
+            req_level = self._requested_cancel_level
+            scope._task = None
+            self._current_depth -= 1
+            if req_level is not None:
+                if req_level == depth:
+                    self._requested_cancel_level = None
+                else:
+                    assert req_level < depth, potential_bug_msg
+
+    del CancelScope
+
 
 Aw_or_Task = T.Union[T.Awaitable, Task]
 
@@ -284,62 +326,6 @@ def start(aw: Aw_or_Task, /) -> Task:
         task._cancel_if_needed()
 
     return task
-
-
-class CancelScope:
-    '''
-    (internal)
-    An equivalence of :class:`trio.CancelScope`.
-    '''
-    __slots__ = ('_task', '_depth', 'cancelled_caught', 'cancel_called', )
-
-    def __init__(self, task: Task, /):
-        self._task = task
-        self.cancelled_caught = False  #: Whether the scope caught a corresponding :class:`Cancelled` instance.
-        self.cancel_called = False  #: Whether the :meth:`cancel` has been called.
-
-    def __enter__(self) -> 'CancelScope':
-        task = self._task
-        task._current_depth = self._depth = task._current_depth + 1
-        return self
-
-    def __exit__(self, exc_type, exc, __):
-        # LOAD_FAST
-        task = self._task
-        req_level = task._requested_cancel_level
-        depth = self._depth
-
-        self._task = None
-        task._current_depth -= 1
-        if req_level is not None:
-            if req_level == depth:
-                task._requested_cancel_level = None
-            else:
-                assert req_level < depth, potential_bug_msg
-        if exc_type is not _Cancelled:
-            return
-        level = exc.level
-        if level == depth:
-            self.cancelled_caught = True
-            return True
-        else:
-            assert level < depth, potential_bug_msg
-
-    @property
-    def closed(self) -> bool:
-        '''
-        Whether this scope has been closed.
-        The cause of the closure of the scope can be either an exception occurred or the scope exited gracefully,
-        '''
-        return self._task is None
-
-    def cancel(self):
-        '''Cancel the execution inside this scope as soon as possible. '''
-        if self.cancel_called:
-            return
-        self.cancel_called = True
-        if not self.closed:
-            self._task.cancel(self._depth)
 
 
 def _current_task(task):
@@ -663,7 +649,7 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: T.Iterable[Aw_or_Task]) -> T.
     parent = await current_task()
 
     try:
-        with CancelScope(parent) as scope:
+        with parent._open_cancel_scope() as scope:
             on_child_end = partial(on_child_end, scope, counter)
             for c in children:
                 c._suppresses_exc = True
@@ -735,7 +721,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
     exc = None
 
     try:
-        with CancelScope(fg_task) as scope:
+        with fg_task._open_cancel_scope() as scope:
             bg_task._on_end = partial(on_child_end, scope, counter)
             bg_task._suppresses_exc = True
             yield start(bg_task)
@@ -872,7 +858,7 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncContextManager[Nursery]:
     daemon_counter = TaskCounter()
 
     try:
-        with CancelScope(parent) as scope:
+        with parent._open_cancel_scope() as scope:
             nursery = Nursery(scope, counter, daemon_counter, _gc_in_every)
             yield nursery
             await counter.to_be_zero()
