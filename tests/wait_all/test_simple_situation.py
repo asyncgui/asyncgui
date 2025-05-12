@@ -257,7 +257,8 @@ def test_error_on_scoped_cancel():
     import asyncgui as ag
 
     async def main():
-        with ag.CancelScope(await ag.current_task()) as scope:
+        task = await ag.current_task()
+        with task._open_cancel_scope() as scope:
             with pytest.raises(ag.ExceptionGroup) as exc_info:
                 scope.cancel()
                 await ag.wait_all(fail_on_cancel())
@@ -273,7 +274,8 @@ def test_no_errors_on_scoped_cancel():
     import asyncgui as ag
 
     async def main():
-        with ag.CancelScope(await ag.current_task()) as scope:
+        task = await ag.current_task()
+        with task._open_cancel_scope() as scope:
             scope.cancel()
             await ag.wait_all(ag.sleep_forever())
             pytest.fail()
