@@ -2,8 +2,8 @@
 Structured Concurrency
 ======================
 
-I'm going to talk about APIs related to `structured concurrency`_ here.
-However, I'm not going to talk about what is structured concurrency nor why it's important,
+In this section, I'll talk about APIs related to `structured concurrency`_ .
+However, I won't go into what structured concurrency is or why it matters,
 since there is already an `amazing article`_ explaining it.
 
 

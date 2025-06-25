@@ -128,8 +128,8 @@ Implementation
 ==============
 
 To wrap a callback-style API in an async/await-style API,
-we need to set up execution to resume when a callback function is called, and then pause it.
-This might sound unclear, but if you've ever used :class:`asyncio.Event` or :class:`trio.Event`, you already know it.
+we need to create an async function that sets itself up to resume execution when the callback function is invoked, and then pauses until that happens.
+This might sound a bit abstract, but if you've ever used :class:`asyncio.Event` or :class:`trio.Event`, you're already familiar with the idea.
 
 .. code-block::
 
@@ -138,10 +138,10 @@ This might sound unclear, but if you've ever used :class:`asyncio.Event` or :cla
     async def wrapper():
         e = asyncio.Event()
 
-        # Set up the execution to resume when this callback function is called
+        # Resume execution when this callback function is called
         register_callback(lambda *args, **kwargs: e.set())
 
-        # Pause the execution
+        # Pause execution
         await e.wait()
 
     async def user():
@@ -149,7 +149,7 @@ This might sound unclear, but if you've ever used :class:`asyncio.Event` or :cla
         await wrapper()
         print('B')
 
-By introducing a wrapper like this, the ``user`` side code can use a callback-style API without losing readability.
+By introducing a wrapper like this, the code on the ``user`` side can work with a callback-style API without sacrificing readability.
 And ``asyncgui`` has an API specifically designed for this purpose.
 
 .. code-block::
@@ -163,7 +163,7 @@ And ``asyncgui`` has an API specifically designed for this purpose.
 
 :class:`asyncgui.ExclusiveEvent` has two advantages over :class:`asyncio.Event`.
 One, you don't need to use a lambda because :meth:`asyncgui.ExclusiveEvent.fire` can take any arguments (line A).
-Two, you can receive the arguments passed to it (line B).
+Two, you can receive the arguments passed to that method (line B).
 
 Let's implement our API with this.
 
