@@ -103,7 +103,7 @@ _next_Task_uid = itertools.count().__next__
 
 class Task:
     __slots__ = (
-        '_uid', '_root_coro', '_state', '_result', '_on_end',
+        '_uid', '_root_coro', '_root_coro_send', '_state', '_result', '_on_end',
         '_exc_caught', '_suppresses_exc',
         '_cancel_disabled', '_current_depth', '_requested_cancel_level',
     )
@@ -114,6 +114,7 @@ class Task:
         self._uid = _next_Task_uid()
         self._cancel_disabled = False
         self._root_coro = self._wrapper(aw)
+        self._root_coro_send = self._root_coro.send
         self._state = TaskState.CREATED
         self._on_end = None
         self._current_depth = 0
@@ -228,11 +229,8 @@ class Task:
             self._actual_cancel()
 
     def _step(self, *args, **kwargs):
-        coro = self._root_coro
-        if getcoroutinestate(coro) is not CORO_SUSPENDED:
-            return
         try:
-            coro.send((args, kwargs, ))(self)
+            self._root_coro_send((args, kwargs, ))(self)
         except StopIteration:
             pass
         else:
@@ -319,7 +317,7 @@ def start(aw: Aw_or_Task, /) -> Task:
         raise ValueError("Argument must be either a Task or an awaitable.")
 
     try:
-        task._root_coro.send(None)(task)
+        task._root_coro_send(None)(task)
     except StopIteration:
         pass
     else:
