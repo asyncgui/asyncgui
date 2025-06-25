@@ -495,6 +495,16 @@ class StatefulEvent:
     '''
     The closest thing to :class:`asyncio.Event` in this library.
 
+    .. csv-table::
+        :header-rows: 1
+
+        StatefulEvent, asyncio.Event
+        .fire(), .set()
+        .wait(), .wait()
+        .clear(), .clear()
+        .is_fired, .is_set()
+        .params, --
+
     .. code-block::
 
         async def async_fn(e):
@@ -503,29 +513,15 @@ class StatefulEvent:
             assert kwargs == {'crow': 'raven', }
 
         e = StatefulEvent()
-        assert not e.is_fired
-        e.fire(1, crow='raven')
-        assert e.is_fired
-
-        # This task will end immediately because the event is in a "fired" state.
-        task = start(async_fn(e))
-        assert task.finished
-
-        # The event is still in the "fired" state, so this task will end immediately as well.
-        task = start(async_fn(e))
-        assert task.finished
-
-        e.clear()
-        assert not e.is_fired
-        # Now the event is not in the "fired" state, so this task will wait until it fires.
         task = start(async_fn(e))
         assert not task.finished
-
-        # Fire the event, which will cause the task to end.
         e.fire(1, crow='raven')
         assert task.finished
 
     .. versionadded:: 0.7.2
+
+    .. versionchanged:: 0.9.0
+        The ``.refire()`` and ``.fire_or_refire()`` methods have been removed.
     '''
     __slots__ = ('_params', '_waiting_tasks', )
 
@@ -538,17 +534,9 @@ class StatefulEvent:
         return self._params is not None
 
     def fire(self, *args, **kwargs):
-        '''Fires the event if :attr:`is_fired` is False.'''
-        if self._params is None:
-            self.fire_or_refire(*args, **kwargs)
-
-    def refire(self, *args, **kwargs):
-        '''Fires the event if :attr:`is_fired` is True.'''
+        '''Fires the event if it's not in a fired state.'''
         if self._params is not None:
-            self.fire_or_refire(*args, **kwargs)
-
-    def fire_or_refire(self, *args, **kwargs):
-        '''Fires the event regardless of the value of :attr:`is_fired`.'''
+            return
         self._params = (args, kwargs, )
         tasks = self._waiting_tasks
         self._waiting_tasks = []
@@ -586,7 +574,8 @@ class StatefulEvent:
             assert args == (1, )
             assert kwargs == {'crow': 'raven', }
 
-            e.refire(2, parasol='umbrella')
+            e.clear()
+            e.fire(2, parasol='umbrella')
             args, kwargs = e.params
             assert args == (2, )
             assert kwargs == {'parasol': 'umbrella', }
