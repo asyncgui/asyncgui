@@ -108,11 +108,12 @@ def test_params():
     assert args == (1, )
     assert kwargs == {'crow': 'raven', }
 
-    e.refire(2, parasol='umbrella')
+    e.clear()
+    with pytest.raises(ag.InvalidStateError):
+        e.params
+
+    e.fire(2, parasol='umbrella')
     args, kwargs = e.params
     assert args == (2, )
     assert kwargs == {'parasol': 'umbrella', }
 
-    e.clear()
-    with pytest.raises(ag.InvalidStateError):
-        e.params
