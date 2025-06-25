@@ -212,7 +212,7 @@ class Task:
             self._cancel_if_needed()
 
     close = cancel
-    '''An alias for :meth:`cancel`.'''
+    '''An alias of :meth:`cancel`.'''
 
     @property
     def _cancel_requested(self) -> bool:
@@ -487,7 +487,7 @@ class Event:
 
 StatelessEvent = Event
 '''
-An alias for :class:`Event`.
+An alias of :class:`Event`.
 
 .. versionadded:: 0.7.2
 '''
@@ -889,4 +889,8 @@ async def open_nursery(*, _gc_in_every=1000) -> T.AsyncContextManager[Nursery]:
 # -----------------------------------------------------------------------------
 # Aliases
 # -----------------------------------------------------------------------------
-move_on_when = wait_any_cm  #: An alias for :func:`wait_any_cm`.
+
+move_on_when = wait_any_cm
+'''
+An alias of :func:`wait_any_cm`, which is equivalent to :func:`trio_util.move_on_when`.
+'''

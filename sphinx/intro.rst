@@ -141,8 +141,8 @@ No global state
 
 Although it wasn't originally intended, ``asyncgui`` ended up having no global state. All states are represented as:
 
-* free variables
-* local variables inside coroutines/generators
+* `closure variables <https://docs.python.org/3/glossary.html#term-closure-variable>`__
+* local variables declared in coroutines/generators
 * instance attributes
 
 not:
@@ -156,18 +156,15 @@ not:
 
     `asyncio.tasks._current_tasks`_, `trio._core.GLOBAL_CONTEXT`_
 
-Cannot sleep by itself
-----------------------
+Minimalism
+----------
 
-It might surprise you, but ``asyncgui`` cannot ``await sleep(...)`` by itself.
-This is because it requires a main loop, which ``asyncgui`` lacks.
+As mentioned in the README, ``asyncgui`` itself does not provide features that involve system calls.
+The library operates entirely within the Python language and the modules that I believe do not involve system calls,
+such as :mod:`itertools` and :mod:`inspect`.
 
-However, you can achieve this by wrapping the timer APIs of the main loop it piggybacks on, as I mentioned earlier.
-In fact, that is the intended usage of this library.
-``asyncgui`` itself only provides the features that depend solely on the Python language (or maybe some CPython-specific behavior),
-and doesn't provides the ones that need to interact with the operating system [#timer_requires_system_call]_.
-
-.. figure:: ./figure/core-concept-en.*
+The :mod:`sys` module may be an exception, but ``asyncgui`` only uses :any:`sys.version_info`,
+which likely doesn't involve any system calls, as it's a constant value baked into the interpreter.
 
 
 .. _Trio: https://trio.readthedocs.io/
@@ -195,6 +192,3 @@ and doesn't provides the ones that need to interact with the operating system [#
                 ...
 
         asyncio.create_task(main_loop())
-
-.. [#timer_requires_system_call]
-    To implement timer APIs, you need to use functions that provide the current time, such as :func:`time.time` or :func:`time.perf_counter`, which probably involves a system call.

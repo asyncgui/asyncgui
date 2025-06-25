@@ -2,7 +2,7 @@
 
 ...is a minimalistic async library that:
 
-- does not provide features involving system calls, such as I/O, time retrieval, thread suspension, or thread spawning.
+- does not provide features involving system calls, such as I/O.
 - has no external dependencies when using Python 3.11 or later.
 - does not own a main loop, but is designed to integrate with an existing one.
 - avoids global state.
