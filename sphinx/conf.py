@@ -69,26 +69,26 @@ def modify_signature(app, what: str, name: str, obj, options, signature, return_
                      prefix="asyncgui.",
                      len_prefix=len("asyncgui."),
                      group1={'Nursery', 'TaskState', 'Task.cancel', 'Task.close', },
-                     group2={'current_task', 'sleep_forever', 'open_nursery', },
-                     # group3={"TaskState." + s for s in "CREATED STARTED CANCELLED FINISHED".split()},
-                     group4={'wait_all_cm', 'wait_any_cm', 'run_as_daemon', 'run_as_main', },
-                     group5={'open_nursery', },
+                     group4={'wait_all_cm', 'wait_any_cm', 'run_as_daemon', 'run_as_main', 'move_on_when'},
                      ):
     if not name.startswith(prefix):
         return (signature, return_annotation, )
     name = name[len_prefix:]
+    if name == "open_nursery":
+        return ("()", "~contextlib.AbstractAsyncContextManager[Nursery]")
+    if name == "current_task":
+        return ("()", "~collections.abc.Awaitable[Task]")
+    if name == "sleep_forever":
+        return ("()", return_annotation)
     if name in group1:
         print(f"Hide the signature of {name!r}")
         return ('', None)
-    if name in group2:
-        print(f"Modify the signature of {name!r}")
-        return ('()', return_annotation)
     if name in group4:
-        print(f"add a return-annotation to {name!r}")
-        return (signature, '~typing.AsyncContextManager[Task]')
-    if name in group5:
-        print(f"Modify the return-annotation of {name!r}")
-        return (signature, return_annotation.replace("AsyncIterator", "AsyncContextManager"))
+        print(f"Add a return-annotation to {name!r}")
+        return (signature, '~contextlib.AbstractAsyncContextManager[Task]')
+    if name.endswith("Event.wait"):
+        print(f"Fix the return-annotation of {name!r}")
+        return (signature, "~collections.abc.Awaitable[tuple[tuple, dict]]")
     return (signature, return_annotation, )
 
 
