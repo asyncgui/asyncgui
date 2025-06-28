@@ -634,7 +634,7 @@ class TaskCounter:
 
 
 async def _wait_xxx(debug_msg, on_child_end, *aws: Iterable[Aw_or_Task]) -> Awaitable[Sequence[Task]]:
-    children = tuple(v if isinstance(v, Task) else Task(v) for v in aws)
+    children = [v if isinstance(v, Task) else Task(v) for v in aws]
     if not children:
         return children
     counter = TaskCounter(len(children))
@@ -658,7 +658,7 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: Iterable[Aw_or_Task]) -> Awai
                     await counter.to_be_zero()
                 finally:
                     parent._cancel_disabled = False
-        exceptions = tuple(e for c in children if (e := c._exc_caught) is not None)
+        exceptions = [e for c in children if (e := c._exc_caught) is not None]
         if exceptions:
             raise ExceptionGroup(debug_msg, exceptions)
         if (parent._requested_cancel_level is not None) and (not parent._cancel_disabled):
@@ -729,10 +729,10 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
                 await counter.to_be_zero()
             finally:
                 fg_task._cancel_disabled = False
-        excs = tuple(
+        excs = [
             e for e in (exc, bg_task._exc_caught, )
             if e is not None
-        )
+        ]
         if excs:
             raise ExceptionGroup(debug_msg, excs)
         if (fg_task._requested_cancel_level is not None) and (not fg_task._cancel_disabled):
@@ -870,10 +870,9 @@ async def open_nursery(*, _gc_in_every=1000) -> AsyncIterator[Nursery]:
             await counter.to_be_zero()
         finally:
             parent._cancel_disabled = False
-        excs = tuple(
-            e for e in itertools.chain((exc, ), (c._exc_caught for c in children))
-            if e is not None
-        )
+        excs = [e for c in children if (e := c._exc_caught) is not None]
+        if exc is not None:
+            excs.append(exc)
         if excs:
             raise ExceptionGroup("Nursery", excs)
         if (parent._requested_cancel_level is not None) and (not parent._cancel_disabled):

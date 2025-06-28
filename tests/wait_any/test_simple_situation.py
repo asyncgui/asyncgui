@@ -31,7 +31,7 @@ def test_no_child():
 
     async def main():
         tasks = await ag.wait_any()
-        assert tasks == tuple()
+        assert len(tasks) == 0
 
     main_task = ag.start(main())
     assert main_task.finished
