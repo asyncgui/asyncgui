@@ -300,9 +300,9 @@ SendType = tuple[tuple, dict]
 
 
 def start(aw: Aw_or_Task, /) -> Task:
-    '''*Immediately* start a Task/Awaitable.
+    '''*Immediately* start a Task.
 
-    If the argument is a :class:`Task`, itself will be returned. If it's an :class:`typing.Awaitable`,
+    If the argument is a :class:`Task`, itself will be returned. If it's an :class:`~collections.abc.Awaitable`,
     it will be wrapped in a Task, and that Task will be returned.
 
     .. code-block::
@@ -682,26 +682,33 @@ def _on_child_end__ver_any(scope, counter, child):
 _wait_xxx_type = Callable[..., Awaitable[Sequence[Task]]]
 wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
 '''
-Run multiple tasks concurrently, and wait for **all** of them to **end**. When any of them raises an exception, the
-others will be cancelled, and the exception will be propagated to the caller, like :class:`trio.Nursery`.
+Run multiple tasks concurrently, and wait for **all** of them to **either complete or be cancelled**.
+
+If any task raises an exception, the others will be cancelled as well,
+and the exception will be propagated to the caller—similar to :class:`trio.Nursery`.
 
 .. code-block::
 
     tasks = await wait_all(async_fn1(), async_fn2(), async_fn3())
-    if tasks[0].finished:
-        print("The return value of async_fn1() :", tasks[0].result)
+    for idx, task in enumerate(tasks, start=1):
+        if task.finished:
+            print(f"The return value of async_fn{idx}() :", task.result)
 '''
+
 wait_any: _wait_xxx_type = partial(_wait_xxx, "wait_any()", _on_child_end__ver_any)
 '''
-Run multiple tasks concurrently, and wait for **any** of them to **finish**. As soon as that happens, the others will be
-cancelled. When any of them raises an exception, the others will be cancelled, and the exception will be propagated to
-the caller, like :class:`trio.Nursery`.
+Run multiple tasks concurrently, and wait for **any** of them to **complete**.
+As soon as one does, the others will be cancelled.
+
+If any task raises an exception, the rest will also be cancelled,
+and the exception will be propagated to the caller—similar to :class:`trio.Nursery`.
 
 .. code-block::
 
     tasks = await wait_any(async_fn1(), async_fn2(), async_fn3())
-    if tasks[0].finished:
-        print("The return value of async_fn1() :", tasks[0].result)
+    for idx, task in enumerate(tasks, start=1):
+        if task.finished:
+            print(f"The return value of async_fn{idx}() :", task.result)
 '''
 
 
@@ -799,9 +806,9 @@ class Nursery:
 
     def start(self, aw: Aw_or_Task, /, *, daemon=False) -> Task:
         '''
-        *Immediately* start a Task/Awaitable under the supervision of the nursery.
+        *Immediately* start a Task under the supervision of the nursery.
 
-        If the argument is a :class:`Task`, itself will be returned. If it's an :class:`typing.Awaitable`,
+        If the argument is a :class:`Task`, itself will be returned. If it's an :class:`~collections.abc.Awaitable`,
         it will be wrapped in a Task, and that Task will be returned.
 
         The ``daemon`` parameter acts like the one in the :mod:`threading` module.
