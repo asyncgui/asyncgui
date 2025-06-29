@@ -174,6 +174,8 @@ An equivalence of :func:`trio.open_nursery`.
             finger = await wait_for_the_user_to_touch_the_screen()
             nursery.start(draw_line(finger))
 
+If any task raises an exception, the rest will also be cancelled,
+and the exception will be propagated to the caller—similar to :mod:`trio`.
 
 Exception Handling
 ------------------

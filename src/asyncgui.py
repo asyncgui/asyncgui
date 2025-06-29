@@ -682,33 +682,31 @@ def _on_child_end__ver_any(scope, counter, child):
 _wait_xxx_type = Callable[..., Awaitable[Sequence[Task]]]
 wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
 '''
-Run multiple tasks concurrently, and wait for **all** of them to **either complete or be cancelled**.
-
-If any task raises an exception, the others will be cancelled as well,
-and the exception will be propagated to the caller—similar to :class:`trio.Nursery`.
+Runs multiple tasks concurrently, and waits for all of them to either complete or be cancelled.
 
 .. code-block::
 
-    tasks = await wait_all(async_fn1(), async_fn2(), async_fn3())
-    for idx, task in enumerate(tasks, start=1):
+    tasks = await wait_any(async_fn0(), async_fn1(), async_fn2())
+    for i, task in enumerate(tasks):
         if task.finished:
-            print(f"The return value of async_fn{idx}() :", task.result)
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
 '''
 
 wait_any: _wait_xxx_type = partial(_wait_xxx, "wait_any()", _on_child_end__ver_any)
 '''
-Run multiple tasks concurrently, and wait for **any** of them to **complete**.
-As soon as one does, the others will be cancelled.
-
-If any task raises an exception, the rest will also be cancelled,
-and the exception will be propagated to the caller—similar to :class:`trio.Nursery`.
+Runs multiple tasks concurrently and waits until either one completes or all are cancelled.
+As soon as one completes, the others will be cancelled.
 
 .. code-block::
 
-    tasks = await wait_any(async_fn1(), async_fn2(), async_fn3())
-    for idx, task in enumerate(tasks, start=1):
+    tasks = await wait_any(async_fn0(), async_fn1(), async_fn2())
+    for i, task in enumerate(tasks):
         if task.finished:
-            print(f"The return value of async_fn{idx}() :", task.result)
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
 '''
 
 
@@ -750,22 +748,34 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
 _wait_xxx_cm_type = Callable[[Aw_or_Task], AbstractAsyncContextManager[Task]]
 wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_child_end__ver_all, True)
 '''
-The context manager form of :func:`wait_all`.
+Runs the given task and the code inside the with-block concurrently, and waits for **both** to
+**either complete or be cancelled**.
 
 .. code-block::
 
-    async with wait_all_cm(async_fn()) as bg_task:
+    async with wait_all_cm(async_fn()) as task:
         ...
+    if task.finished:
+        print(f"async_fn completed with a return value of {task.result}.")
+    else:
+        print(f"async_fn was cancelled.")
 '''
 
 wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
 '''
-The context manager form of :func:`wait_any`, an equivalence of :func:`trio_util.move_on_when`.
+Runs the given task and the code inside the with-block concurrently, and waits for **either** to **complete**.
+As soon as one does, the other will be cancelled.
+
+This is equivalent to :func:`trio_util.move_on_when`.
 
 .. code-block::
 
-    async with wait_any_cm(async_fn()) as bg_task:
+    async with wait_any_cm(async_fn()) as task:
         ...
+    if task.finished:
+        print(f"async_fn completed with a return value of {task.result}.")
+    else:
+        print(f"async_fn was cancelled.")
 '''
 
 run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_any, True)
@@ -780,7 +790,7 @@ run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _on_
 '''
 .. code-block::
 
-    async with run_as_daemon(async_fn()) as bg_task:
+    async with run_as_daemon(async_fn()) as task:
         ...
 '''
 
@@ -846,7 +856,7 @@ class Nursery:
 @asynccontextmanager
 async def open_nursery(*, _gc_in_every=1000) -> AsyncIterator[Nursery]:
     '''
-    Similar to :func:`trio.open_nursery`.
+    An equivalent of :func:`trio.open_nursery` .
 
     .. code-block::
 
