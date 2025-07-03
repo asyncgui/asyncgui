@@ -10,46 +10,40 @@ Structured Concurrency |ja|
 wait_any
 --------
 
-おそらく最も需要があるのはこの機能になると思います。これは複数のタスクを同時に走らせその **いずれか** が完了するまで待ちます。
-そしてそれが起こり次第 残りのタスクを中断させます。
+複数のタスクを同時に走らせ ``そのいずれかが完了するか`` 或いは ``全てが中断される`` まで待ちます。
+またいずれかのタスクが完了しだい残りのタスクは中断されます。
 
 .. code-block::
 
-    await wait_any(async_fn1(), async_fn2(), async_fn3())
+    tasks = await wait_any(async_fn0(), async_fn1(), async_fn2())
 
 どのタスクが完了/中断したのか、完了した物の戻り値は何か等は全て戻り値から判別可能です。
 
 .. code-block::
 
-    tasks = await wait_any(async_fn1(), async_fn2(), async_fn3())
-
-    for t, idx in zip(tasks, "123"):
-        if t.finished:
-            print(f"async_fn{idx}()の戻り値 :", t.result)
+    for idx, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{idx} は {task.result} を返して完了しました。")
         else:
-            print(f"async_fn{idx}()は中断されました")
-
-必ず一つだけタスクが完了しているとは限らない事に注意して下さい。全てのタスクが中断されることもあれば複数のタスクが完了することもあります。
-そうなる理由としては タスクに中断に対する保護がかけられている や 中断する暇も無く完了してしまう が挙げられますが、
-ほとんどの場合 気にしなくて良いでしょう。
+            print(f"async_fn{idx} は中断されました。")
 
 
 wait_all
 --------
 
-こちらは全てのタスクが完了/中断するまで待ちます。
+全てのタスクが完了あるいは中断されるまで待ちます。
 
 .. code-block::
 
     tasks = await wait_all(async_fn1(), async_fn2(), async_fn3())
 
-どのタスクが完了/中断したのか、完了した物の戻り値は何か等の調べ方は全て ``wait_any`` と同じです。
+``tasks`` の扱い方は ``wait_any`` と同じです。
 
 
 好きなだけ入れ子に
 ------------------
 
-``wait_all`` と ``wait_any`` は共に :class:`typing.Awaitable` を返すので当然それを ``wait_all`` や ``wait_any``
+``wait_all`` と ``wait_any`` は共に :class:`~collections.abc.Awaitable` を返すのでそれを ``wait_all`` や ``wait_any``
 の引数に渡すことも可能です。
 
 .. code-block::
@@ -71,13 +65,13 @@ wait_all
 
     flattened_tasks = (tasks[0], *tasks[1].result, )
 
-    for t, idx in zip(flattened_tasks, "123"):
-        if t.finished:
-            print(f"async_fn{idx}()の戻り値 :", t.result)
+    for idx, task in enumerate(flattened_tasks, start=1):
+        if task.finished:
+            print(f"async_fn{idx} は {task.result} を返して完了しました。")
         else:
-            print(f"async_fn{idx}()は中断されました")
+            print(f"async_fn{idx} は中断されました。")
 
-入れ子が深くなればなるほど階層深くにあるtaskを触るための式が ``tasks[i].result[j].result[k].result`` といった具合に長くなる
+入れ子が深くなればなるほど階層深くにあるタスクを触るための式が ``tasks[i].result[j].result[k]`` といった具合に長くなる
 わけですが、このような書き方を好まないのであれば以下の様に :class:`asyncgui.Task` のインスタンスを自ら作って渡せば後は階層には触らずに
 タスクの結果を知ることも出来ます。
 
@@ -91,9 +85,9 @@ wait_all
         ),
     )
     if tasks2.finished:
-        print("async_fn2()の戻り値: ", tasks2.result)
+        print(f"async_fn2 は {tasks2.result} を返して完了しました")
     else:
-        print("async_fn2()は中断されました")
+        print("async_fn2 は中断されました")
 
 
 wait_any_cm, wait_all_cm
@@ -117,7 +111,7 @@ wait_any_cm, wait_all_cm
         async with wait_any_cm(async_fn2()) as task2:
             # async_fn1 の中身
 
-この様に関数の中身をwithブロック内に移す事で関数を一つ減らす事に成功しました。
+この様に ``async_fn1`` の中身をwithブロック内に移す事で関数を一つ減らす事に成功しました。
 この機能は ``async_fn1()`` 内で ``main()`` 内のローカル変数をたくさん読み書きしたい時に特に活きるでしょう。
 例えば次のコードを見て下さい。
 
@@ -148,14 +142,7 @@ wait_any_cm, wait_all_cm
             var2 = ...
 
 この様にスッキリします。
-
-.. note::
-
-    この設計は trio_ と trio-util_ から学びました。
-    trio というのはまさに `構造化された並行性`_ を具現化したようなライブラリで、その優れた設計は :mod:`asyncio` にも影響を与えるほどです。
-    個人的には厳格過ぎて扱いづらいなと感じているのですが それはきっと私が大規模なプログラムを作ったことがないからでしょう。
-
-後このコンテキストマネージャー型のAPIは :class:`typing.Awaitable` を一つしか受け取れないので並行させられるタスクの数に限界があるように
+後このコンテキストマネージャー型のAPIは :class:`~collections.abc.Awaitable` を一つしか受け取れないので並行させられるタスクの数に限界があるように
 見えますが、先に述べたように入れ子にできるのでその限界は実質無いような物です。
 
 .. code-block::
@@ -179,25 +166,22 @@ run_as_daemon
         ...
 
 このコードではwithブロック内が先に完了した場合は ``async_fn()`` は中断させられますが、 ``async_fn()`` が先に完了しても何も起きず
-withブロック内の完了を待つだけです。例えるなら非daemonスレッドとdaemonスレッドの関係です。withブロック内のコードが非daemonで
-``async_fn()`` がdaemonになっていると考えて下さい。
+withブロックの完了を待つだけです。例えるならデーモンスレッドと非デーモンスレッドの関係です。withブロック内のコードが非デーモンで
+``async_fn()`` がデーモンになっていると考えて下さい。
 
-.. note::
-
-    これは :func:`trio_util.run_and_cancelling` に相当する機能です。
 
 run_as_main
 -----------
 
-これは ``run_as_daemon`` の逆でwithブロック内がdaemonとなります。
+これは ``run_as_daemon`` の逆でwithブロック内がデーモンとなります。
 
 .. code-block::
 
-    async with run_as_main(async_fn()) as primary_task:
+    async with run_as_main(async_fn()) as main_task:
         ...
 
-すなわちwithブロック内が先に完了した場合は ``async_fn()`` の完了を待つ事になり、
-``async_fn()`` が先に完了した場合はwithブロック内が中断されます。
+すなわちwithブロックが先に完了した場合は ``async_fn()`` の完了を待つ事になり、
+``async_fn()`` が先に完了した場合はwithブロックが中断されます。
 
 
 open_nursery

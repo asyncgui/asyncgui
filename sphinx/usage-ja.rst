@@ -110,7 +110,7 @@ APIを決める
 これが実現すれば ``time.sleep`` の物とほぼ同等の読みやすさな上にスレッドを占有しないという良いとこ取りができた事になります [#obtain_cancellation]_ 。
 なのでこの様な姿を目指す事にしましょう。
 
-``await sleep(1)`` という使い方をするという事は ``sleep`` は :class:`collections.abc.Awaitable` を返す :class:`collections.abc.Callable`
+``await sleep(1)`` という使い方をするという事は ``sleep`` は :class:`~collections.abc.Awaitable` を返す :class:`~collections.abc.Callable`
 でないといけません。
 その条件を満たす実装方法は幾つか有るのですが、とりあえずその一つであるasync関数 [#async_func_mitasu]_ から考えてみます。
 
@@ -138,7 +138,7 @@ APIを決める
 実装
 ====
 
-コールバック型のAPIをasync/awaitの世界と繋ぐにはコールバック関数が呼ばれた時に処理が再開するように仕組んだ上で処理を停める必要があります。
+コールバック型のAPIをasync/awaitの世界と繋ぐにはコールバック関数が呼ばれた時に処理が再開するように仕組んだ上で処理を停めるようなasync関数が要ります。
 難しそうに聞こえますが :class:`asyncio.Event` や :class:`trio.Event` を使った事があればピンと来るんじゃないでしょうか？
 
 .. code-block::

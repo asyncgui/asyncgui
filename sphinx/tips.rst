@@ -8,8 +8,8 @@ Tips
 Dealing with Cancellation
 -------------------------
 
-When the execution of a :class:`asyncgui.Task` instance is cancelled, a :exc:`asyncgui.Cancelled` exception is raised within it.
-You can take advantage of this opportunity as follows:
+When an :class:`asyncgui.Task` instance is being cancelled, a :exc:`asyncgui.Cancelled` exception is raised inside it.
+You can take advantage of this to perform cleanup or other actions, like so:
 
 .. code-block::
 
@@ -45,23 +45,11 @@ This includes ``async for`` and ``async with`` as they 'await' ``__aiter__()``,
 xxx ignored GeneratorExit
 -------------------------
 
-If this type of error occurs in your program, try explicitly canceling the corresponding 'root' task.
-All the :class:`asyncgui.Task` instances returned by :func:`asyncgui.start` are 'root' tasks.
-You should identify the relevant one from the error message and then call :meth:`asyncgui.Task.cancel` to terminate it.
+This error likely means that you forgot to cancel a root task,
+and it ended up being garbage-collected while still running—
+which is not desirable in ``asyncgui``.
 
-.. note:: Calling :func:`asyncgui.start` multiple times results in multiple task trees.
-
-----------------------
-Structured Concurrency
-----------------------
-
-Ultimately, your program should have only one "root" task, with all other tasks as children of this root or other tasks.
-You can achieve this by calling :func:`asyncgui.start` only once in your program,
-and then using the :doc:`structured-concurrency` APIs to create child tasks.
-
-And don't forget to explicitly cancel the root task when your program exits.
-If you don't, it will be cancelled during garbage collection, which can cause a lot of trouble.
-
+Make sure to explicitly cancel the task to avoid this!
 
 .. _coexistence-with-other-async-libraries:
 

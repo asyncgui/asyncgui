@@ -300,10 +300,8 @@ SendType = tuple[tuple, dict]
 
 
 def start(aw: Aw_or_Task, /) -> Task:
-    '''*Immediately* start a Task/Awaitable.
-
-    If the argument is a :class:`Task`, itself will be returned. If it's an :class:`typing.Awaitable`,
-    it will be wrapped in a Task, and that Task will be returned.
+    '''
+    *Immediately* start a Task.
 
     .. code-block::
 
@@ -311,6 +309,12 @@ def start(aw: Aw_or_Task, /) -> Task:
             ...
 
         task = start(async_func())
+
+    .. warning::
+
+        Tasks started with this function are root tasks.
+        You must ensure they aren't garbage-collected while still running
+        --for example, by explicitly calling :meth:`Task.cancel` before the program exits.
     '''
     if isawaitable(aw):
         task = Task(aw)
@@ -682,26 +686,31 @@ def _on_child_end__ver_any(scope, counter, child):
 _wait_xxx_type = Callable[..., Awaitable[Sequence[Task]]]
 wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
 '''
-Run multiple tasks concurrently, and wait for **all** of them to **end**. When any of them raises an exception, the
-others will be cancelled, and the exception will be propagated to the caller, like :class:`trio.Nursery`.
+Runs multiple tasks concurrently, and waits for all of them to either complete or be cancelled.
 
 .. code-block::
 
-    tasks = await wait_all(async_fn1(), async_fn2(), async_fn3())
-    if tasks[0].finished:
-        print("The return value of async_fn1() :", tasks[0].result)
+    tasks = await wait_any(async_fn0(), async_fn1(), async_fn2())
+    for i, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
 '''
+
 wait_any: _wait_xxx_type = partial(_wait_xxx, "wait_any()", _on_child_end__ver_any)
 '''
-Run multiple tasks concurrently, and wait for **any** of them to **finish**. As soon as that happens, the others will be
-cancelled. When any of them raises an exception, the others will be cancelled, and the exception will be propagated to
-the caller, like :class:`trio.Nursery`.
+Runs multiple tasks concurrently and waits until either one completes or all are cancelled.
+As soon as one completes, the others will be cancelled.
 
 .. code-block::
 
-    tasks = await wait_any(async_fn1(), async_fn2(), async_fn3())
-    if tasks[0].finished:
-        print("The return value of async_fn1() :", tasks[0].result)
+    tasks = await wait_any(async_fn0(), async_fn1(), async_fn2())
+    for i, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
 '''
 
 
@@ -743,44 +752,75 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
 _wait_xxx_cm_type = Callable[[Aw_or_Task], AbstractAsyncContextManager[Task]]
 wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_child_end__ver_all, True)
 '''
-The context manager form of :func:`wait_all`.
+Runs the given task and the code inside the with-block concurrently,
+and waits for the with-block to complete and for the task to either complete or be cancelled.
 
 .. code-block::
 
-    async with wait_all_cm(async_fn()) as bg_task:
+    async with wait_all_cm(async_fn()) as task:
         ...
+    if task.finished:
+        print(f"async_fn completed with a return value of {task.result}.")
+    else:
+        print(f"async_fn was cancelled.")
 '''
 
 wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
 '''
-The context manager form of :func:`wait_any`, an equivalence of :func:`trio_util.move_on_when`.
+Runs the given task and the code inside the with-block concurrently,
+and waits for either one to complete.
+As soon as that happens, the other will be cancelled if it is still running.
+
+This is equivalent to :func:`trio_util.move_on_when`.
 
 .. code-block::
 
-    async with wait_any_cm(async_fn()) as bg_task:
+    async with wait_any_cm(async_fn()) as task:
         ...
+    if task.finished:
+        print(f"async_fn completed with a return value of {task.result}.")
+    else:
+        print(f"async_fn was cancelled.")
 '''
 
 run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_any, True)
 '''
+Runs the given task and the code inside the with-block concurrently,
+and waits for the task to either complete or be cancelled.
+As soon as that happens, the with-block will be cancelled if it is still running.
+
 .. code-block::
 
     async with run_as_main(async_fn()) as task:
         ...
+    if task.finished:
+        print(f"async_fn completed with a return value of {task.result}.")
+    else:
+        print(f"async_fn was cancelled.")
 '''
 
 run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _on_child_end__ver_all, False)
 '''
+Runs the given task and the code inside the with-block concurrently,
+and waits for the with-block to complete.
+As soon as that happens, the task will be cancelled if it is still running.
+
+This is equivalent to :func:`trio_util.run_and_cancelling`.
+
 .. code-block::
 
-    async with run_as_daemon(async_fn()) as bg_task:
+    async with run_as_daemon(async_fn()) as task:
         ...
+    if task.finished:
+        print(f"async_fn completed with a return value of {task.result}.")
+    else:
+        print(f"async_fn was cancelled.")
 '''
 
 
 class Nursery:
     '''
-    Similar to :class:`trio.Nursery`.
+    An equivalent of :class:`trio.Nursery`.
     You should not directly instantiate this, use :func:`open_nursery`.
     '''
 
@@ -799,9 +839,9 @@ class Nursery:
 
     def start(self, aw: Aw_or_Task, /, *, daemon=False) -> Task:
         '''
-        *Immediately* start a Task/Awaitable under the supervision of the nursery.
+        *Immediately* start a Task under the supervision of the nursery.
 
-        If the argument is a :class:`Task`, itself will be returned. If it's an :class:`typing.Awaitable`,
+        If the argument is a :class:`Task`, itself will be returned. If it's an :class:`~collections.abc.Awaitable`,
         it will be wrapped in a Task, and that Task will be returned.
 
         The ``daemon`` parameter acts like the one in the :mod:`threading` module.
@@ -839,7 +879,7 @@ class Nursery:
 @asynccontextmanager
 async def open_nursery(*, _gc_in_every=1000) -> AsyncIterator[Nursery]:
     '''
-    Similar to :func:`trio.open_nursery`.
+    An equivalent of :func:`trio.open_nursery`.
 
     .. code-block::
 
