@@ -2,61 +2,46 @@
 Structured Concurrency
 ======================
 
-In this section, I'll talk about APIs related to `structured concurrency`_ .
+In this section, I'll add a few notes about `structured concurrency`_ APIs.
 However, I won't go into what structured concurrency is or why it matters,
 since there is already an `amazing article`_ explaining it.
 
 
-wait_any
---------
+List of structured concurrency APIs
+-----------------------------------
 
-This may be the most in-demand feature of all the structured concurrency APIs.
-It runs multiple tasks simultaneously and waits for any one of them to finish.
-Once that happens, it will cancel the remaining tasks.
-
-.. code-block::
-
-    await wait_any(async_fn1(), async_fn2(), async_fn3())
-
-You can tell which task finished or got cancelled, and what their return values are,
-from the return value of this function.
-
-.. code-block::
-
-    tasks = await wait_any(async_fn1(), async_fn2(), async_fn3())
-
-    for t, idx in zip(tasks, "123"):
-        if t.finished:
-            print(f"The return value of async_fn{idx}() :", t.result)
-        else:
-            print(f"async_fn{idx}() was cancelled")
-
-Note that there is no guarantee that only one task will finish.
-There is a possibility that all tasks are cancelled.
-There is also a possibility that multiple tasks finish.
-This is because tasks might complete their execution before they have a chance to be cancelled.
-However, in most cases, you don't need to worry about it.
+- :func:`~asyncgui.wait_all`
+- :func:`~asyncgui.wait_any`
+- :func:`~asyncgui.wait_all_cm`
+- :func:`~asyncgui.wait_any_cm`
+- :func:`~asyncgui.move_on_when` (alias of ``wait_any_cm``)
+- :func:`~asyncgui.run_as_daemon`
+- :func:`~asyncgui.run_as_main`
+- :func:`~asyncgui.open_nursery`
 
 
-wait_all
---------
+Ideal
+-----
 
-Run multiple tasks simultaneously and wait for all of them to finish/be-cancelled.
+Ideally, a program should have a single root task, with all other tasks as its children or as descendants of other tasks, forming a single task tree.
+This is something that :mod:`trio` enforces, but ``asyncgui`` is unable to do due to its architectural limitations [#limitations]_.
 
-.. code-block::
+In ``asyncgui``. every :class:`asyncgui.Task` instance returned by :func:`asyncgui.start` is a root task.
 
-    tasks = await wait_all(async_fn1(), async_fn2(), async_fn3())
+(editing...)
 
 
-Nest as you want
+Nest as you like
 ----------------
 
-Since ``wait_all`` and ``wait_any`` return an :class:`typing.Awaitable`,
-they can be an argument of themselves.
+Once you start using structured concurrency APIs,
+you'll notice how powerful they are for expressing high-level control flow.
+
+For example, if you want to wait until ``async_fn1`` completes **and** either ``async_fn2`` or ``async_fn3`` completes,
+you can implement it like this:
 
 .. code-block::
 
-    # Wait until 'async_fn1' finishes and either 'async_fn2' or 'async_fn3' finishes.
     tasks = await wait_all(
         async_fn1(),
         wait_any(
@@ -67,21 +52,21 @@ they can be an argument of themselves.
 
 .. figure:: ./figure/nested-tasks.*
 
-The downside of doing this is that it becomes cumbersome to access to tasks nested deeply in the hierarchy.
+The downside of this approach is that it becomes cumbersome to access tasks deeply nested in the hierarchy.
 
 .. code-block::
 
     flattened_tasks = (tasks[0], *tasks[1].result, )
 
-    while t, idx in zip(flattened_tasks, "123"):
-        if t.finished:
-            print(f"The return value of async_fn{idx}() :", t.result)
+    for idx, task in enumerate(flattened_tasks, start=1):
+        if task.finished:
+            print(f"async_fn{idx} completed with a return value of {task.result}.")
         else:
-            print(f"async_fn{idx}() was cancelled")
+            print(f"async_fn{idx} was cancelled.")
 
-The deeper a task is nested, the longer the expression to access to it becomes, like ``tasks[i].result[j].result[k]``.
-If you don't like lengthy expressions, you can avoid that by creating a :class:`asyncgui.Task` instance by yourself,
-and passing it to the API as follows.
+The deeper a task is nested, the longer the expression needed to access it becomes — like ``tasks[i].result[j].result[k]``.
+If you don't like writing such lengthy expressions, you can avoid it by creating a :class:`asyncgui.Task` instance yourself
+and passing it to the API, like so:
 
 .. code-block::
 
@@ -92,94 +77,16 @@ and passing it to the API as follows.
             async_fn3(),
         ),
     )
-    if tasks2.finished:
-        print("The return value of async_fn2() : ", tasks2.result)
+    if task2.finished:
+        print(f"async_fn2 completed with a return value of {task2.result}.")
     else:
-        print("async_fn2() was cancelled")
-
-
-wait_any_cm, wait_all_cm
-------------------------
-
-``wait_any`` and ``wait_all`` have an async context manager form.
-The following code
-
-.. code-block::
-
-    async def async_fn1():
-        # content of async_fn1
-
-    async def main():
-        await wait_any(async_fn1(), async_fn2())
-
-can be written as follows.
-
-.. code-block::
-
-    async def main():
-        async with wait_any_cm(async_fn2()):
-            # content of async_fn1
-
-This form has a great advantage.
-Read the trio-util_'s documentation for details.
-
-
-run_as_daemon
--------------
-
-All the APIs explained so far treat tasks equally.
-Taking ``wait_any_cm`` as an example, when either the code within the with-block or the awaitable passed to the API
-completes, it will cause the other one to be cancelled.
-What if you want only one of them to cause the other one to be cancelled, but not the other way around?
-That's exactly where ``run_as_daemon`` comes into play.
-
-.. code-block::
-
-    async with run_as_daemon(async_fn()):
-        ...
-
-In this code, if the code within the with-block finishes first, it will cause the ``async_fn()`` to be cancelled.
-But if ``async_fn()`` finishes first, it will cause nothing, and just waits for the code within the with-block to
-finish.
-You can think of this as the relation between a non-daemon thread and a daemon thread.
-
-.. note::
-
-    This is an equivalence of :func:`trio_util.run_and_cancelling`.
-
-
-run_as_main
------------
-
-The opposite of ``run_as_daemon``.
-
-.. code-block::
-
-    async with run_as_main(async_fn()):
-        ...
-
-If ``async_fn()`` finishes first, it will cause the code within the with-block to be cancelled.
-But if the code within the with-block finishes first, it will cause nothing, and waits for the ``async_fn()`` to
-finish.
-
-open_nursery
-------------
-
-An equivalence of :func:`trio.open_nursery`.
-
-.. code-block::
-
-    async with open_nursery() as nursery:
-        while True:
-            finger = await wait_for_the_user_to_touch_the_screen()
-            nursery.start(draw_line(finger))
+        print("async_fn2 was cancelled.")
 
 
 Exception Handling
 ------------------
 
-All the APIs explained here propagate exceptions in the same way as trio_ with the ``strict_exception_groups``
-parameter being True.
+All the APIs propagate exceptions in the same way as trio_ with the ``strict_exception_groups`` parameter being True.
 In other words, they *always* wrap the exception(s) occurred in their child tasks in an :exc:`ExceptionGroup`.
 
 .. tabs::
@@ -213,3 +120,5 @@ In other words, they *always* wrap the exception(s) occurred in their child task
 .. _trio: https://trio.readthedocs.io/
 .. _trio-util: https://trio-util.readthedocs.io/
 .. _amazing article: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
+
+.. [#limitations] I have no idea how to achieve that without relying on either a main loop or global state.
