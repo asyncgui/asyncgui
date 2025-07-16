@@ -159,9 +159,8 @@ asyncguiの特徴
 --------
 
 READMEで述べた通り ``asyncgui`` 自体はシステムコールに繋がるような機能を持ちません。
-システムコールに繋がらないであろうモジュール(:mod:`itertools` や :mod:`inspect` 等)のみで実現可能な機能だけを提供します。
-例外があるとすれば :mod:`sys` モジュールですがその内の :any:`sys.version_info` しか利用していないので良しとします。
-(``sys.version_info`` はインタープリター自体に埋め込まれた定数値のはずなのでシステムコールには至らない)。
+``asyncgui`` はPython言語とシステムコールに繋がらないであろうライブラリの機能達
+(:func:`contextlib.contextmanager` や :func:`inspect.getcoroutinestate` 等)のみで動作します。
 
 
 .. _Trio: https://trio.readthedocs.io/

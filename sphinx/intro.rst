@@ -159,12 +159,9 @@ not:
 Minimalism
 ----------
 
-As mentioned in the README, ``asyncgui`` itself does not provide features that involve system calls.
-The library operates entirely within the Python language and the modules that I believe do not involve system calls,
-such as :mod:`itertools` and :mod:`inspect`.
-
-The :mod:`sys` module may be an exception, but ``asyncgui`` only uses :any:`sys.version_info`,
-which likely doesn't involve any system calls, as it's a constant value baked into the interpreter.
+As mentioned in the README, ``asyncgui`` itself does not provide any features that involve system calls.
+It runs solely on features of the Python language and standard library components that I believe do not involve system calls,
+such as :func:`contextlib.contextmanager` and :func:`inspect.getcoroutinestate`.
 
 
 .. _Trio: https://trio.readthedocs.io/
