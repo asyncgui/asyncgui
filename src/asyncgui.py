@@ -423,6 +423,38 @@ class ExclusiveEvent:
     def _attach_task(self, task):
         self._callback = task._step
 
+    @types.coroutine
+    def wait_args(self) -> Generator[YieldType, SendType, tuple]:
+        '''
+        (experimental)
+
+        ``await event.wait_args()`` is equivalent to ``(await event.wait())[0]``.
+
+        :meta private:
+        '''
+        if self._callback is not None:
+            raise InvalidStateError("There's already a task waiting for the event to fire.")
+        try:
+            return (yield self._attach_task)[0]
+        finally:
+            self._callback = None
+
+    @types.coroutine
+    def wait_args_0(self) -> Generator[YieldType, SendType, Any]:
+        '''
+        (experimental)
+
+        ``await event.wait_args_0()`` is equivalent to ``(await event.wait())[0][0]``.
+
+        :meta private:
+        '''
+        if self._callback is not None:
+            raise InvalidStateError("There's already a task waiting for the event to fire.")
+        try:
+            return (yield self._attach_task)[0][0]
+        finally:
+            self._callback = None
+
 
 class Event:
     '''

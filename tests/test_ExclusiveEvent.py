@@ -71,3 +71,22 @@ def test_cancel():
     assert task.state is TS.STARTED
     task._step()
     assert task.state is TS.FINISHED
+
+
+def test_wait_args():
+    import asyncgui as ag
+
+    e = ag.ExclusiveEvent()
+    task = ag.start(e.wait_args())
+    assert not task.finished
+    e.fire(1, 2, one='ONE')
+    assert task.result == (1, 2, )
+
+def test_wait_args_0():
+    import asyncgui as ag
+
+    e = ag.ExclusiveEvent()
+    task = ag.start(e.wait_args_0())
+    assert not task.finished
+    e.fire(1, 2, one='ONE')
+    assert task.result == 1
