@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asyncgui"
-version = "0.9.1"
+version = "0.9.2"
 description = "A minimalistic async library that focuses on fast responsiveness"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
