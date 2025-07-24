@@ -478,8 +478,8 @@ class Event:
 
     .. warning::
 
-        This differs significantly from :class:`asyncio.Event`, as this one does not have a "set" state.
-        When a Task calls its :meth:`wait` method, it will always be blocked until :meth:`fire` is called *after* that.
+        This differs from :class:`asyncio.Event`, as it does not have a "set" state. ``await e.wait()`` will
+        always block the caller until someone else calls :meth:`fire` *after* the wait has started.
         Use :class:`StatefulEvent` if you want something closer to :class:`asyncio.Event`.
 
     .. versionchanged:: 0.7.0
