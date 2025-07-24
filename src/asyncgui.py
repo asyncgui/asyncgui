@@ -494,6 +494,8 @@ class Event:
 
     def fire(self, *args, **kwargs):
         tasks = self._waiting_tasks
+        if not tasks:
+            return
         self._waiting_tasks = []
         for t in tasks:
             if t is not None:
@@ -568,6 +570,8 @@ class StatefulEvent:
             return
         self._params = (args, kwargs, )
         tasks = self._waiting_tasks
+        if not tasks:
+            return
         self._waiting_tasks = []
         for t in tasks:
             if t is not None:
