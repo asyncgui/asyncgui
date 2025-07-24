@@ -402,26 +402,26 @@ class ExclusiveEvent:
     Similar to :class:`Event`, but this version does not allow multiple tasks to :meth:`wait` simultaneously.
     As a result, it operates faster.
     '''
-    __slots__ = ('_callback', )
+    __slots__ = ('_waiting_task', )
 
     def __init__(self):
-        self._callback = None
+        self._waiting_task = None
 
     def fire(self, *args, **kwargs):
-        if (f := self._callback) is not None:
-            f(*args, **kwargs)
+        if (t := self._waiting_task) is not None:
+            t._step(*args, **kwargs)
 
     @types.coroutine
     def wait(self) -> Generator[YieldType, SendType, SendType]:
-        if self._callback is not None:
+        if self._waiting_task is not None:
             raise InvalidStateError("There's already a task waiting for the event to fire.")
         try:
             return (yield self._attach_task)
         finally:
-            self._callback = None
+            self._waiting_task = None
 
     def _attach_task(self, task):
-        self._callback = task._step
+        self._waiting_task = task
 
     @types.coroutine
     def wait_args(self) -> Generator[YieldType, SendType, tuple]:
@@ -432,12 +432,12 @@ class ExclusiveEvent:
 
         :meta private:
         '''
-        if self._callback is not None:
+        if self._waiting_task is not None:
             raise InvalidStateError("There's already a task waiting for the event to fire.")
         try:
             return (yield self._attach_task)[0]
         finally:
-            self._callback = None
+            self._waiting_task = None
 
     @types.coroutine
     def wait_args_0(self) -> Generator[YieldType, SendType, Any]:
@@ -448,12 +448,12 @@ class ExclusiveEvent:
 
         :meta private:
         '''
-        if self._callback is not None:
+        if self._waiting_task is not None:
             raise InvalidStateError("There's already a task waiting for the event to fire.")
         try:
             return (yield self._attach_task)[0][0]
         finally:
-            self._callback = None
+            self._waiting_task = None
 
 
 class Event:
