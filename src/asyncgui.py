@@ -695,7 +695,7 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: Iterable[Aw_or_Task]) -> Awai
         exceptions = [e for c in children if (e := c._exc_caught) is not None]
         if exceptions:
             raise ExceptionGroup(debug_msg, exceptions)
-        if (parent._requested_cancel_level is not None) and (not parent._cancel_disabled):
+        if parent._requested_cancel_level is not None:
             await sleep_forever()
             assert False, potential_bug_msg
     return children
@@ -774,7 +774,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
         ]
         if excs:
             raise ExceptionGroup(debug_msg, excs)
-        if (fg_task._requested_cancel_level is not None) and (not fg_task._cancel_disabled):
+        if fg_task._requested_cancel_level is not None:
             await sleep_forever()
             assert False, potential_bug_msg
 
@@ -945,7 +945,7 @@ async def open_nursery(*, _gc_in_every=1000) -> AsyncIterator[Nursery]:
             excs.append(exc)
         if excs:
             raise ExceptionGroup("Nursery", excs)
-        if (parent._requested_cancel_level is not None) and (not parent._cancel_disabled):
+        if parent._requested_cancel_level is not None:
             await sleep_forever()
             assert False, potential_bug_msg
 
