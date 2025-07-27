@@ -413,14 +413,14 @@ class ExclusiveEvent:
 
     @types.coroutine
     def wait(self) -> Generator[YieldType, SendType, SendType]:
-        if self._waiting_task is not None:
-            raise InvalidStateError("There's already a task waiting for the event to fire.")
         try:
             return (yield self._attach_task)
         finally:
             self._waiting_task = None
 
     def _attach_task(self, task):
+        if self._waiting_task is not None:
+            raise InvalidStateError("There's already a task waiting for the event to fire.")
         self._waiting_task = task
 
     @types.coroutine
@@ -432,8 +432,6 @@ class ExclusiveEvent:
 
         :meta private:
         '''
-        if self._waiting_task is not None:
-            raise InvalidStateError("There's already a task waiting for the event to fire.")
         try:
             return (yield self._attach_task)[0]
         finally:
@@ -448,8 +446,6 @@ class ExclusiveEvent:
 
         :meta private:
         '''
-        if self._waiting_task is not None:
-            raise InvalidStateError("There's already a task waiting for the event to fire.")
         try:
             return (yield self._attach_task)[0][0]
         finally:
