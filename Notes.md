@@ -158,7 +158,7 @@ async def _wait_xxx(...):
                 c._on_end = on_child_end
                 c._disable_cancellation = dc
                 start(c)
-            await counter.to_be_zero()
+            await counter.wait_for_zero()
     ...
 ```
 
