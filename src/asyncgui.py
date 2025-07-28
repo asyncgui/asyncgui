@@ -32,8 +32,7 @@ from contextlib import asynccontextmanager, contextmanager, AbstractAsyncContext
 if sys.version_info < (3, 11):
     from exceptiongroup import BaseExceptionGroup, ExceptionGroup
 else:
-    BaseExceptionGroup = BaseExceptionGroup  #: :meta private:
-    ExceptionGroup = ExceptionGroup  #: :meta private:
+    from builtins import BaseExceptionGroup, ExceptionGroup
 
 potential_bug_msg = \
     r"You might found a bug in the library. Please make a minimal code that reproduces it, " \
