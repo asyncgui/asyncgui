@@ -14,6 +14,7 @@ release = importlib.metadata.version(project)
 
 rst_epilog = """
 .. |ja| replace:: 🇯🇵
+.. |bomb| replace:: 💣
 """
 
 # -- General configuration ---------------------------------------------------

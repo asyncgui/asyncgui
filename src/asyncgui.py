@@ -3,7 +3,7 @@ __all__ = (
     'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
 
     # core
-    'Aw_or_Task', 'start', 'Task', 'TaskState',
+    'Aw_or_Task', 'start', 'Task', 'TaskState', 'safe_cleanup',
     'dummy_task', 'current_task', 'sleep_forever',
 
     # structured concurrency
@@ -19,7 +19,7 @@ from collections.abc import (
     Iterable, Coroutine, Awaitable, AsyncIterator, Generator, Callable, Sequence,
 )
 import types
-from inspect import getcoroutinestate, CORO_CREATED, CORO_SUSPENDED, isawaitable
+from inspect import getcoroutinestate, CORO_CREATED, CORO_SUSPENDED, isawaitable, getasyncgenstate, AGEN_SUSPENDED
 import sys
 from functools import cached_property, partial
 import enum
@@ -35,8 +35,9 @@ else:
     from builtins import BaseExceptionGroup, ExceptionGroup
 
 potential_bug_msg = \
-    r"You might have just found a bug in the library. Please create a minimal reproducible " \
-    r"example and report it on the GitHub repository: https://github.com/asyncgui/asyncgui."
+    r"It seems that you either forgot to wrap an async generator with `safe_cleanup`, or you might " \
+    r"have found a bug in the library. If you believe it's the latter, please create a minimal " \
+    r"reproducible example and report it on the GitHub repository: https://github.com/asyncgui/asyncgui."
 
 
 class InvalidStateError(Exception):
@@ -400,6 +401,65 @@ This can be utilized to prevent the need for the common null validation mentione
             ...
 '''
 dummy_task.cancel()
+
+
+@asynccontextmanager
+async def safe_cleanup(agen):
+    '''
+    Returns an async context manager that safely cleans up the given async generator.
+
+    .. code-block::
+
+        async with safe_cleanup(async_gen_func()) as agen:
+            async for v in agen:
+                ...
+
+    .. versionadded:: 0.x.x
+
+    You may want to use this when:
+
+    - You are not using CPython.
+    - Another async library, such as ``asyncio`` or ``trio``, is running in the same interpreter.
+    - You are working with an async generator that is marked as |bomb| in its documentation, and the consumer
+      performs async operations on things other than the generator's own methods (e.g., ``.asend()``, ``.athrow()``)
+      while the generator is alive. For example, the following two examples are fine:
+
+      .. code-block::
+
+          async for v in an_async_generator_marked_as_bomb:
+              # There are no async operations here.
+
+      .. code-block::
+
+          async with safe_cleanup(an_async_generator_marked_as_bomb) as agen:
+              async for v in agen:
+                  ...
+                  await something
+
+      but the next one is not:
+
+      .. code-block::
+
+          async for v in an_async_generator_marked_as_bomb:
+              ...
+              await something
+
+    .. warning::
+        This feature does not cover all types of async generators. (See :doc:`async-generators` for details.)
+    '''
+    try:
+        yield agen
+    except BaseException as e:
+        if getasyncgenstate(agen) is AGEN_SUSPENDED:
+            try:
+                await agen.athrow(e)
+            except StopAsyncIteration:
+                pass
+        else:
+            raise
+    else:
+        await agen.aclose()
+
 
 # -----------------------------------------------------------------------------
 # Synchronization

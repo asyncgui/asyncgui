@@ -10,6 +10,8 @@ AsyncGui
    usage-ja
    structured-concurrency
    structured-concurrency-ja
+   async-generators
+   async-generators-ja
    tips
    reference
 
