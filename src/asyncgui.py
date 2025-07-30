@@ -35,8 +35,8 @@ else:
     from builtins import BaseExceptionGroup, ExceptionGroup
 
 potential_bug_msg = \
-    r"You might found a bug in the library. Please make a minimal code that reproduces it, " \
-    r"and open an issue at the GitHub repository, then post the code there. (https://github.com/asyncgui/asyncgui)."
+    r"You might have just found a bug in the library. Please create a minimal reproducible " \
+    r"example and report it on the GitHub repository: https://github.com/asyncgui/asyncgui."
 
 
 class InvalidStateError(Exception):
@@ -473,8 +473,8 @@ class Event:
 
     .. warning::
 
-        This differs significantly from :class:`asyncio.Event`, as this one does not have a "set" state.
-        When a Task calls its :meth:`wait` method, it will always be blocked until :meth:`fire` is called *after* that.
+        This differs from :class:`asyncio.Event`, as it does not have a "set" state. ``await e.wait()`` will
+        always block the caller until someone else calls :meth:`fire` *after* the wait has started.
         Use :class:`StatefulEvent` if you want something closer to :class:`asyncio.Event`.
 
     .. versionchanged:: 0.7.0
@@ -781,7 +781,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
 _wait_xxx_cm_type = Callable[[Aw_or_Task], AbstractAsyncContextManager[Task]]
 wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_child_end__ver_all, True)
 '''
-Runs the given task and the code inside the with-block concurrently,
+Returns an async context manager that runs the given task and the code inside the with-block concurrently,
 and waits for the with-block to complete and for the task to either complete or be cancelled.
 
 .. code-block::
@@ -796,9 +796,8 @@ and waits for the with-block to complete and for the task to either complete or 
 
 wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
 '''
-Runs the given task and the code inside the with-block concurrently,
-and waits for either one to complete.
-As soon as that happens, the other will be cancelled if it is still running.
+Returns an async context manager that runs the given task and the code inside the with-block concurrently,
+and waits for either one to complete. As soon as that happens, the other will be cancelled if it is still running.
 
 This is equivalent to :func:`trio_util.move_on_when`.
 
@@ -814,9 +813,9 @@ This is equivalent to :func:`trio_util.move_on_when`.
 
 run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_any, True)
 '''
-Runs the given task and the code inside the with-block concurrently,
-and waits for the task to either complete or be cancelled.
-As soon as that happens, the with-block will be cancelled if it is still running.
+Returns an async context manager that runs the given task and the code inside the with-block concurrently,
+and waits for the task to either complete or be cancelled. As soon as that happens, the with-block will be
+cancelled if it is still running.
 
 .. code-block::
 
@@ -830,9 +829,8 @@ As soon as that happens, the with-block will be cancelled if it is still running
 
 run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _on_child_end__ver_all, False)
 '''
-Runs the given task and the code inside the with-block concurrently,
-and waits for the with-block to complete.
-As soon as that happens, the task will be cancelled if it is still running.
+Returns an async context manager that runs the given task and the code inside the with-block concurrently,
+and waits for the with-block to complete. As soon as that happens, the task will be cancelled if it is still running.
 
 This is equivalent to :func:`trio_util.run_and_cancelling`.
 
@@ -869,9 +867,6 @@ class Nursery:
     def start(self, aw: Aw_or_Task, /, *, daemon=False) -> Task:
         '''
         *Immediately* start a Task under the supervision of the nursery.
-
-        If the argument is a :class:`Task`, itself will be returned. If it's an :class:`~collections.abc.Awaitable`,
-        it will be wrapped in a Task, and that Task will be returned.
 
         The ``daemon`` parameter acts like the one in the :mod:`threading` module.
         When only daemon tasks are left, they get cancelled, and the nursery closes.

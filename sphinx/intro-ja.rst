@@ -15,7 +15,7 @@ Pythonには既に幾つかasyncライブラリがあります。
 それぞれ違いはあると思うのですがどれにも共通して言えるのはGUIプログラムとの相性が悪い事です。
 私は何も「GUIライブラリとasyncライブラリはそれぞれがメインループを持つから同じスレッド内で同居できないよね」と言いたいわけではありません。
 実際 PyGame_ の様に利用者側にメインループの実装を委ねている場合は ``PyGame`` のメインループをasyncライブラリのいちタスクとして実装してしまえば同居できそうですし [#pygame_with_asyncio]_、
-Kivy_ や BeeWare_ に関しては自身でasyncライブラリに対応してくれてますし、
+Kivy_ や Toga_ に関しては自身でasyncライブラリに対応してくれてますし、
 :mod:`tkinter` や PyQt_ にはそれを可能にする外部ライブラリがあるようです。
 仮にそのどれにも当てはまらなかったとしても ``Trio`` には `guest mode`_ という「他のメインループの邪魔をせずに動作するモード」があるため
 同居の問題は解決されていると見做していいのではないでしょうか。
@@ -130,7 +130,7 @@ asyncguiの特徴
 .. note::
 
     "別にあるメインループ"は別のasyncライブラリの物でも構いません。
-    つまりは(一部制約はあるものの)二つのasyncライブラリを同一スレッド内で動かすことすら可能です。
+    つまりは(一部追加作業が要るものの)二つのasyncライブラリを同一スレッド内で動かすことすら可能です。
 
 グローバルな状態を持たない
 ---------------------------
@@ -169,7 +169,7 @@ READMEで述べた通り ``asyncgui`` 自体はシステムコールに繋がる
 .. _Curio: https://curio.readthedocs.io/
 .. _PyGame: https://www.pygame.org/
 .. _Kivy: https://kivy.org/
-.. _BeeWare: https://beeware.org/
+.. _Toga: https://beeware.org/project/toga/
 .. _PyQt: https://www.riverbankcomputing.com/software/pyqt/
 .. _車輪の再発明: https://ja.wikipedia.org/wiki/%E8%BB%8A%E8%BC%AA%E3%81%AE%E5%86%8D%E7%99%BA%E6%98%8E
 

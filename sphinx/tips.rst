@@ -61,5 +61,4 @@ Coexistence with other async libraries
 which likely hinders asyncgui-flavored async generators.
 You can see its details `here <https://peps.python.org/pep-0525/#finalization>`__.
 
-Because of this, ``asyncgui`` does not guarantee proper functioning when ``asyncio`` or ``trio`` is running.
-This doesn't mean it won't work--just that the library does not *officially* support this scenario.
+Because of this, you have to explicitly close asyncgui-flavored async generators when you are done with them.
