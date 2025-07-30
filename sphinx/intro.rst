@@ -13,7 +13,7 @@ And Curio_, which seems to have had a big influence on Trio, though it now only 
 
 They may differ from each other but all of them have in common is that they are not suitable for GUI programs.
 I'm not saying "Having a GUI library and an async library coexist in the same thread is problematic due to their individual main loops".
-In fact, Kivy_ and BeeWare_ have adapted themselves to work with async libraries;
+In fact, Kivy_ and Toga_ have adapted themselves to work with async libraries;
 PyGame_ doesn't even own a main loop and expects the user to implement one,
 so you could do that by putting an ``await asyncio.sleep()`` inside a main loop [#pygame_with_asyncio]_;
 :mod:`tkinter` and PyQt_ seem to have 3rd party libraries that allow them to work with async libraries.
@@ -134,7 +134,7 @@ I'll explain this further in the :doc:`usage` section.
 
     "another main loop" can be other async library's.
     Yes, you can even run ``asyncgui`` and other async library in the same thread.
-    However, there is a major caveat: :ref:`coexistence-with-other-async-libraries`.
+    However, there is a catch: :ref:`coexistence-with-other-async-libraries`.
 
 No global state
 ---------------
@@ -170,7 +170,7 @@ such as :func:`contextlib.contextmanager` and :func:`inspect.getcoroutinestate`.
 .. _Curio: https://curio.readthedocs.io/
 .. _PyGame: https://www.pygame.org/
 .. _Kivy: https://kivy.org/
-.. _BeeWare: https://beeware.org/
+.. _Toga: https://beeware.org/project/toga/
 .. _PyQt: https://www.riverbankcomputing.com/software/pyqt/
 
 .. _asyncio.tasks._current_tasks: https://github.com/python/cpython/blob/4890bfe1f906202ef521ffd327cae36e1afa0873/Lib/asyncio/tasks.py#L970-L972

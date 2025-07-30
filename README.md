@@ -7,8 +7,8 @@
 - does not own a main loop, but is designed to integrate with an existing one.
 - avoids global state.
 - focuses on fast responsiveness, allowing immediate task start and resumption.
-- offers powerful structured concurrency APIs inspired by [Trio](https://trio.readthedocs.io/en/stable/) and [trio-util](https://trio-util.readthedocs.io/en/latest/).
-- has nothing to do with GUIs, even though it has 'gui' in its name. (Yes, I should rename it at some point.)
+- offers powerful "structured concurrency" features inspired by [Trio](https://trio.readthedocs.io/en/stable/) and [trio-util](https://trio-util.readthedocs.io/en/latest/).
+- has nothing to do with GUIs, even though it has 'gui' in its name. (I should rename it at some point.)
 
 [Documentation](https://asyncgui.github.io/asyncgui/)
 
