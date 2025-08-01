@@ -4,7 +4,7 @@ Structured Concurrency
 
 In this section, I'll add a few notes about `structured concurrency`_ APIs.
 However, I won't go into what structured concurrency is or why it matters,
-since there is already an `amazing article`_ explaining it.
+since there is already an `amazing essay`_ explaining it.
 
 
 List of structured concurrency APIs
@@ -119,6 +119,6 @@ In other words, they *always* wrap the exception(s) occurred in their child task
 .. _structured concurrency: https://en.wikipedia.org/wiki/Structured_concurrency
 .. _trio: https://trio.readthedocs.io/
 .. _trio-util: https://trio-util.readthedocs.io/
-.. _amazing article: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
+.. _amazing essay: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
 
 .. [#limitations] I have no idea how to achieve that without relying on either a main loop or global state.

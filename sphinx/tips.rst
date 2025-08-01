@@ -58,7 +58,7 @@ Coexistence with other async libraries
 --------------------------------------
 
 :mod:`asyncio` and :mod:`trio` do some hacky stuff, :func:`sys.set_asyncgen_hooks` and :func:`sys.get_asyncgen_hooks`,
-which likely hinders asyncgui-flavored async generators.
+which likely delays the cleanup of async generators when either of these libraries is running.
 You can see its details `here <https://peps.python.org/pep-0525/#finalization>`__.
 
-Because of this, you have to explicitly close asyncgui-flavored async generators when you are done with them.
+Because of this, you have to explicitly close async generators when you are done with them.

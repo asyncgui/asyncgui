@@ -5,4 +5,4 @@ API Reference
    :members:
    :undoc-members:
    :no-show-inheritance:
-   :exclude-members:
+   :exclude-members: ExceptionGroup, BaseExceptionGroup
