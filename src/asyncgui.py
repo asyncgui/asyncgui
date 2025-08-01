@@ -4,7 +4,7 @@ __all__ = (
 
     # core
     'Aw_or_Task', 'start', 'Task', 'TaskState',
-    'dummy_task', 'current_task', '_current_task', 'sleep_forever', '_sleep_forever',
+    'dummy_task', 'current_task', 'sleep_forever',
 
     # structured concurrency
     'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'move_on_when',
