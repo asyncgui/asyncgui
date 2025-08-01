@@ -351,6 +351,16 @@ def sleep_forever(_f=_sleep_forever):
     yield _f
 
 
+@types.coroutine
+def _wait_args(_f=_sleep_forever):
+    return (yield _f)[0]
+
+
+@types.coroutine
+def _wait_args_0(_f=_sleep_forever):
+    return (yield _f)[0][0]
+
+
 dummy_task = Task(sleep_forever())
 '''
 An already closed task.
