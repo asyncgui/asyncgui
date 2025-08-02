@@ -6,4 +6,4 @@ bin/
 /asyncgui.egg-info/
 /.pytest_cache/
 /dist
-/docs
+
