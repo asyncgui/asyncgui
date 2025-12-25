@@ -1,6 +1,6 @@
 [project]
 name = "asyncgui"
-version = "0.9.3"
+version = "0.9.4.dev0"
 description = "A minimalistic async library that focuses on fast responsiveness"
 authors = [{ name = "Nattōsai Mitō", email = "flow4re2c@gmail.com" }]
 requires-python = ">=3.9,<4.0"
