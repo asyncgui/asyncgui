@@ -121,4 +121,4 @@ In other words, they *always* wrap the exception(s) occurred in their child task
 .. _trio-util: https://trio-util.readthedocs.io/
 .. _amazing essay: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
 
-.. [#limitations] I have no idea how to achieve that without relying on either a main loop or global state.
+.. [#limitations] I have no idea how to achieve that without relying on a main loop and global state.
