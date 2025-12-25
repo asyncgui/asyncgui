@@ -30,8 +30,9 @@ pip install "asyncgui>=0.9,<0.10"
 - CPython 3.14
 - PyPy 3.10
 
-## Async libraries that rely on this
+## Dependants
 
 - [asynckivy](https://github.com/asyncgui/asynckivy)
 - [asynctkinter](https://github.com/asyncgui/asynctkinter)
+- [asynctkinter-minimum](https://github.com/asyncgui/asynctkinter-minimum)
 - [asyncpygame](https://github.com/asyncgui/asyncpygame)

@@ -632,12 +632,12 @@ class StatefulEvent:
 class Counter:
     '''
     (internal)
-    A numeric counter that notifies when it reaches zero.
-    Used by a parent task to wait for the completion or cancellation of its children.
+    A numeric counter that notifies when its value reaches zero.
+    Used by a parent task to wait for its child tasks to complete or be cancelled.
 
     .. warning::
-        Only one task can wait for zero at a time, but unlike :class:`ExclusiveEvent`, there is no
-        check for this--if multiple tasks try to wait for zero, the program would silently break.
+        Only one task can wait for the counter to reach zero at a time — if multiple tasks
+        attempt to wait, the program would silently break.
     '''
 
     __slots__ = ('_waiting_task', '_value', )
