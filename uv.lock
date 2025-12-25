@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "asyncgui"
-version = "0.9.4.dev0"
+version = "0.10.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
