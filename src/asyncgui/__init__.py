@@ -14,7 +14,7 @@ __all__ = (
     # synchronization
     'Event', 'ExclusiveEvent', 'StatefulEvent', 'StatelessEvent',
 )
-from typing import Any, Union
+from typing import Any, Union, TypeAlias
 from collections.abc import (
     Iterable, Coroutine, Awaitable, AsyncIterator, Generator, Callable, Sequence,
 )
@@ -722,10 +722,10 @@ def _on_child_end__ver_any(scope, counter, child):
         scope.cancel()
 
 
-_wait_xxx_type = Callable[..., Awaitable[Sequence[Task]]]
+_wait_xxx_type: TypeAlias = Callable[..., Awaitable[Sequence[Task]]]
 wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
 '''
-Runs multiple tasks concurrently, and waits for all of them to either complete or be cancelled.
+Runs multiple tasks concurrently, then waits for all of them to either complete or be cancelled.
 
 .. code-block::
 
@@ -739,7 +739,7 @@ Runs multiple tasks concurrently, and waits for all of them to either complete o
 
 wait_any: _wait_xxx_type = partial(_wait_xxx, "wait_any()", _on_child_end__ver_any)
 '''
-Runs multiple tasks concurrently and waits until either one completes or all are cancelled.
+Runs multiple tasks concurrently, then waits until either one completes or all are cancelled.
 As soon as one completes, the others will be cancelled.
 
 .. code-block::
@@ -754,33 +754,36 @@ As soon as one completes, the others will be cancelled.
 
 
 @asynccontextmanager
-async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
-    counter = Counter(1)
+async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, *aws: Iterable[Aw_or_Task]):
     fg_task = await current_task()
-    bg_task = aw if isinstance(aw, Task) else Task(aw)
-    exc = None
+    bg_tasks = [v if isinstance(v, Task) else Task(v) for v in aws]
+    counter = Counter(len(bg_tasks))
+
+    fg_exc = None
 
     try:
         with fg_task._open_cancel_scope() as scope:
-            bg_task._on_end = partial(on_child_end, scope, counter)
-            bg_task._suppresses_exc = True
-            yield start(bg_task)
+            for task in bg_tasks:
+                task._on_end = partial(on_child_end, scope, counter)
+                task._suppresses_exc = True
+                start(task)
+            yield bg_tasks
             if wait_bg:
                 await counter.wait_for_zero()
     except Exception as e:
-        exc = e
+        fg_exc = e
     finally:
-        bg_task.cancel()
+        for task in bg_tasks:
+            task.cancel()
         if counter.is_not_zero:
             try:
                 fg_task._cancel_disabled = True
                 await counter.wait_for_zero()
             finally:
                 fg_task._cancel_disabled = False
-        excs = [
-            e for e in (exc, bg_task._exc_caught, )
-            if e is not None
-        ]
+        excs = [e for task in bg_tasks if (e := task._exc_caught) is not None]
+        if fg_exc is not None:
+            excs.append(fg_exc)
         if excs:
             raise ExceptionGroup(debug_msg, excs)
         if fg_task._requested_cancel_level is not None:
@@ -788,70 +791,87 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, aw: Aw_or_Task):
             assert False, potential_bug_msg
 
 
-_wait_xxx_cm_type = Callable[[Aw_or_Task], AbstractAsyncContextManager[Task]]
+_wait_xxx_cm_type: TypeAlias = Callable[..., AbstractAsyncContextManager[list[Task]]]
 wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_child_end__ver_all, True)
 '''
-Returns an async context manager that runs the given task and the code inside the with-block concurrently,
-and waits for the with-block to complete and for the task to either complete or be cancelled.
+Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits until the code inside the with-block completes and all tasks have either completed or been
+cancelled.
 
 .. code-block::
 
-    async with wait_all_cm(async_fn()) as task:
+    async with wait_all_cm(async_fn0(), async_fn1()) as tasks:
         ...
-    if task.finished:
-        print(f"async_fn completed with a return value of {task.result}.")
-    else:
-        print(f"async_fn was cancelled.")
+    for i, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
+
+.. versionchanged:: 0.10.0
+    Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
 wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
 '''
-Returns an async context manager that runs the given task and the code inside the with-block concurrently,
-and waits for either one to complete. As soon as that happens, the other will be cancelled if it is still running.
-
-This is equivalent to :func:`trio_util.move_on_when`.
+Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits until either the code inside the with-block completes or any of the tasks completes.
+As soon as that happens, any remaining tasks and the code inside the with-block (if still running) will be cancelled.
 
 .. code-block::
 
-    async with wait_any_cm(async_fn()) as task:
+    async with wait_any_cm(async_fn0(), async_fn1()) as tasks:
         ...
-    if task.finished:
-        print(f"async_fn completed with a return value of {task.result}.")
-    else:
-        print(f"async_fn was cancelled.")
+    for i, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
+
+.. versionchanged:: 0.10.0
+    Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
 run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_any, True)
 '''
-Returns an async context manager that runs the given task and the code inside the with-block concurrently,
-and waits for the task to either complete or be cancelled. As soon as that happens, the with-block will be
-cancelled if it is still running.
+Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits until either any of the tasks completes or all are cancelled. As soon as that happens,
+any remaining tasks and the code inside the with-block (if still running) will be cancelled.
 
 .. code-block::
 
-    async with run_as_main(async_fn()) as task:
+    async with run_as_main(async_fn0(), async_fn1()) as tasks:
         ...
-    if task.finished:
-        print(f"async_fn completed with a return value of {task.result}.")
-    else:
-        print(f"async_fn was cancelled.")
+    for i, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
+
+.. versionchanged:: 0.10.0
+    Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
 run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _on_child_end__ver_all, False)
 '''
-Returns an async context manager that runs the given task and the code inside the with-block concurrently,
-and waits for the with-block to complete. As soon as that happens, the task will be cancelled if it is still running.
+Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits until the code inside the with-block completes. As soon as that happens, the tasks will be
+cancelled if they are still running.
 
 This is equivalent to :func:`trio_util.run_and_cancelling`.
 
 .. code-block::
 
-    async with run_as_daemon(async_fn()) as task:
+    async with run_as_daemon(async_fn0(), async_fn1()) as tasks:
         ...
-    if task.finished:
-        print(f"async_fn completed with a return value of {task.result}.")
-    else:
-        print(f"async_fn was cancelled.")
+    for i, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{i} completed with a return value of {task.result}.")
+        else:
+            print(f"async_fn{i} was cancelled.")
+
+.. versionchanged:: 0.10.0
+    Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
 
@@ -960,5 +980,5 @@ async def open_nursery(*, _gc_in_every=1000) -> AsyncIterator[Nursery]:
 
 move_on_when = wait_any_cm
 '''
-An alias of :func:`wait_any_cm`, which is equivalent to :func:`trio_util.move_on_when`.
+Alias for :func:`wait_any_cm`. The name is borrowed from :func:`trio_util.move_on_when`.
 '''

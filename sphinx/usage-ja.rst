@@ -249,13 +249,13 @@ APIを決める
 
     async def async_main(slp):
         # 0から9までの数字を0.3秒間隔で出力するが、その作業に2秒の制限時間を設ける
-        async with ag.move_on_when(slp(2)) as timeout_tracker:
+        async with ag.move_on_when(slp(2)) as tasks:
             for c in string.digits:
                 print(c, end=' ')
                 await slp(0.3)
         print('')
 
-        if timeout_tracker.finished:
+        if tasks[0].finished:
             print("時間切れ")
         else:
             print("時間内に全ての数字を出力し終わりました")
