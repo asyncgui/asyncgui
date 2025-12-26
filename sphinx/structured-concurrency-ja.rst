@@ -11,7 +11,7 @@ wait_any
 --------
 
 複数のタスクを同時に走らせ ``そのいずれかが完了するか`` 或いは ``全てが中断される`` まで待ちます。
-またいずれかのタスクが完了しだい残りのタスクは中断されます。
+そしていずれかのタスクが完了しだい残りのタスクは中断されます。
 
 .. code-block::
 
@@ -93,76 +93,35 @@ wait_all
 wait_any_cm, wait_all_cm
 ------------------------
 
-``wait_any`` を用いて二つのタスクを並行させるコードは
+:func:`~asyncgui.wait_any` と :func:`~asyncgui.wait_all` にはコンテキストマネージャ版である :func:`~asyncgui.wait_any_cm` と :func:`~asyncgui.wait_all_cm` が用意されています。
+これらは渡されたタスクに加えてwithブロック内のコードも並行して走らせます。
+すなわち以下のコードでは ``async_fn0`` と ``async_fn1`` と ``hogehoge`` の３つを並行して走らせます。
 
 .. code-block::
 
-    async def async_fn1():
-        # async_fn1 の中身
+    async def wait_any_cm(async_fn0(), async_fn1()) as tasks:
+        # hogehoge
 
-    async def main():
-        await wait_any(async_fn1(), async_fn2())
-
-``wait_any_cm`` を用いて以下の様に書くこともできます。
+引数に渡したタスクが完了/中断したのか、完了した物の戻り値は何か等の調べ方は同じです。
 
 .. code-block::
 
-    async def main():
-        async with wait_any_cm(async_fn2()) as task2:
-            # async_fn1 の中身
-
-この様に ``async_fn1`` の中身をwithブロック内に移す事で関数を一つ減らす事に成功しました。
-この機能は ``async_fn1()`` 内で ``main()`` 内のローカル変数をたくさん読み書きしたい時に特に活きるでしょう。
-例えば次のコードを見て下さい。
-
-.. code-block::
-
-    async def main():
-        var1 = ...
-        var2 = ...
-
-        async def async_fn1():
-            nonlocal var1, var2
-            var1 = ...
-            var2 = ...
-
-        await wait_any(async_fn1(), async_fn2())
-
-``async_fn1()`` 内で ``main()`` 内のローカル変数を触りたいが為にこのようにインナー関数として実装したわけですが、
-このようなコードは読みにくいだけでなく ``nonlocal`` の書き忘れによるバグを引き起こす可能性も孕んでいます。
-これを ``wait_any_cm`` を用いて書き直すとどうなるかというと
-
-.. code-block::
-
-    async def main():
-        var1 = ...
-        var2 = ...
-        async with wait_any_cm(async_fn2()) as task2:
-            var1 = ...
-            var2 = ...
-
-この様にスッキリします。
-後このコンテキストマネージャー型のAPIは :class:`~collections.abc.Awaitable` を一つしか受け取れないので並行させられるタスクの数に限界があるように
-見えますが、先に述べたように入れ子にできるのでその限界は実質無いような物です。
-
-.. code-block::
-
-    async def main():
-        async with wait_any_cm(wait_any(...)):
-            ...
-
+    for i, task in enumerate(tasks):
+        if task.finished:
+            print(f"async_fn{i} は {task.result} を返して完了しました。")
+        else:
+            print(f"async_fn{i} は中断されました。")
 
 run_as_daemon
 -------------
 
 これまで解説してきたAPIはどれも並行させたタスク達の関係が対等でした。
-``wait_any_cm`` を例に挙げるならwithブロック内のコードと ``wait_any_cm`` に渡したタスクのどちらが完了した場合でももう片方を中断させるの
-でした。
+``wait_any_cm`` を例に挙げるならwithブロック内のコードと ``wait_any_cm`` に渡したタスクのどれが完了した場合でも他の処理を中断させるのでした。
 しかし時には対等ではない関係も必要となります。
 
 .. code-block::
 
-    async with run_as_daemon(async_fn()) as daemon_task:
+    async with run_as_daemon(async_fn()) as daemon_tasks:
         ...
 
 このコードではwithブロック内が先に完了した場合は ``async_fn()`` は中断させられますが、 ``async_fn()`` が先に完了しても何も起きず
@@ -177,7 +136,7 @@ run_as_main
 
 .. code-block::
 
-    async with run_as_main(async_fn()) as main_task:
+    async with run_as_main(async_fn()) as main_tasks:
         ...
 
 すなわちwithブロックが先に完了した場合は ``async_fn()`` の完了を待つ事になり、

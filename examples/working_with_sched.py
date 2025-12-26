@@ -23,13 +23,13 @@ def main():
 
 async def async_main(slp):
     # Print digits from 0 to 9 at 0.3-second intervals, with a 2-second time limit
-    async with ag.move_on_when(slp(2)) as timeout_tracker:
+    async with ag.move_on_when(slp(2)) as tasks:
         for c in string.digits:
             print(c, end=' ')
             await slp(0.3)
     print('')
 
-    if timeout_tracker.finished:
+    if tasks[0].finished:
         print("Timeout")
     else:
         print("Printed all digits in time")
