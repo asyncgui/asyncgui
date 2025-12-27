@@ -722,6 +722,12 @@ def _on_child_end__ver_any(scope, counter, child):
         scope.cancel()
 
 
+def _on_child_end__ver_run_as_main(scope, counter, child):
+    counter.decrease()
+    if child._exc_caught is not None or counter.is_not_zero is False:
+        scope.cancel()
+
+
 _wait_xxx_type: TypeAlias = Callable[..., Awaitable[Sequence[Task]]]
 wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
 '''
@@ -832,11 +838,11 @@ As soon as that happens, any remaining tasks and the code inside the with-block 
     Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
-run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_any, True)
+run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_run_as_main, True)
 '''
 Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
-the with-block, then waits until either any of the tasks completes or all are cancelled. As soon as that happens,
-any remaining tasks and the code inside the with-block (if still running) will be cancelled.
+the with-block, then waits for all tasks to either complete or be cancelled. As soon as all tasks have done so,
+the code inside the with-block will be cancelled if it is still running.
 
 .. code-block::
 
@@ -847,6 +853,8 @@ any remaining tasks and the code inside the with-block (if still running) will b
             print(f"async_fn{i} completed with a return value of {task.result}.")
         else:
             print(f"async_fn{i} was cancelled.")
+
+If no tasks are given, it simply runs the code inside the with-block.
 
 .. versionchanged:: 0.10.0
     Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.

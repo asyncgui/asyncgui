@@ -5,17 +5,21 @@
 import pytest
 
 fg_sleep = pytest.mark.parametrize('fg_sleep', (True, False, ), ids=('fg_sleep', ''))
+num_bg_tasks = pytest.mark.parametrize('num_bg_tasks', (1, 2, ))
+
 
 @fg_sleep
-def test_bg_finishes_immediately(fg_sleep):
+@num_bg_tasks
+def test_bg_finishes_immediately(fg_sleep, num_bg_tasks):
     import asyncgui as ag
 
     async def finish_imm():
         pass
 
     async def async_fn():
-        async with ag.run_as_main(finish_imm()) as bg_tasks:
-            assert bg_tasks[0].finished
+        async with ag.run_as_main(*[finish_imm() for __ in range(num_bg_tasks)]) as bg_tasks:
+            for t in bg_tasks:
+                assert t.finished
             if fg_sleep:
                 await ag.sleep_forever()
 
@@ -24,33 +28,41 @@ def test_bg_finishes_immediately(fg_sleep):
 
 
 @fg_sleep
-def test_bg_finishes_while_fg_is_running(fg_sleep):
+@num_bg_tasks
+def test_bg_finishes_while_fg_is_running(fg_sleep, num_bg_tasks):
     import asyncgui as ag
     TS = ag.TaskState
+    e = ag.Event()
 
     async def async_fn():
-        async with ag.run_as_main(ag.sleep_forever()) as bg_tasks:
-            assert bg_tasks[0].state is TS.STARTED
-            bg_tasks[0]._step()
-            assert bg_tasks[0].state is TS.FINISHED
+        async with ag.run_as_main(*[e.wait() for __ in range(num_bg_tasks)]) as bg_tasks:
+            for t in bg_tasks:
+                assert t.state is TS.STARTED
+            e.fire()
+            for t in bg_tasks:
+                assert t.state is TS.FINISHED
             if fg_sleep:
                 await ag.sleep_forever()
-        assert bg_tasks[0].state is TS.FINISHED
+        for t in bg_tasks:
+            assert t.state is TS.FINISHED
 
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.FINISHED
 
 
-def test_bg_finishes_while_fg_is_suspended():
+@num_bg_tasks
+def test_bg_finishes_while_fg_is_suspended(num_bg_tasks):
     import asyncgui as ag
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_main(e.wait()) as bg_tasks:
-            assert bg_tasks[0].state is TS.STARTED
+        async with ag.run_as_main(*[e.wait() for __ in range(num_bg_tasks)]) as bg_tasks:
+            for t in bg_tasks:
+                assert t.state is TS.STARTED
             await ag.sleep_forever()
             pytest.fail()
-        assert bg_tasks[0].state is TS.FINISHED
+        for t in bg_tasks:
+            assert t.state is TS.FINISHED
 
     e = ag.Event()
     fg_task = ag.start(async_fn())
@@ -59,40 +71,70 @@ def test_bg_finishes_while_fg_is_suspended():
     assert fg_task.state is TS.FINISHED
 
 
-def test_fg_finishes_while_bg_is_running():
+@num_bg_tasks
+def test_fg_finishes_while_bg_is_running(num_bg_tasks):
     import asyncgui as ag
     TS = ag.TaskState
 
     async def bg_fn():
-        await e.wait()
-        fg_task._step()
+        await bg_e.wait()
+        fg_e.fire()
 
     async def async_fn():
-        async with ag.run_as_main(bg_fn()) as bg_tasks:
-            assert bg_tasks[0].state is TS.STARTED
-            await ag.sleep_forever()
-            assert bg_tasks[0].state is TS.STARTED
-        assert bg_tasks[0].state is TS.FINISHED
+        async with ag.run_as_main(*[bg_fn() for __ in range(num_bg_tasks)]) as bg_tasks:
+            for t in bg_tasks:
+                assert t.state is TS.STARTED
+            await fg_e.wait()
+            for t in bg_tasks:
+                assert t.state is TS.STARTED
+        for t in bg_tasks:
+            assert t.state is TS.FINISHED
 
-    e = ag.Event()
+    fg_e = ag.Event()
+    bg_e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
-    e.fire()
+    bg_e.fire()
     assert fg_task.state is TS.FINISHED
 
 
-def test_fg_finishes_while_bg_is_suspended():
+@num_bg_tasks
+def test_fg_finishes_while_bg_is_suspended(num_bg_tasks):
     import asyncgui as ag
     TS = ag.TaskState
 
     async def async_fn():
-        async with ag.run_as_main(e.wait()) as bg_tasks:
-            assert bg_tasks[0].state is TS.STARTED
-        assert bg_tasks[0].state is TS.FINISHED
+        async with ag.run_as_main(*[e.wait() for __ in range(num_bg_tasks)]) as bg_tasks:
+            for t in bg_tasks:
+                assert t.state is TS.STARTED
+        for t in bg_tasks:
+            assert t.state is TS.FINISHED
         
 
     e = ag.Event()
     fg_task = ag.start(async_fn())
     assert fg_task.state is TS.STARTED
     e.fire()
+    assert fg_task.state is TS.FINISHED
+
+
+@num_bg_tasks
+def test_bg_gets_cancelled_while_fg_is_suspended(num_bg_tasks):
+    # https://github.com/asyncgui/asyncgui/issues/142
+    import asyncgui as ag
+    TS = ag.TaskState
+
+    exposed_bg_tasks = None
+
+    async def async_fn():
+        nonlocal exposed_bg_tasks
+        async with ag.run_as_main(*[ag.sleep_forever() for _ in range(num_bg_tasks)]) as bg_tasks:
+            exposed_bg_tasks = bg_tasks
+            await ag.sleep_forever()
+            pytest.fail()
+
+    fg_task = ag.start(async_fn())
+    assert fg_task.state is TS.STARTED
+    for t in exposed_bg_tasks:
+        t.cancel()
     assert fg_task.state is TS.FINISHED
