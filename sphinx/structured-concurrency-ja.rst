@@ -139,8 +139,8 @@ run_as_main
     async with run_as_main(async_fn()) as main_tasks:
         ...
 
-すなわちwithブロックが先に完了した場合は ``async_fn()`` の完了を待つ事になり、
-``async_fn()`` が先に完了した場合はwithブロックが中断されます。
+すなわちwithブロックが先に完了した場合は ``async_fn()`` の完了/中断を待つ事になり、
+``async_fn()`` が先に完了/中断した場合はwithブロックが中断されます。
 
 
 open_nursery
