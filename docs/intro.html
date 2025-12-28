@@ -1,0 +1,443 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Introduction 🇯🇵" href="intro-ja.html" /><link rel="prev" title="AsyncGui" href="index.html" />
+
+    <!-- Generated with Sphinx 7.4.7 and Furo 2023.09.10 -->
+        <title>Introduction - asyncgui 0.10.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">asyncgui 0.10.0.dev0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">asyncgui 0.10.0.dev0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro-ja.html">Introduction 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage-ja.html">Usage 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structured-concurrency.html">Structured Concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structured-concurrency-ja.html">Structured Concurrency 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Tips</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">API Reference</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h1>
+<section id="the-problem-with-existing-libraries">
+<h2>The problem with existing libraries<a class="headerlink" href="#the-problem-with-existing-libraries" title="Link to this heading">¶</a></h2>
+<p>There are a couple of async libraries for Python.
+One, of course, is <a class="reference external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> from the standard library.
+Another one is <a class="reference external" href="https://trio.readthedocs.io/">Trio</a>, well-known for its <a class="reference external" href="https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/">structured concurrency</a>.
+And <a class="reference external" href="https://curio.readthedocs.io/">Curio</a>, which seems to have had a big influence on Trio, though it now only accepts bug fixes.</p>
+<p>They may differ from each other but all of them have in common is that they are not suitable for GUI programs.
+I’m not saying “Having a GUI library and an async library coexist in the same thread is problematic due to their individual main loops”.
+In fact, <a class="reference external" href="https://kivy.org/">Kivy</a> and <a class="reference external" href="https://beeware.org/project/toga/">Toga</a> have adapted themselves to work with async libraries;
+<a class="reference external" href="https://www.pygame.org/">PyGame</a> doesn’t even own a main loop and expects the user to implement one,
+so you could do that by putting an <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">asyncio.sleep()</span></code> inside a main loop <a class="footnote-reference brackets" href="#pygame-with-asyncio" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>;
+<a class="reference external" href="https://docs.python.org/3/library/tkinter.html#module-tkinter" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tkinter</span></code></a> and <a class="reference external" href="https://www.riverbankcomputing.com/software/pyqt/">PyQt</a> seem to have 3rd party libraries that allow them to work with async libraries.
+Even if none of them are your options, Trio has <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-lowlevel.html#using-guest-mode-to-run-trio-on-top-of-other-event-loops">special mode</a> that makes it run without interfering with other main loop.
+Therefore, I think it’s safe to say that the coexisting problem has been already solved.</p>
+<p>Then why do I say “they are not suitable for GUI programs”?
+It’s because they cannot <em>immediately</em> start/resume tasks.
+For instance, <a class="reference external" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncio.create_task()</span></code></a> and <a class="reference external" href="https://docs.python.org/3/library/asyncio-task.html#asyncio.TaskGroup.create_task" title="(in Python v3.14)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">asyncio.TaskGroup.create_task()</span></code></a> are the ones that start tasks in
+<a class="reference external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a>, but neither of them does it immediately.</p>
+<p>Let me clarify what I mean by “immediately” just in case.
+It means the following test should pass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_fn</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">flag</span><span class="p">;</span> <span class="n">flag</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">async_fn</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="n">flag</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>which does not.
+The same applies to <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#trio.Nursery.start" title="(in Trio v0.32.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">trio.Nursery.start()</span></code></a> and <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#trio.Nursery.start_soon" title="(in Trio v0.32.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">trio.Nursery.start_soon()</span></code></a>
+(This has “soon” in its name so it’s obvious).</p>
+<p>The same issue arises when they resume tasks.
+<a class="reference external" href="https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event.set" title="(in Python v3.14)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">asyncio.Event.set()</span></code></a> and <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#trio.Event.set" title="(in Trio v0.32.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">trio.Event.set()</span></code></a> don’t immediately resume the tasks waiting for it to happen.
+They schedule the tasks to <em>eventually</em> resume, thus, the following test fails.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_fn</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+    <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">flag</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">async_fn</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+    <span class="k">await</span> <span class="n">e</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="k">global</span> <span class="n">flag</span><span class="p">;</span> <span class="n">flag</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Why does the inability to immediately start/resume tasks make async libraries unsuitable for GUI programs?
+Take a look at the following pseudo code that changes the background color of a button while it is pressed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">toggle_button_background_color</span><span class="p">(</span><span class="n">button</span><span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">button</span><span class="o">.</span><span class="n">to_be_pressed</span><span class="p">()</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">background_color</span> <span class="o">=</span> <span class="n">different_color</span>
+        <span class="k">await</span> <span class="n">button</span><span class="o">.</span><span class="n">to_be_released</span><span class="p">()</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">background_color</span> <span class="o">=</span> <span class="n">original_color</span>
+</pre></div>
+</div>
+<p>Consider a situation where the task is paused at the <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">button.to_be_pressed()</span></code> line and the user presses the button.
+As I mentioned, neither of <a class="reference external" href="https://docs.python.org/3/library/asyncio.html#module-asyncio" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asyncio</span></code></a> nor <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#module-trio" title="(in Trio v0.32.0)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">trio</span></code></a> resumes tasks immediately, so the background color won’t change immediately.
+Now, what happens if the user releases the button <em>before</em> the task resumes?
+The task eventually resumes and pauses at the <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">button.to_be_released()</span></code> line…
+<strong>but the user has already released the button</strong>.
+The task ends up waiting there until the user presses and releases the button again.
+As a result, the background color of the button remains the <code class="docutils literal notranslate"><span class="pre">different_color</span></code> until that happens.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The situation is worse in <a class="reference external" href="https://kivy.org/">Kivy</a>. In Kivy, touch events are stateful objects.
+If you fail to handle them promptly, their state might undergo changes,
+leaving no time to wait for tasks to resume.</p>
+</div>
+<p>Responding to events without missing any occurrences is challenging for async libraries that cannot start or resume tasks immediately.
+The only solution I came up with is recording events using traditional callback APIs,
+and supplying them to tasks that resume late a.k.a. buffering.
+I’m not sure if it’s possible or practical, but it certainly adds huge complexity into your program.</p>
+<p>If you use <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code>, that never be a problem.</p>
+</section>
+<section id="asyncgui">
+<h2>asyncgui<a class="headerlink" href="#asyncgui" title="Link to this heading">¶</a></h2>
+<section id="immediacy">
+<h3>Immediacy<a class="headerlink" href="#immediacy" title="Link to this heading">¶</a></h3>
+<p>The problem mentioned above doesn’t occur in <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> because:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="reference.html#asyncgui.start" title="asyncgui.start"><code class="xref py py-func docutils literal notranslate"><span class="pre">asyncgui.start()</span></code></a> and <a class="reference internal" href="reference.html#asyncgui.Nursery.start" title="asyncgui.Nursery.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">asyncgui.Nursery.start()</span></code></a> immediately start a task.</p></li>
+<li><p><a class="reference internal" href="reference.html#asyncgui.Event.fire" title="asyncgui.Event.fire"><code class="xref py py-meth docutils literal notranslate"><span class="pre">asyncgui.Event.fire()</span></code></a> immediately resumes the tasks waiting for it to happen.</p></li>
+</ul>
+<p>All other APIs work that way as well.</p>
+</section>
+<section id="no-main-loop">
+<h3>No main loop<a class="headerlink" href="#no-main-loop" title="Link to this heading">¶</a></h3>
+<p>The coexistence problem I mentioned earlier doesn’t occur in <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> because it doesn’t own a main loop.
+Instead, <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> runs by piggybacking on another main loop, such as one from a GUI library.
+To achieve this, however, you need to wrap the callback-style APIs associated with the main loop it piggybacks.
+I’ll explain this further in the <a class="reference internal" href="usage.html"><span class="doc">Usage</span></a> section.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>“another main loop” can be other async library’s.
+Yes, you can even run <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> and other async library in the same thread.
+However, there is a catch: <a class="reference internal" href="tips.html#coexistence-with-other-async-libraries"><span class="std std-ref">Coexistence with other async libraries</span></a>.</p>
+</div>
+</section>
+<section id="no-global-state">
+<h3>No global state<a class="headerlink" href="#no-global-state" title="Link to this heading">¶</a></h3>
+<p>Although it wasn’t originally intended, <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> ended up having no global state. All states are represented as:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/glossary.html#term-closure-variable">closure variables</a></p></li>
+<li><p>local variables declared in coroutines/generators</p></li>
+<li><p>instance attributes</p></li>
+</ul>
+<p>not:</p>
+<ul class="simple">
+<li><p>module-level variables</p></li>
+<li><p>class-level attributes</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Other async libraries have global states.</p>
+<p><a class="reference external" href="https://github.com/python/cpython/blob/4890bfe1f906202ef521ffd327cae36e1afa0873/Lib/asyncio/tasks.py#L970-L972">asyncio.tasks._current_tasks</a>, <a class="reference external" href="https://github.com/python-trio/trio/blob/722f1b577d4753de5ea1ca5b5b9f2f1a7c6cb56d/trio/_core/_run.py#L1356">trio._core.GLOBAL_CONTEXT</a></p>
+</div>
+</section>
+<section id="minimalism">
+<h3>Minimalism<a class="headerlink" href="#minimalism" title="Link to this heading">¶</a></h3>
+<p>As mentioned in the README, <code class="docutils literal notranslate"><span class="pre">asyncgui</span></code> itself does not provide any features that involve system calls.
+It runs solely on features of the Python language and standard library components that I believe do not involve system calls,
+such as <a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.contextmanager" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">contextlib.contextmanager()</span></code></a> and <a class="reference external" href="https://docs.python.org/3/library/inspect.html#inspect.getcoroutinestate" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">inspect.getcoroutinestate()</span></code></a>.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="pygame-with-asyncio" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: I haven&#39;t tested whether this code actually works.</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main_loop</span><span class="p">():</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="o">...</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="o">...</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">main_loop</span><span class="p">())</span>
+</pre></div>
+</div>
+</aside>
+</aside>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="intro-ja.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Introduction 🇯🇵</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Home</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2023, Mitō Nattōsai
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Introduction</a><ul>
+<li><a class="reference internal" href="#the-problem-with-existing-libraries">The problem with existing libraries</a></li>
+<li><a class="reference internal" href="#asyncgui">asyncgui</a><ul>
+<li><a class="reference internal" href="#immediacy">Immediacy</a></li>
+<li><a class="reference internal" href="#no-main-loop">No main loop</a></li>
+<li><a class="reference internal" href="#no-global-state">No global state</a></li>
+<li><a class="reference internal" href="#minimalism">Minimalism</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=b76a0394"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>

@@ -1,0 +1,815 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="Tips" href="tips.html" />
+
+    <!-- Generated with Sphinx 7.4.7 and Furo 2023.09.10 -->
+        <title>API Reference - asyncgui 0.10.0.dev0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">asyncgui 0.10.0.dev0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">asyncgui 0.10.0.dev0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro-ja.html">Introduction 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage-ja.html">Usage 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structured-concurrency.html">Structured Concurrency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structured-concurrency-ja.html">Structured Concurrency 🇯🇵</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Tips</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">API Reference</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="module-asyncgui">
+<span id="api-reference"></span><h1>API Reference<a class="headerlink" href="#module-asyncgui" title="Link to this heading">¶</a></h1>
+<dl class="py data">
+<dt class="sig sig-object py" id="asyncgui.Cancelled">
+<span class="sig-name descname"><span class="pre">Cancelled</span></span><a class="headerlink" href="#asyncgui.Cancelled" title="Link to this definition">¶</a></dt>
+<dd><p>Exception class that represents cancellation.
+See <a class="reference internal" href="tips.html#dealing-with-cancellation"><span class="std std-ref">Dealing with Cancellation</span></a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Actually, this is not an exception class but a tuple of exception classes for now.
+But that’s an implementation detail, and it might become an actual class in the future;
+therefore, your code must be compatible in both cases.</p>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asyncgui.Event">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Event</span></span><a class="headerlink" href="#asyncgui.Event" title="Link to this definition">¶</a></dt>
+<dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_fn</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+    <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="k">await</span> <span class="n">e</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">args</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">kwargs</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;crow&#39;</span><span class="p">:</span> <span class="s1">&#39;raven&#39;</span><span class="p">,</span> <span class="p">}</span>
+
+    <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="k">await</span> <span class="n">e</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">args</span> <span class="o">==</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">kwargs</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;toad&#39;</span><span class="p">:</span> <span class="s1">&#39;frog&#39;</span><span class="p">,</span> <span class="p">}</span>
+
+<span class="n">e</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+<span class="n">e</span><span class="o">.</span><span class="n">fire</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">crocodile</span><span class="o">=</span><span class="s1">&#39;alligator&#39;</span><span class="p">)</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">start</span><span class="p">(</span><span class="n">async_fn</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="n">e</span><span class="o">.</span><span class="n">fire</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">crow</span><span class="o">=</span><span class="s1">&#39;raven&#39;</span><span class="p">)</span>
+<span class="n">e</span><span class="o">.</span><span class="n">fire</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">toad</span><span class="o">=</span><span class="s1">&#39;frog&#39;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This differs from <a class="reference external" href="https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Event</span></code></a>, as it does not have a “set” state. <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">e.wait()</span></code> will
+always block the caller until someone else calls <a class="reference internal" href="#asyncgui.Event.fire" title="asyncgui.Event.fire"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fire()</span></code></a> <em>after</em> the wait has started.
+Use <a class="reference internal" href="#asyncgui.StatefulEvent" title="asyncgui.StatefulEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatefulEvent</span></code></a> if you want something closer to <a class="reference external" href="https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Event</span></code></a>.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.7.0: </span>This is now completely different from the previous version’s.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.Event.fire">
+<span class="sig-name descname"><span class="pre">fire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.Event.fire" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.Event.wait">
+<span class="sig-name descname"><span class="pre">wait</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.Event.wait" title="Link to this definition">¶</a></dt>
+<dd><p>Waits for the event to be fired.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asyncgui.ExclusiveEvent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ExclusiveEvent</span></span><a class="headerlink" href="#asyncgui.ExclusiveEvent" title="Link to this definition">¶</a></dt>
+<dd><p>Similar to <a class="reference internal" href="#asyncgui.Event" title="asyncgui.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a>, but this version does not allow multiple tasks to <a class="reference internal" href="#asyncgui.ExclusiveEvent.wait" title="asyncgui.ExclusiveEvent.wait"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wait()</span></code></a> simultaneously.
+As a result, it operates faster.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.ExclusiveEvent.fire">
+<span class="sig-name descname"><span class="pre">fire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.ExclusiveEvent.fire" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.ExclusiveEvent.wait">
+<span class="sig-name descname"><span class="pre">wait</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.ExclusiveEvent.wait" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="asyncgui.InvalidStateError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">InvalidStateError</span></span><a class="headerlink" href="#asyncgui.InvalidStateError" title="Link to this definition">¶</a></dt>
+<dd><p>Operation is not allowed in the current state.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asyncgui.Nursery">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Nursery</span></span><a class="headerlink" href="#asyncgui.Nursery" title="Link to this definition">¶</a></dt>
+<dd><p>An equivalent of <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#trio.Nursery" title="(in Trio v0.32.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">trio.Nursery</span></code></a>.
+You should not directly instantiate this, use <a class="reference internal" href="#asyncgui.open_nursery" title="asyncgui.open_nursery"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_nursery()</span></code></a>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.Nursery.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.Nursery.close" title="Link to this definition">¶</a></dt>
+<dd><p>Cancel all the child tasks in the nursery as soon as possible.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.Nursery.closed">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">closed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#asyncgui.Nursery.closed" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.Nursery.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daemon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a></span></span><a class="headerlink" href="#asyncgui.Nursery.start" title="Link to this definition">¶</a></dt>
+<dd><p><em>Immediately</em> start a Task under the supervision of the nursery.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">daemon</span></code> parameter acts like the one in the <a class="reference external" href="https://docs.python.org/3/library/threading.html#module-threading" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">threading</span></code></a> module.
+When only daemon tasks are left, they get cancelled, and the nursery closes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asyncgui.StatefulEvent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">StatefulEvent</span></span><a class="headerlink" href="#asyncgui.StatefulEvent" title="Link to this definition">¶</a></dt>
+<dd><p>The closest thing to <a class="reference external" href="https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">asyncio.Event</span></code></a> in this library.</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>StatefulEvent</p></th>
+<th class="head"><p>asyncio.Event</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>.fire()</p></td>
+<td><p>.set()</p></td>
+</tr>
+<tr class="row-odd"><td><p>.wait()</p></td>
+<td><p>.wait()</p></td>
+</tr>
+<tr class="row-even"><td><p>.clear()</p></td>
+<td><p>.clear()</p></td>
+</tr>
+<tr class="row-odd"><td><p>.is_fired</p></td>
+<td><p>.is_set()</p></td>
+</tr>
+<tr class="row-even"><td><p>.params</p></td>
+<td><p>–</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_fn</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+    <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="k">await</span> <span class="n">e</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">args</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">kwargs</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;crow&#39;</span><span class="p">:</span> <span class="s1">&#39;raven&#39;</span><span class="p">,</span> <span class="p">}</span>
+
+<span class="n">e</span> <span class="o">=</span> <span class="n">StatefulEvent</span><span class="p">()</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">start</span><span class="p">(</span><span class="n">async_fn</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span>
+<span class="n">e</span><span class="o">.</span><span class="n">fire</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">crow</span><span class="o">=</span><span class="s1">&#39;raven&#39;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 0.7.2.</span></p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.9.0: </span>The <code class="docutils literal notranslate"><span class="pre">.refire()</span></code> and <code class="docutils literal notranslate"><span class="pre">.fire_or_refire()</span></code> methods have been removed.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.StatefulEvent.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.StatefulEvent.clear" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the event to a non-fired state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.StatefulEvent.fire">
+<span class="sig-name descname"><span class="pre">fire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.StatefulEvent.fire" title="Link to this definition">¶</a></dt>
+<dd><p>Fires the event if it’s not in a fired state.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.StatefulEvent.is_fired">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_fired</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#asyncgui.StatefulEvent.is_fired" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.StatefulEvent.params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a></em><a class="headerlink" href="#asyncgui.StatefulEvent.params" title="Link to this definition">¶</a></dt>
+<dd><p>The parameters passed to the last fire. Raises <a class="reference internal" href="#asyncgui.InvalidStateError" title="asyncgui.InvalidStateError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InvalidStateError</span></code></a> if the event is not in a “fired” state.
+This is a convenient way to access the parameters from synchronous code.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">e</span> <span class="o">=</span> <span class="n">StatefulEvent</span><span class="p">()</span>
+
+<span class="n">e</span><span class="o">.</span><span class="n">fire</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">crow</span><span class="o">=</span><span class="s1">&#39;raven&#39;</span><span class="p">)</span>
+<span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">params</span>
+<span class="k">assert</span> <span class="n">args</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+<span class="k">assert</span> <span class="n">kwargs</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;crow&#39;</span><span class="p">:</span> <span class="s1">&#39;raven&#39;</span><span class="p">,</span> <span class="p">}</span>
+
+<span class="n">e</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="n">e</span><span class="o">.</span><span class="n">fire</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">parasol</span><span class="o">=</span><span class="s1">&#39;umbrella&#39;</span><span class="p">)</span>
+<span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">params</span>
+<span class="k">assert</span> <span class="n">args</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">)</span>
+<span class="k">assert</span> <span class="n">kwargs</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;parasol&#39;</span><span class="p">:</span> <span class="s1">&#39;umbrella&#39;</span><span class="p">,</span> <span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.StatefulEvent.wait">
+<span class="sig-name descname"><span class="pre">wait</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.StatefulEvent.wait" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asyncgui.StatelessEvent">
+<span class="sig-name descname"><span class="pre">StatelessEvent</span></span><a class="headerlink" href="#asyncgui.StatelessEvent" title="Link to this definition">¶</a></dt>
+<dd><p>An alias of <a class="reference internal" href="#asyncgui.Event" title="asyncgui.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 0.7.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asyncgui.Task">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.Task" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.Task.cancel">
+<span class="sig-name descname"><span class="pre">cancel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.Task.cancel" title="Link to this definition">¶</a></dt>
+<dd><p>Cancel the task as soon as possible.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.Task.cancelled">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cancelled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#asyncgui.Task.cancelled" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the task has been cancelled.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asyncgui.Task.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.Task.close" title="Link to this definition">¶</a></dt>
+<dd><p>An alias of <a class="reference internal" href="#asyncgui.Task.cancel" title="asyncgui.Task.cancel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cancel()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.Task.finished">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">finished</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#asyncgui.Task.finished" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the task has completed execution.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.Task.result">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></em><a class="headerlink" href="#asyncgui.Task.result" title="Link to this definition">¶</a></dt>
+<dd><p>Result of the task. If the task is not finished, <a class="reference internal" href="#asyncgui.InvalidStateError" title="asyncgui.InvalidStateError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InvalidStateError</span></code></a> will be raised.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.Task.root_coro">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">root_coro</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Coroutine" title="(in Python v3.14)"><span class="pre">Coroutine</span></a></em><a class="headerlink" href="#asyncgui.Task.root_coro" title="Link to this definition">¶</a></dt>
+<dd><p>The starting point of the coroutine chain for the task.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asyncgui.Task.state">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.TaskState" title="asyncgui.TaskState"><span class="pre">TaskState</span></a></em><a class="headerlink" href="#asyncgui.Task.state" title="Link to this definition">¶</a></dt>
+<dd><p>The current state of the task.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asyncgui.TaskState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TaskState</span></span><a class="headerlink" href="#asyncgui.TaskState" title="Link to this definition">¶</a></dt>
+<dd><p>Enum class that represents the Task state.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asyncgui.TaskState.CANCELLED">
+<span class="sig-name descname"><span class="pre">CANCELLED</span></span><a class="headerlink" href="#asyncgui.TaskState.CANCELLED" title="Link to this definition">¶</a></dt>
+<dd><p>The execution has been cancelled. The cause of the cancellation is either an explicit or implicit call to
+<a class="reference internal" href="#asyncgui.Task.cancel" title="asyncgui.Task.cancel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Task.cancel()</span></code></a> or an unhandled exception.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asyncgui.TaskState.CREATED">
+<span class="sig-name descname"><span class="pre">CREATED</span></span><a class="headerlink" href="#asyncgui.TaskState.CREATED" title="Link to this definition">¶</a></dt>
+<dd><p>Waiting to start execution.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asyncgui.TaskState.FINISHED">
+<span class="sig-name descname"><span class="pre">FINISHED</span></span><a class="headerlink" href="#asyncgui.TaskState.FINISHED" title="Link to this definition">¶</a></dt>
+<dd><p>The execution has been completed.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asyncgui.TaskState.STARTED">
+<span class="sig-name descname"><span class="pre">STARTED</span></span><a class="headerlink" href="#asyncgui.TaskState.STARTED" title="Link to this definition">¶</a></dt>
+<dd><p>Currently running or suspended.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.current_task">
+<span class="sig-name descname"><span class="pre">current_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.current_task" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the Task instance corresponding to the caller.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">task</span> <span class="o">=</span> <span class="k">await</span> <span class="n">current_task</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="asyncgui.dummy_task">
+<span class="sig-name descname"><span class="pre">dummy_task</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;asyncgui.Task</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#asyncgui.dummy_task" title="Link to this definition">¶</a></dt>
+<dd><p>An already closed task.
+This can be utilized to prevent the need for the common null validation mentioned below.</p>
+<p><em>Before:</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyClass</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="hll">        <span class="bp">self</span><span class="o">.</span><span class="n">_task</span> <span class="o">=</span> <span class="kc">None</span>
+</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="hll">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span class="hll">            <span class="bp">self</span><span class="o">.</span><span class="n">_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">_task</span> <span class="o">=</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">())</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>After:</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyClass</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="hll">        <span class="bp">self</span><span class="o">.</span><span class="n">_task</span> <span class="o">=</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">dummy_task</span>
+</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="hll">        <span class="bp">self</span><span class="o">.</span><span class="n">_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">_task</span> <span class="o">=</span> <span class="n">asyncgui</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">())</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.move_on_when">
+<span class="sig-name descname"><span class="pre">move_on_when</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">aws</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.AbstractAsyncContextManager" title="(in Python v3.14)"><span class="pre">AbstractAsyncContextManager</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.move_on_when" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="#asyncgui.wait_any_cm" title="asyncgui.wait_any_cm"><code class="xref py py-func docutils literal notranslate"><span class="pre">wait_any_cm()</span></code></a>. The name is borrowed from <a class="reference external" href="https://trio-util.readthedocs.io/en/latest/index.html#trio_util.move_on_when" title="(in trio-util v0.9.0-dev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">trio_util.move_on_when()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.open_nursery">
+<span class="sig-name descname"><span class="pre">open_nursery</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.AbstractAsyncContextManager" title="(in Python v3.14)"><span class="pre">AbstractAsyncContextManager</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Nursery" title="asyncgui.Nursery"><span class="pre">Nursery</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.open_nursery" title="Link to this definition">¶</a></dt>
+<dd><p>An equivalent of <a class="reference external" href="https://trio.readthedocs.io/en/stable/reference-core.html#trio.open_nursery" title="(in Trio v0.32.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">trio.open_nursery()</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">open_nursery</span><span class="p">()</span> <span class="k">as</span> <span class="n">nursery</span><span class="p">:</span>
+    <span class="n">nursery</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_fn1</span><span class="p">())</span>
+    <span class="n">nursery</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_fn2</span><span class="p">(),</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.run_as_daemon">
+<span class="sig-name descname"><span class="pre">run_as_daemon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">aws</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.AbstractAsyncContextManager" title="(in Python v3.14)"><span class="pre">AbstractAsyncContextManager</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.run_as_daemon" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits until the code inside the with-block completes. As soon as that happens, the tasks will be
+cancelled if they are still running.</p>
+<p>This is equivalent to <a class="reference external" href="https://trio-util.readthedocs.io/en/latest/index.html#trio_util.run_and_cancelling" title="(in trio-util v0.9.0-dev)"><code class="xref py py-func docutils literal notranslate"><span class="pre">trio_util.run_and_cancelling()</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">run_as_daemon</span><span class="p">(</span><span class="n">async_fn0</span><span class="p">(),</span> <span class="n">async_fn1</span><span class="p">())</span> <span class="k">as</span> <span class="n">tasks</span><span class="p">:</span>
+    <span class="o">...</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> completed with a return value of </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> was cancelled.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.10.0: </span>Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.run_as_main">
+<span class="sig-name descname"><span class="pre">run_as_main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">aws</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.AbstractAsyncContextManager" title="(in Python v3.14)"><span class="pre">AbstractAsyncContextManager</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.run_as_main" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits for all tasks to either complete or be cancelled. As soon as all tasks have done so,
+the code inside the with-block will be cancelled if it is still running.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">run_as_main</span><span class="p">(</span><span class="n">async_fn0</span><span class="p">(),</span> <span class="n">async_fn1</span><span class="p">())</span> <span class="k">as</span> <span class="n">tasks</span><span class="p">:</span>
+    <span class="o">...</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> completed with a return value of </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> was cancelled.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If no tasks are given, it simply runs the code inside the with-block.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.10.0: </span>Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.sleep_forever">
+<span class="sig-name descname"><span class="pre">sleep_forever</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#asyncgui.sleep_forever" title="Link to this definition">¶</a></dt>
+<dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">await</span> <span class="n">sleep_forever</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a></span></span><a class="headerlink" href="#asyncgui.start" title="Link to this definition">¶</a></dt>
+<dd><p><em>Immediately</em> start a Task.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_func</span><span class="p">():</span>
+    <span class="o">...</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">start</span><span class="p">(</span><span class="n">async_func</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Tasks started with this function are root tasks.
+You must ensure they aren’t garbage-collected while still running
+–for example, by explicitly calling <a class="reference internal" href="#asyncgui.Task.cancel" title="asyncgui.Task.cancel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Task.cancel()</span></code></a> before the program exits.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.wait_all">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wait_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">aws</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.wait_all" title="Link to this definition">¶</a></dt>
+<dd><p>Runs multiple tasks concurrently, then waits for all of them to either complete or be cancelled.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tasks</span> <span class="o">=</span> <span class="k">await</span> <span class="n">wait_any</span><span class="p">(</span><span class="n">async_fn0</span><span class="p">(),</span> <span class="n">async_fn1</span><span class="p">(),</span> <span class="n">async_fn2</span><span class="p">())</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> completed with a return value of </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> was cancelled.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.wait_all_cm">
+<span class="sig-name descname"><span class="pre">wait_all_cm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">aws</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.AbstractAsyncContextManager" title="(in Python v3.14)"><span class="pre">AbstractAsyncContextManager</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.wait_all_cm" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits until the code inside the with-block completes and all tasks have either completed or been
+cancelled.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">wait_all_cm</span><span class="p">(</span><span class="n">async_fn0</span><span class="p">(),</span> <span class="n">async_fn1</span><span class="p">())</span> <span class="k">as</span> <span class="n">tasks</span><span class="p">:</span>
+    <span class="o">...</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> completed with a return value of </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> was cancelled.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.10.0: </span>Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.wait_any">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wait_any</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">aws</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.wait_any" title="Link to this definition">¶</a></dt>
+<dd><p>Runs multiple tasks concurrently, then waits until either one completes or all are cancelled.
+As soon as one completes, the others will be cancelled.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tasks</span> <span class="o">=</span> <span class="k">await</span> <span class="n">wait_any</span><span class="p">(</span><span class="n">async_fn0</span><span class="p">(),</span> <span class="n">async_fn1</span><span class="p">(),</span> <span class="n">async_fn2</span><span class="p">())</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> completed with a return value of </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> was cancelled.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asyncgui.wait_any_cm">
+<span class="sig-name descname"><span class="pre">wait_any_cm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">aws</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable" title="(in Python v3.14)"><span class="pre">Awaitable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/contextlib.html#contextlib.AbstractAsyncContextManager" title="(in Python v3.14)"><span class="pre">AbstractAsyncContextManager</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asyncgui.Task" title="asyncgui.Task"><span class="pre">Task</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asyncgui.wait_any_cm" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
+the with-block, then waits until either the code inside the with-block completes or any of the tasks completes.
+As soon as that happens, any remaining tasks and the code inside the with-block (if still running) will be cancelled.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">wait_any_cm</span><span class="p">(</span><span class="n">async_fn0</span><span class="p">(),</span> <span class="n">async_fn1</span><span class="p">())</span> <span class="k">as</span> <span class="n">tasks</span><span class="p">:</span>
+    <span class="o">...</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> completed with a return value of </span><span class="si">{</span><span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;async_fn</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> was cancelled.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.10.0: </span>Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.</p>
+</div>
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          <a class="prev-page" href="tips.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Tips</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2023, Mitō Nattōsai
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">API Reference</a><ul>
+<li><a class="reference internal" href="#asyncgui.Cancelled"><code class="docutils literal notranslate"><span class="pre">Cancelled</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Event"><code class="docutils literal notranslate"><span class="pre">Event</span></code></a><ul>
+<li><a class="reference internal" href="#asyncgui.Event.fire"><code class="docutils literal notranslate"><span class="pre">Event.fire()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Event.wait"><code class="docutils literal notranslate"><span class="pre">Event.wait()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#asyncgui.ExclusiveEvent"><code class="docutils literal notranslate"><span class="pre">ExclusiveEvent</span></code></a><ul>
+<li><a class="reference internal" href="#asyncgui.ExclusiveEvent.fire"><code class="docutils literal notranslate"><span class="pre">ExclusiveEvent.fire()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.ExclusiveEvent.wait"><code class="docutils literal notranslate"><span class="pre">ExclusiveEvent.wait()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#asyncgui.InvalidStateError"><code class="docutils literal notranslate"><span class="pre">InvalidStateError</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Nursery"><code class="docutils literal notranslate"><span class="pre">Nursery</span></code></a><ul>
+<li><a class="reference internal" href="#asyncgui.Nursery.close"><code class="docutils literal notranslate"><span class="pre">Nursery.close()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Nursery.closed"><code class="docutils literal notranslate"><span class="pre">Nursery.closed</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Nursery.start"><code class="docutils literal notranslate"><span class="pre">Nursery.start()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#asyncgui.StatefulEvent"><code class="docutils literal notranslate"><span class="pre">StatefulEvent</span></code></a><ul>
+<li><a class="reference internal" href="#asyncgui.StatefulEvent.clear"><code class="docutils literal notranslate"><span class="pre">StatefulEvent.clear()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.StatefulEvent.fire"><code class="docutils literal notranslate"><span class="pre">StatefulEvent.fire()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.StatefulEvent.is_fired"><code class="docutils literal notranslate"><span class="pre">StatefulEvent.is_fired</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.StatefulEvent.params"><code class="docutils literal notranslate"><span class="pre">StatefulEvent.params</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.StatefulEvent.wait"><code class="docutils literal notranslate"><span class="pre">StatefulEvent.wait()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#asyncgui.StatelessEvent"><code class="docutils literal notranslate"><span class="pre">StatelessEvent</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Task"><code class="docutils literal notranslate"><span class="pre">Task</span></code></a><ul>
+<li><a class="reference internal" href="#asyncgui.Task.cancel"><code class="docutils literal notranslate"><span class="pre">Task.cancel()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Task.cancelled"><code class="docutils literal notranslate"><span class="pre">Task.cancelled</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Task.close"><code class="docutils literal notranslate"><span class="pre">Task.close()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Task.finished"><code class="docutils literal notranslate"><span class="pre">Task.finished</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Task.result"><code class="docutils literal notranslate"><span class="pre">Task.result</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Task.root_coro"><code class="docutils literal notranslate"><span class="pre">Task.root_coro</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.Task.state"><code class="docutils literal notranslate"><span class="pre">Task.state</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#asyncgui.TaskState"><code class="docutils literal notranslate"><span class="pre">TaskState</span></code></a><ul>
+<li><a class="reference internal" href="#asyncgui.TaskState.CANCELLED"><code class="docutils literal notranslate"><span class="pre">TaskState.CANCELLED</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.TaskState.CREATED"><code class="docutils literal notranslate"><span class="pre">TaskState.CREATED</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.TaskState.FINISHED"><code class="docutils literal notranslate"><span class="pre">TaskState.FINISHED</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.TaskState.STARTED"><code class="docutils literal notranslate"><span class="pre">TaskState.STARTED</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#asyncgui.current_task"><code class="docutils literal notranslate"><span class="pre">current_task()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.dummy_task"><code class="docutils literal notranslate"><span class="pre">dummy_task</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.move_on_when"><code class="docutils literal notranslate"><span class="pre">move_on_when()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.open_nursery"><code class="docutils literal notranslate"><span class="pre">open_nursery()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.run_as_daemon"><code class="docutils literal notranslate"><span class="pre">run_as_daemon()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.run_as_main"><code class="docutils literal notranslate"><span class="pre">run_as_main()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.sleep_forever"><code class="docutils literal notranslate"><span class="pre">sleep_forever()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.start"><code class="docutils literal notranslate"><span class="pre">start()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.wait_all"><code class="docutils literal notranslate"><span class="pre">wait_all()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.wait_all_cm"><code class="docutils literal notranslate"><span class="pre">wait_all_cm()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.wait_any"><code class="docutils literal notranslate"><span class="pre">wait_any()</span></code></a></li>
+<li><a class="reference internal" href="#asyncgui.wait_any_cm"><code class="docutils literal notranslate"><span class="pre">wait_any_cm()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=b76a0394"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>
