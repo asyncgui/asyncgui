@@ -1,6 +1,6 @@
 [project]
 name = "asyncgui"
-version = "0.10.0.dev0"
+version = "0.10.0.dev1"
 description = "A minimalistic async library that focuses on fast responsiveness"
 authors = [{ name = "Nattōsai Mitō", email = "flow4re2c@gmail.com" }]
 requires-python = ">=3.10,<4.0"
@@ -23,6 +23,7 @@ classifiers = [
 dependencies = ["exceptiongroup>=1.0.4,<2 ; python_version < '3.11'"]
 
 [project.urls]
+Documentation = "https://asyncgui.github.io/asyncgui/"
 Repository = "https://github.com/asyncgui/asyncgui"
 
 [dependency-groups]

@@ -34,5 +34,5 @@ pip install "asyncgui>=0.9,<0.10"
 
 - [asynckivy](https://github.com/asyncgui/asynckivy)
 - [asynctkinter](https://github.com/asyncgui/asynctkinter)
-- [asynctkinter-minimum](https://github.com/asyncgui/asynctkinter-minimum)
+- [asynctkinter2](https://github.com/asyncgui/asynctkinter2)
 - [asyncpygame](https://github.com/asyncgui/asyncpygame)
