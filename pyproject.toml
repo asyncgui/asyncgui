@@ -23,6 +23,7 @@ classifiers = [
 dependencies = ["exceptiongroup>=1.0.4,<2 ; python_version < '3.11'"]
 
 [project.urls]
+Documentation = "https://asyncgui.github.io/asyncgui/"
 Repository = "https://github.com/asyncgui/asyncgui"
 
 [dependency-groups]
