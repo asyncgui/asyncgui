@@ -117,3 +117,8 @@ def test_params():
     assert args == (2, )
     assert kwargs == {'parasol': 'umbrella', }
 
+
+def test_weakref():
+    import asyncgui as ag
+    import weakref
+    weakref.ref(ag.StatefulEvent())

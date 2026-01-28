@@ -117,3 +117,9 @@ def test_value_passing():
     e.fire(3, toad='frog')
     assert task1.state is TS.FINISHED
     assert task2.state is TS.FINISHED
+
+
+def test_weakref():
+    import asyncgui as ag
+    import weakref
+    weakref.ref(ag.Event())

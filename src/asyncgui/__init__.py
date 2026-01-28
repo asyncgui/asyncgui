@@ -490,9 +490,13 @@ class Event:
     .. versionchanged:: 0.7.0
 
         This is now completely different from the previous version's.
+
+    .. versionchanged:: 0.10.0
+
+        This is now weak-referenceable.
     '''
 
-    __slots__ = ('_waiting_tasks', )
+    __slots__ = ("_waiting_tasks", "__weakref__", )
 
     def __init__(self):
         self._waiting_tasks = []
@@ -558,8 +562,11 @@ class StatefulEvent:
 
     .. versionchanged:: 0.9.0
         The ``.refire()`` and ``.fire_or_refire()`` methods have been removed.
+
+    .. versionchanged:: 0.10.0
+        This is now weak-referenceable.
     '''
-    __slots__ = ('_params', '_waiting_tasks', )
+    __slots__ = ("_waiting_tasks", "_params", "__weakref__", )
 
     def __init__(self):
         self._params = None
