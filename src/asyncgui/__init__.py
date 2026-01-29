@@ -25,6 +25,11 @@ from functools import cached_property, partial
 import enum
 from contextlib import asynccontextmanager, contextmanager, AbstractAsyncContextManager
 
+# The following components are used from other libraries, even though they are not listed in __all__
+# and thier names start with an underscore. Do not remove or rename them.
+#
+# _current_task, _sleep_forever, _wait_args, _wait_args_0
+
 # -----------------------------------------------------------------------------
 # Core
 # -----------------------------------------------------------------------------
@@ -608,7 +613,7 @@ class StatefulEvent:
     def params(self) -> tuple:
         '''
         The parameters passed to the last fire. Raises :exc:`InvalidStateError` if the event is not in a "fired" state.
-        This is a convenient way to access the parameters from synchronous code.
+        This is a convenient way to access the parameters from synchronous context.
 
         .. code-block::
 
