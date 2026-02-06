@@ -58,11 +58,11 @@ def test_is_not_zero():
     import asyncgui as ag
 
     c = ag.Counter()
-    assert not c.is_not_zero
+    assert c.is_zero
     c.increase()
-    assert c.is_not_zero
+    assert not c.is_zero
     c.decrease()
-    assert not c.is_not_zero
+    assert c.is_zero
 
 
 def test_cancel():
