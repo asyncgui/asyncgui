@@ -118,10 +118,10 @@ class Task:
         self._root_coro = self._wrapper(aw)
         self._root_coro_send = self._root_coro.send
         self._state = TaskState.CREATED
-        self._on_end = None
-        self._current_depth = 0
-        self._requested_cancel_level = None
-        self._exc_caught = None
+        self._on_end: Callable | None = None
+        self._current_depth: int = 0
+        self._requested_cancel_level: int | None = None
+        self._exc_caught: Exception | None = None
         self._suppresses_exc = False
 
     def __str__(self):
@@ -681,8 +681,8 @@ class Counter:
         self._waiting_task = task
 
     @property
-    def is_not_zero(self, bool=bool):
-        return bool(self._value)
+    def is_zero(self):
+        return not self._value
 
     def __bool__(self):
         raise NotImplementedError("'Counter' can no longer be converted to a boolean value.")
@@ -704,10 +704,10 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: Iterable[Aw_or_Task]) -> Awai
                 start(c)
             await counter.wait_for_zero()
     finally:
-        if counter.is_not_zero:
+        if not counter.is_zero:
             for c in children:
                 c.cancel()
-            if counter.is_not_zero:
+            if not counter.is_zero:
                 try:
                     parent._cancel_disabled = True
                     await counter.wait_for_zero()
@@ -722,26 +722,26 @@ async def _wait_xxx(debug_msg, on_child_end, *aws: Iterable[Aw_or_Task]) -> Awai
     return children
 
 
-def _on_child_end__ver_all(scope, counter, child):
+def _close_on_fail(scope, counter, child):
     counter.decrease()
     if child._exc_caught is not None:
         scope.cancel()
 
 
-def _on_child_end__ver_any(scope, counter, child):
+def _close_on_fail_or_finish(scope, counter, child):
     counter.decrease()
     if child._exc_caught is not None or child.finished:
         scope.cancel()
 
 
-def _on_child_end__ver_run_as_main(scope, counter, child):
+def _close_on_fail_or_counter_zero(scope, counter, child):
     counter.decrease()
-    if child._exc_caught is not None or counter.is_not_zero is False:
+    if child._exc_caught is not None or counter.is_zero:
         scope.cancel()
 
 
 _wait_xxx_type: TypeAlias = Callable[..., Awaitable[Sequence[Task]]]
-wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _on_child_end__ver_all)
+wait_all: _wait_xxx_type = partial(_wait_xxx, "wait_all()", _close_on_fail)
 '''
 Runs multiple tasks concurrently, then waits for all of them to either complete or be cancelled.
 
@@ -755,7 +755,7 @@ Runs multiple tasks concurrently, then waits for all of them to either complete 
             print(f"async_fn{i} was cancelled.")
 '''
 
-wait_any: _wait_xxx_type = partial(_wait_xxx, "wait_any()", _on_child_end__ver_any)
+wait_any: _wait_xxx_type = partial(_wait_xxx, "wait_any()", _close_on_fail_or_finish)
 '''
 Runs multiple tasks concurrently, then waits until either one completes or all are cancelled.
 As soon as one completes, the others will be cancelled.
@@ -793,7 +793,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, *aws: Iterable[Aw_or_Ta
     finally:
         for task in bg_tasks:
             task.cancel()
-        if counter.is_not_zero:
+        if not counter.is_zero:
             try:
                 fg_task._cancel_disabled = True
                 await counter.wait_for_zero()
@@ -810,7 +810,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg, *aws: Iterable[Aw_or_Ta
 
 
 _wait_xxx_cm_type: TypeAlias = Callable[..., AbstractAsyncContextManager[list[Task]]]
-wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _on_child_end__ver_all, True)
+wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _close_on_fail, True)
 '''
 Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
 the with-block, then waits until the code inside the with-block completes and all tasks have either completed or been
@@ -830,7 +830,7 @@ cancelled.
     Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
-wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _on_child_end__ver_any, False)
+wait_any_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_any_cm()", _close_on_fail_or_finish, False)
 '''
 Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
 the with-block, then waits until either the code inside the with-block completes or any of the tasks completes.
@@ -850,7 +850,7 @@ As soon as that happens, any remaining tasks and the code inside the with-block 
     Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
-run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _on_child_end__ver_run_as_main, True)
+run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _close_on_fail_or_counter_zero, True)
 '''
 Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
 the with-block, then waits for all tasks to either complete or be cancelled. As soon as all tasks have done so,
@@ -872,7 +872,7 @@ If no tasks are given, it simply runs the code inside the with-block.
     Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
 '''
 
-run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _on_child_end__ver_all, False)
+run_as_daemon: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_daemon()", _close_on_fail, False)
 '''
 Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
 the with-block, then waits until the code inside the with-block completes. As soon as that happens, the tasks will be
@@ -910,8 +910,8 @@ class Nursery:
         self._scope = scope
         self._counters = (daemon_counter, counter, )
         self._callbacks = (
-            partial(_on_child_end__ver_all, scope, daemon_counter),
-            partial(_on_child_end__ver_all, scope, counter),
+            partial(_close_on_fail, scope, daemon_counter),
+            partial(_close_on_fail, scope, counter),
         )
 
     def start(self, aw: Aw_or_Task, /, *, daemon=False) -> Task:
