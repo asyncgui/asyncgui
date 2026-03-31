@@ -1,13 +1,13 @@
 import pytest
 
 
-@pytest.fixture(scope='module', params=('wait_all_cm', 'wait_any_cm',  'run_as_daemon', ))
+@pytest.fixture(scope='module', params=('wait_all_cm', 'move_on_when_any',  'run_as_daemons', ))
 def any_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
 
-@pytest.fixture(scope='module', params=('wait_all_cm',  'run_as_daemon', ))
+@pytest.fixture(scope='module', params=('wait_all_cm',  'run_as_daemons', ))
 def wait_fg_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)

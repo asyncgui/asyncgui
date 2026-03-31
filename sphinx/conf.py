@@ -69,7 +69,8 @@ def modify_signature(app, what: str, name: str, obj, options, signature, return_
                      prefix="asyncgui.",
                      len_prefix=len("asyncgui."),
                      group1={'Nursery', 'TaskState', 'Task.cancel', 'Task.close', },
-                     group4={'wait_all_cm', 'wait_any_cm', 'run_as_daemon', 'move_on_when'},
+                     group4={'run_as_daemon', 'move_on_when', },
+                     group5={'wait_all_cm', 'run_as_daemons', 'move_on_when_any', 'move_on_when_all', },
                      ):
     if not name.startswith(prefix):
         return (signature, return_annotation, )
@@ -84,8 +85,11 @@ def modify_signature(app, what: str, name: str, obj, options, signature, return_
         print(f"Hide the signature of {name!r}")
         return ('', None)
     if name in group4:
+        print(f"Fix the signiture and return-annotation of {name!r}")
+        return ("(aw: ~collections.abc.Awaitable | ~asyncgui.Task)", '~contextlib.AbstractAsyncContextManager[Task]')
+    if name in group5:
         print(f"Add a return-annotation to {name!r}")
-        return (signature, '~contextlib.AbstractAsyncContextManager[Task]')
+        return (signature, '~contextlib.AbstractAsyncContextManager[list[Task]]')
     if name.endswith("Event.wait"):
         print(f"Fix the return-annotation of {name!r}")
         return (signature, "~collections.abc.Awaitable[tuple[tuple, dict]]")

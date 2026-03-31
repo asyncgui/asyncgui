@@ -90,16 +90,16 @@ wait_all
         print("async_fn2 は中断されました")
 
 
-wait_any_cm, wait_all_cm
-------------------------
+wait_all_cm
+-----------
 
-:func:`~asyncgui.wait_any` と :func:`~asyncgui.wait_all` にはコンテキストマネージャ版である :func:`~asyncgui.wait_any_cm` と :func:`~asyncgui.wait_all_cm` が用意されています。
+:func:`~asyncgui.wait_all` にはコンテキストマネージャ版である :func:`~asyncgui.wait_all_cm` が用意されています。
 これらは渡されたタスクに加えてwithブロック内のコードも並行して走らせます。
 すなわち以下のコードでは ``async_fn0`` と ``async_fn1`` と ``hogehoge`` の３つを並行して走らせます。
 
 .. code-block::
 
-    async def wait_any_cm(async_fn0(), async_fn1()) as tasks:
+    async with wait_all_cm(async_fn0(), async_fn1()) as tasks:
         # hogehoge
 
 引数に渡したタスクが完了/中断したのか、完了した物の戻り値は何か等の調べ方は同じです。
@@ -112,21 +112,56 @@ wait_any_cm, wait_all_cm
         else:
             print(f"async_fn{i} は中断されました。")
 
-run_as_daemon
--------------
 
-これまで解説してきたAPIはどれも並行させたタスク達の関係が対等でした。
-``wait_any_cm`` を例に挙げるならwithブロック内のコードと ``wait_any_cm`` に渡したタスクのどれが完了した場合でも他の処理を中断させるのでした。
+move_on_when, move_on_when_any
+------------------------------
+
+これらは :func:`~asyncgui.wait_any` のコンテキストマネージャ版です。
+
+
+run_as_daemon, run_as_daemons
+-----------------------------
+
+これまで解説してきたAPIはどれも並行させる処理達の関係が対等でした。
+例えば ``move_on_when`` はwithブロック内のコードと ``move_on_when`` に渡したタスクのどちらが完了した場合でも他方を中断させます。
 しかし時には対等ではない関係も必要となります。
 
 .. code-block::
 
-    async with run_as_daemon(async_fn()) as daemon_tasks:
+    async with run_as_daemon(async_fn()) as daemon_task:
         ...
 
 このコードではwithブロック内が先に完了した場合は ``async_fn()`` は中断させられますが、 ``async_fn()`` が先に完了しても何も起きず
 withブロックの完了を待つだけです。例えるならデーモンスレッドと非デーモンスレッドの関係です。withブロック内のコードが非デーモンで
 ``async_fn()`` がデーモンになっていると考えて下さい。
+
+また逆にwithブロック内の方をデーモンにしたい場合は ``move_on_when`` を次の様に使えば良いです。
+
+.. code-block::
+
+    async with move_on_when(async_fn()) as main_task:
+        ...
+        await sleep_forever()
+
+このようにwithブロック内の最後に ``await sleep_forever()`` を入れる事でwithブロック内のコードが自身では終わらなくなるため、
+``async_fn()`` の完了をもってコード全体が完了する事になります。
+
+
+move_on_when_all
+----------------
+
+.. code-block::
+
+    async with move_on_when_all(async_fn0(), async_fn1()) as tasks:
+        # hogehoge
+
+これは以下のコードと同等です。
+
+.. code-block::
+
+    async with move_on_when(wait_all(async_fn0(), async_fn1())) as task:
+        # hogehoge
+    tasks = task.result
 
 
 open_nursery
