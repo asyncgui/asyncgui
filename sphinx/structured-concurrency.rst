@@ -13,9 +13,11 @@ List of structured concurrency APIs
 - :func:`~asyncgui.wait_all`
 - :func:`~asyncgui.wait_any`
 - :func:`~asyncgui.wait_all_cm`
-- :func:`~asyncgui.wait_any_cm`
-- :func:`~asyncgui.move_on_when` (alias of ``wait_any_cm``)
+- :func:`~asyncgui.move_on_when`
+- :func:`~asyncgui.move_on_when_any`
+- :func:`~asyncgui.move_on_when_all`
 - :func:`~asyncgui.run_as_daemon`
+- :func:`~asyncgui.run_as_daemons`
 - :func:`~asyncgui.open_nursery`
 
 
@@ -25,7 +27,7 @@ Ideal
 Ideally, a program should have a single root task, with all other tasks as its children or as descendants of other tasks, forming a single task tree.
 This is something that :mod:`trio` enforces, but ``asyncgui`` is unable to do due to its architectural limitations [#limitations]_.
 
-In ``asyncgui``. every :class:`asyncgui.Task` instance returned by :func:`asyncgui.start` is a root task.
+In ``asyncgui``, every :class:`asyncgui.Task` instance returned by :func:`asyncgui.start` is a root task.
 
 (editing...)
 
@@ -120,4 +122,4 @@ In other words, they *always* wrap the exception(s) occurred in their child task
 .. _trio-util: https://trio-util.readthedocs.io/
 .. _amazing essay: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
 
-.. [#limitations] I have no idea how to achieve that without relying on a main loop and global state.
+.. [#limitations] I have no idea how to achieve that without relying on a main loop or global state.
