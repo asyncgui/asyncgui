@@ -8,7 +8,7 @@ __all__ = (
 
     # structured concurrency
     'wait_all', 'wait_any', 'wait_all_cm', 'wait_any_cm', 'move_on_when',
-    'run_as_main', 'run_as_daemon',
+    'run_as_daemon',
     'open_nursery', 'Nursery',
 
     # synchronization
@@ -845,28 +845,6 @@ As soon as that happens, any remaining tasks and the code inside the with-block 
             print(f"async_fn{i} completed with a return value of {task.result}.")
         else:
             print(f"async_fn{i} was cancelled.")
-
-.. versionchanged:: 0.10.0
-    Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
-'''
-
-run_as_main: _wait_xxx_cm_type = partial(_wait_xxx_cm, "run_as_main()", _close_on_fail_or_counter_zero, True)
-'''
-Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
-the with-block, then waits for all tasks to either complete or be cancelled. As soon as all tasks have done so,
-the code inside the with-block will be cancelled if it is still running.
-
-.. code-block::
-
-    async with run_as_main(async_fn0(), async_fn1()) as tasks:
-        ...
-    for i, task in enumerate(tasks):
-        if task.finished:
-            print(f"async_fn{i} completed with a return value of {task.result}.")
-        else:
-            print(f"async_fn{i} was cancelled.")
-
-If no tasks are given, it simply runs the code inside the with-block.
 
 .. versionchanged:: 0.10.0
     Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.

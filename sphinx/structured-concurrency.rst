@@ -16,7 +16,6 @@ List of structured concurrency APIs
 - :func:`~asyncgui.wait_any_cm`
 - :func:`~asyncgui.move_on_when` (alias of ``wait_any_cm``)
 - :func:`~asyncgui.run_as_daemon`
-- :func:`~asyncgui.run_as_main`
 - :func:`~asyncgui.open_nursery`
 
 
@@ -100,7 +99,7 @@ In other words, they *always* wrap the exception(s) occurred in their child task
             except* Exception as excgroup:
                 for exc in excgroup.exceptions:
                     print('Exception caught:', type(exc))
-                
+
 
     .. group-tab:: 3.10 or older
 

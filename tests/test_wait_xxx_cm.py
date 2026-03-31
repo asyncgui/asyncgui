@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture(scope='module', params=('wait_all_cm', 'wait_any_cm',  'run_as_daemon', 'run_as_main', ))
+@pytest.fixture(scope='module', params=('wait_all_cm', 'wait_any_cm',  'run_as_daemon', ))
 def any_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
@@ -13,7 +13,7 @@ def wait_fg_cm(request):
     return getattr(asyncgui, request.param)
 
 
-@pytest.fixture(scope='module', params=('wait_all_cm',  'run_as_main', ))
+@pytest.fixture(scope='module', params=('wait_all_cm', ))
 def wait_bg_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)

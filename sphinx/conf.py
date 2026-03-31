@@ -69,7 +69,7 @@ def modify_signature(app, what: str, name: str, obj, options, signature, return_
                      prefix="asyncgui.",
                      len_prefix=len("asyncgui."),
                      group1={'Nursery', 'TaskState', 'Task.cancel', 'Task.close', },
-                     group4={'wait_all_cm', 'wait_any_cm', 'run_as_daemon', 'run_as_main', 'move_on_when'},
+                     group4={'wait_all_cm', 'wait_any_cm', 'run_as_daemon', 'move_on_when'},
                      ):
     if not name.startswith(prefix):
         return (signature, return_annotation, )
