@@ -17,8 +17,7 @@
 Pin the minor version.
 
 ```text
-poetry add asyncgui@~0.9
-pip install "asyncgui>=0.9,<0.10"
+pip install "asyncgui>=0.10,<0.11"
 ```
 
 ## Tested on
