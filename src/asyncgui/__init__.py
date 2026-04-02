@@ -416,6 +416,9 @@ class ExclusiveEvent:
     '''
     Similar to :class:`Event`, but this version does not allow multiple tasks to :meth:`wait` simultaneously.
     As a result, it operates faster.
+
+    .. versionchanged:: 0.10.1
+        This is now weak-referenceable.
     '''
     __slots__ = ("_waiting_task", "__weakref__", )
 
@@ -864,7 +867,7 @@ As soon as that happens, any remaining tasks and the with-block (if still runnin
     async with move_on_when_any(async_fn0(), async_fn1()) as tasks:
         ...
 
-The code above is semantically equivalent to the following, but more efficient:
+The code above is *almost* equivalent to the following, and it's more efficient:
 
 .. code-block::
 
