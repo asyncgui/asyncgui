@@ -82,6 +82,7 @@ def test_wait_args():
     e.fire(1, 2, one='ONE')
     assert task.result == (1, 2, )
 
+
 def test_wait_args_0():
     import asyncgui as ag
 
@@ -90,3 +91,9 @@ def test_wait_args_0():
     assert not task.finished
     e.fire(1, 2, one='ONE')
     assert task.result == 1
+
+
+def test_weakref():
+    import asyncgui as ag
+    import weakref
+    weakref.ref(ag.ExclusiveEvent())

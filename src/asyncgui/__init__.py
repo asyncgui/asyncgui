@@ -417,7 +417,7 @@ class ExclusiveEvent:
     Similar to :class:`Event`, but this version does not allow multiple tasks to :meth:`wait` simultaneously.
     As a result, it operates faster.
     '''
-    __slots__ = ('_waiting_task', )
+    __slots__ = ("_waiting_task", "__weakref__", )
 
     def __init__(self):
         self._waiting_task = None
