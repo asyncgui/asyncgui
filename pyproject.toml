@@ -28,7 +28,7 @@ Repository = "https://github.com/asyncgui/asyncgui"
 
 [dependency-groups]
 dev = [
-    "pytest>=7.0.1,<8",
+    "pytest>=7.0.1,<10",
     "flake8>=6.0.0,<7",
 ]
 doc = [
