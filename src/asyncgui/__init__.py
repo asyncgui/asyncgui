@@ -7,7 +7,7 @@ __all__ = (
     'dummy_task', 'current_task', 'sleep_forever',
 
     # structured concurrency
-    'wait_all', 'wait_any', 'wait_all_cm',
+    'wait_all', 'wait_any',
     'move_on_when', 'move_on_when_any', 'move_on_when_all',
     'run_as_daemon', 'run_as_daemons',
     'open_nursery', 'Nursery',
@@ -815,25 +815,6 @@ async def _wait_xxx_cm(debug_msg, on_child_end, wait_bg: bool, single: bool, *aw
 
 _wait_xxx_cm_type_single: TypeAlias = Callable[[Aw_or_Task], AbstractAsyncContextManager[Task]]
 _wait_xxx_cm_type: TypeAlias = Callable[..., AbstractAsyncContextManager[list[Task]]]
-
-wait_all_cm: _wait_xxx_cm_type = partial(_wait_xxx_cm, "wait_all_cm()", _close_on_fail, True, False)
-'''
-Returns an async context manager that runs all given tasks concurrently with each other and alongside the code inside
-the with-block, then waits until the with-block completes and all tasks are done (completed or cancelled).
-
-.. code-block::
-
-    async with wait_all_cm(async_fn0(), async_fn1()) as tasks:
-        ...
-    for i, task in enumerate(tasks):
-        if task.finished:
-            print(f"async_fn{i} completed with a return value of {task.result}.")
-        else:
-            print(f"async_fn{i} was cancelled.")
-
-.. versionchanged:: 0.10.0
-    Now accepts multiple tasks. The object bound in the as-clause is a list of Task instances instead of a single one.
-'''
 
 move_on_when: _wait_xxx_cm_type_single = partial(_wait_xxx_cm, "move_on_when()", _close_on_fail_or_finish, False, True)
 '''

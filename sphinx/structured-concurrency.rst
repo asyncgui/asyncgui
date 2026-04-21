@@ -12,7 +12,6 @@ List of structured concurrency APIs
 
 - :func:`~asyncgui.wait_all`
 - :func:`~asyncgui.wait_any`
-- :func:`~asyncgui.wait_all_cm`
 - :func:`~asyncgui.move_on_when`
 - :func:`~asyncgui.move_on_when_any`
 - :func:`~asyncgui.move_on_when_all`

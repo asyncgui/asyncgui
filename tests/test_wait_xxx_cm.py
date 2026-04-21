@@ -1,22 +1,17 @@
 import pytest
 
 
-@pytest.fixture(scope='module', params=('wait_all_cm', 'move_on_when_any',  'run_as_daemons', ))
+@pytest.fixture(scope='module', params=('move_on_when_any',  'run_as_daemons', ))
 def any_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
 
-@pytest.fixture(scope='module', params=('wait_all_cm',  'run_as_daemons', ))
+@pytest.fixture(scope='module', params=('run_as_daemons', ))
 def wait_fg_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
-
-@pytest.fixture(scope='module', params=('wait_all_cm', ))
-def wait_bg_cm(request):
-    import asyncgui
-    return getattr(asyncgui, request.param)
 
 
 def test_bg_fails_immediately(any_cm):
@@ -120,28 +115,6 @@ def test_fg_fails_while_bg_is_running(any_cm):
     fg_task = ag.start(async_fn())
     e.fire()
     assert fg_task.finished
-
-
-def test_bg_fails_after_fg_finishes(wait_bg_cm):
-    import asyncgui as ag
-    TS = ag.TaskState
-
-    async def fail_soon():
-        await e.wait()
-        raise ZeroDivisionError
-
-    async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with wait_bg_cm(fail_soon()) as bg_tasks:
-                assert bg_tasks[0].state is TS.STARTED
-            pytest.fail()
-        assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
-
-    e = ag.Event()
-    fg_task = ag.start(async_fn())
-    assert fg_task.state is TS.STARTED
-    e.fire()
-    assert fg_task.state is TS.FINISHED
 
 
 def test_fg_fails_after_bg_finishes(wait_fg_cm):
