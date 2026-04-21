@@ -90,16 +90,16 @@ wait_all
         print("async_fn2 は中断されました")
 
 
-wait_all_cm
------------
+move_on_when, move_on_when_any
+-------------------------------
 
-:func:`~asyncgui.wait_all` にはコンテキストマネージャ版である :func:`~asyncgui.wait_all_cm` が用意されています。
+:func:`~asyncgui.wait_any` にはコンテキストマネージャ版である :func:`~asyncgui.move_on_when` と :func:`~asyncgui.move_on_when_any` が用意されています。
 これらは渡されたタスクに加えてwithブロック内のコードも並行して走らせます。
 すなわち以下のコードでは ``async_fn0`` と ``async_fn1`` と ``hogehoge`` の３つを並行して走らせます。
 
 .. code-block::
 
-    async with wait_all_cm(async_fn0(), async_fn1()) as tasks:
+    async with move_on_when_any(async_fn0(), async_fn1()) as tasks:
         # hogehoge
 
 引数に渡したタスクが完了/中断したのか、完了した物の戻り値は何か等の調べ方は同じです。
@@ -111,12 +111,6 @@ wait_all_cm
             print(f"async_fn{i} は {task.result} を返して完了しました。")
         else:
             print(f"async_fn{i} は中断されました。")
-
-
-move_on_when, move_on_when_any
-------------------------------
-
-これらは :func:`~asyncgui.wait_any` のコンテキストマネージャ版です。
 
 
 run_as_daemon, run_as_daemons
