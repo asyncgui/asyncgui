@@ -244,23 +244,18 @@ class Task:
             self._cancel_if_needed()
 
     class CancelScope:
-        __slots__ = ('_task', '_depth', 'cancel_called', )
+        __slots__ = ("_task", "_depth", "done", )
 
         def __init__(self, task, depth):
             self._task = task
             self._depth = depth
-            self.cancel_called = False
-
-        @property
-        def closed(self) -> bool:
-            return self._task is None
+            self.done = False
 
         def cancel(self):
-            if self.cancel_called:
+            if self.done:
                 return
-            self.cancel_called = True
-            if (t := self._task) is not None:
-                t.cancel(self._depth)
+            self.done = True
+            self._task.cancel(self._depth)
 
     @contextmanager
     def _open_cancel_scope(self, CancelScope=CancelScope):
@@ -275,7 +270,7 @@ class Task:
                 raise
         finally:
             req_level = self._requested_cancel_level
-            scope._task = None
+            scope.done = True
             self._current_depth -= 1
             if req_level is not None:
                 if req_level == depth:
