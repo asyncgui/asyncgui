@@ -30,7 +30,7 @@ def test_one_daemon():
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
             ctx['nursery'] = nursery
-            ctx['daemon'] = nursery.start(ag.sleep_forever(), daemon=True)
+            ctx['daemon'] = nursery.start(ag.sleep_forever(), role="daemon")
             await ag.sleep_forever()
 
     ctx = {}
@@ -53,7 +53,7 @@ def test_finish_a_child_while_a_daemon_is_alive():
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
             ctx['nursery'] = nursery
-            ctx['daemon'] = nursery.start(ag.sleep_forever(), daemon=True)
+            ctx['daemon'] = nursery.start(ag.sleep_forever(), role="daemon")
             ctx['child'] = nursery.start(ag.sleep_forever())
 
     ctx = {}
@@ -79,7 +79,7 @@ def test_cancel_a_child_while_a_daemon_is_alive():
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
             ctx['nursery'] = nursery
-            ctx['daemon'] = nursery.start(ag.sleep_forever(), daemon=True)
+            ctx['daemon'] = nursery.start(ag.sleep_forever(), role="daemon")
             ctx['child'] = nursery.start(ag.sleep_forever())
 
     ctx = {}
@@ -112,7 +112,7 @@ def test_finish_a_child_and_a_daemon_fails():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
                 ctx['nursery'] = nursery
-                ctx['daemon'] = nursery.start(fail_eventually(), daemon=True)
+                ctx['daemon'] = nursery.start(fail_eventually(), role="daemon")
                 ctx['child'] = nursery.start(ag.sleep_forever())
             assert [ZeroDivisionError, ] == [type(e) for e in excinfo.value.exceptions]
 
@@ -146,7 +146,7 @@ def test_finish_a_child_and_a_daemon_immediately_fails():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
                 ctx['nursery'] = nursery
-                ctx['daemon'] = nursery.start(fail_imm(), daemon=True)
+                ctx['daemon'] = nursery.start(fail_imm(), role="daemon")
                 ctx['child'] = nursery.start(do_nothing())
                 await ag.sleep_forever()
                 pytest.fail()
@@ -239,8 +239,8 @@ def test_parent_fails():
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
-                nursery.start(fail_imm(), daemon=True)
-                nursery.start(fail_eventually(), daemon=True)
+                nursery.start(fail_imm(), role="daemon")
+                nursery.start(fail_eventually(), role="daemon")
                 nursery.start(fail_imm())
                 nursery.start(fail_eventually())
                 raise ZeroDivisionError
@@ -279,3 +279,35 @@ def test_garbage_collection():
     assert len(nursery._children) == 2
     nursery.close()
     assert root.finished
+
+
+def test_invalid_role():
+    import asyncgui as ag
+
+    async def async_fn():
+        async with ag.open_nursery() as nursery:
+            with pytest.raises(ValueError):
+                nursery.start(ag.sleep_forever(), role="???")
+
+    root = ag.start(async_fn())
+    assert root.finished
+
+
+@pytest.mark.parametrize("wait", [True, False])
+def test_closer_task_completes_while_there_are_other_running_tasks(wait):
+    import asyncgui as ag
+    TS = ag.TaskState
+
+    async def async_fn():
+        async with ag.open_nursery() as nursery:
+            nursery.start(ag.sleep_forever(), role="daemon")
+            nursery.start(ag.sleep_forever(), role="default")
+            nursery.start(e.wait(), role="closer")
+            if wait:
+                await ag.sleep_forever()
+
+    e = ag.Event()
+    root = ag.start(async_fn())
+    assert root.state is TS.STARTED
+    e.fire()
+    assert root.state is TS.FINISHED
