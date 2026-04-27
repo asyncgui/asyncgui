@@ -1,14 +1,8 @@
 import pytest
 
 
-@pytest.fixture(scope='module', params=('move_on_when_any',  'run_as_daemons', ))
+@pytest.fixture(scope='module', params=("move_on_when",  "run_as_daemon", ))
 def any_cm(request):
-    import asyncgui
-    return getattr(asyncgui, request.param)
-
-
-@pytest.fixture(scope='module', params=('run_as_daemons', ))
-def wait_fg_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
 
@@ -41,8 +35,8 @@ def test_bg_fails_while_fg_is_suspended(any_cm):
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(fail_soon()) as bg_tasks:
-                assert bg_tasks[0].state is TS.STARTED
+            async with any_cm(fail_soon()) as bg_task:
+                assert bg_task.state is TS.STARTED
                 await ag.sleep_forever()
                 pytest.fail()
             pytest.fail()
@@ -65,10 +59,10 @@ def test_bg_fails_while_fg_is_running(any_cm):
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(fail_soon()) as bg_tasks:
-                assert bg_tasks[0].state is TS.STARTED
-                bg_tasks[0]._step()
-                assert bg_tasks[0].state is TS.CANCELLED
+            async with any_cm(fail_soon()) as bg_task:
+                assert bg_task.state is TS.STARTED
+                bg_task._step()
+                assert bg_task.state is TS.CANCELLED
                 await ag.sleep_forever()
                 pytest.fail()
             pytest.fail()
@@ -83,11 +77,11 @@ def test_fg_fails_while_bg_is_suspended(any_cm):
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(ag.sleep_forever()) as bg_tasks:
+            async with any_cm(ag.sleep_forever()) as bg_task:
                 raise ZeroDivisionError
             pytest.fail()
-        assert bg_tasks[0].cancelled
-        assert bg_tasks[0]._exc_caught is None
+        assert bg_task.cancelled
+        assert bg_task._exc_caught is None
         assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
 
     fg_task = ag.start(async_fn())
@@ -103,12 +97,12 @@ def test_fg_fails_while_bg_is_running(any_cm):
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(bg_func()) as bg_tasks:
+            async with any_cm(bg_func()) as bg_task:
                 await ag.sleep_forever()
                 raise ZeroDivisionError
             pytest.fail()
-        assert bg_tasks[0].finished
-        assert bg_tasks[0]._exc_caught is None
+        assert bg_task.finished
+        assert bg_task._exc_caught is None
         assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
 
     e = ag.Event()
@@ -117,7 +111,7 @@ def test_fg_fails_while_bg_is_running(any_cm):
     assert fg_task.finished
 
 
-def test_fg_fails_after_bg_finishes(wait_fg_cm):
+def test_fg_fails_after_bg_finishes(any_cm):
     import asyncgui as ag
     TS = ag.TaskState
 
@@ -126,10 +120,10 @@ def test_fg_fails_after_bg_finishes(wait_fg_cm):
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with wait_fg_cm(finish_imm()) as bg_tasks:
+            async with any_cm(finish_imm()) as bg_task:
                 raise ZeroDivisionError
             pytest.fail()
-        assert bg_tasks[0].finished
+        assert bg_task.finished
         assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
 
     fg_task = ag.start(async_fn())
@@ -191,8 +185,8 @@ def test_bg_fails_then_fg_fails_1(any_cm):
 
     async def async_fn():
         with pytest.raises(ag.ExceptionGroup) as excinfo:
-            async with any_cm(fail_soon()) as bg_tasks:
-                bg_tasks[0]._step()
+            async with any_cm(fail_soon()) as bg_task:
+                bg_task._step()
                 raise ZeroDivisionError
             pytest.fail()
         assert [ZeroDivisionError, ] * 2 == [type(exc) for exc in excinfo.value.exceptions]
