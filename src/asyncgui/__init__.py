@@ -14,7 +14,7 @@ __all__ = (
     # synchronization
     'Event', 'ExclusiveEvent', 'StatefulEvent', 'StatelessEvent',
 )
-from typing import Any, Union, TypeAlias
+from typing import Any, Union, TypeAlias, Literal
 from collections.abc import (
     Iterable, Coroutine, Awaitable, AsyncIterator, Generator, Callable,
 )
@@ -811,6 +811,14 @@ This is equivalent to :func:`trio_util.move_on_when`.
         print(f"async_fn completed with a return value of {task.result}.")
     else:
         print(f"async_fn was cancelled.")
+
+You can replicate the same behavior with :func:`open_nursery` as follows:
+
+.. code-block::
+
+    async with open_nursery() as nursery:
+        task = nursery.start(async_fn(), role="closer")
+        ...
 '''
 
 
@@ -829,45 +837,68 @@ This is equivalent to :func:`trio_util.run_and_cancelling`.
         print(f"async_fn completed with a return value of {task.result}.")
     else:
         print(f"async_fn was cancelled.")
+
+You can replicate the same behavior with :func:`open_nursery` as follows:
+
+.. code-block::
+
+    async with open_nursery() as nursery:
+        task = nursery.start(async_fn(), role="daemon")
+        ...
 '''
+
+
+TaskRole: TypeAlias = Literal["default", "daemon", "closer"]
 
 
 class Nursery:
     '''
     An equivalent of :class:`trio.Nursery`.
-    You should not directly instantiate this, use :func:`open_nursery`.
+    Do not instantiate this class directly; use :func:`open_nursery`.
+
+    Nursery is closed when any of the following occurs:
+
+    * :meth:`close` is called.
+    * Any child task raises an exception.
+    * Any child task with the "closer" role completes.
+    * All child tasks complete.
+    * Only child tasks with the "daemon" role remain running.
     '''
 
-    __slots__ = ('_closed', '_children', '_scope', '_counters', '_callbacks', '_gc_in_every', '_n_until_gc', )
+    __slots__ = ("_closed", "_children", "_scope", "_role2stuff", "_gc_in_every", "_n_until_gc", )
 
     def __init__(self, scope, counter, daemon_counter, gc_in_every):
         self._gc_in_every = self._n_until_gc = gc_in_every
         self._closed = False
         self._children = []
         self._scope = scope
-        self._counters = (daemon_counter, counter, )
-        self._callbacks = (
-            partial(_close_on_fail, scope, daemon_counter),
-            partial(_close_on_fail, scope, counter),
-        )
+        self._role2stuff = {
+            "daemon": (partial(_close_on_fail, scope, daemon_counter), daemon_counter),
+            "default": (partial(_close_on_fail, scope, counter), counter),
+            "closer": (partial(_close_on_fail_or_finish, scope, counter), counter),
+        }
 
-    def start(self, aw: Aw_or_Task, /, *, daemon=False) -> Task:
+    def start(self, aw: Aw_or_Task, /, *, role: TaskRole="default") -> Task:
         '''
-        *Immediately* start a Task under the supervision of the nursery.
+        *Immediately* starts a Task under the supervision of the nursery.
 
-        The ``daemon`` parameter acts like the one in the :mod:`threading` module.
-        When only daemon tasks are left, they get cancelled, and the nursery closes.
+        .. versionchanged:: 0.11.0
+            The ``role`` parameter replaces the previous ``daemon`` parameter.
         '''
         if self._closed:
             raise InvalidStateError("Nursery has been already closed")
+        try:
+            on_child_end, counter = self._role2stuff[role]
+        except KeyError:
+            raise ValueError(f"Invalid task role: {role}")
         if not self._n_until_gc:
             self._collect_garbage()
             self._n_until_gc = self._gc_in_every
         self._n_until_gc -= 1
         child = aw if isinstance(aw, Task) else Task(aw)
         child._suppresses_exc = True
-        child._on_end = self._callbacks[not daemon]
-        self._counters[not daemon].increase()
+        child._on_end = on_child_end
+        counter.increase()
         self._children.append(child)
         return start(child)
 
@@ -878,7 +909,10 @@ class Nursery:
         ]
 
     def close(self):
-        '''Cancel all the child tasks in the nursery as soon as possible. '''
+        '''
+        Cancels all child tasks in the nursery as soon as possible.
+        After this method is called, no new child tasks can be started.
+        '''
         self._closed = True
         self._scope.cancel()
 
@@ -896,7 +930,7 @@ async def open_nursery(*, _gc_in_every=1000) -> AsyncIterator[Nursery]:
 
         async with open_nursery() as nursery:
             nursery.start(async_fn1())
-            nursery.start(async_fn2(), daemon=True)
+            nursery.start(async_fn2(), role="daemon")
     '''
     exc = None
     parent = await current_task()
