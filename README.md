@@ -17,7 +17,7 @@
 Pin the minor version.
 
 ```text
-pip install "asyncgui>=0.10,<0.11"
+pip install "asyncgui>=0.11,<0.12"
 ```
 
 ## Tested on
