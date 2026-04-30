@@ -301,7 +301,7 @@ def start(aw: Aw_or_Task, /) -> Task:
 
         Tasks started with this function are root tasks.
         You must ensure they aren't garbage-collected while still running
-        --for example, by explicitly calling :meth:`Task.cancel` before the program exits.
+        —for example, by explicitly calling :meth:`Task.cancel` before the program exits.
     '''
     if isawaitable(aw):
         task = Task(aw)
@@ -410,6 +410,9 @@ class ExclusiveEvent:
     '''
     Similar to :class:`Event`, but this version does not allow multiple tasks to :meth:`wait` simultaneously.
     As a result, it operates faster.
+
+    .. versionchanged:: 0.10.1
+        This is now weak-referenceable.
     '''
     __slots__ = ("_waiting_task", "__weakref__", )
 
