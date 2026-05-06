@@ -28,6 +28,19 @@ In ``asyncgui``, every :class:`asyncgui.Task` instance returned by :func:`asyncg
 (editing...)
 
 
+Nursery can recreate other APIs
+--------------------------------
+
+:class:`~asyncgui.Nursery` became much more powerful in version 0.11.1 and
+is now capable of recreating all other "structured concurrency" APIs:
+
+.. literalinclude:: replicate-with-nursery.py
+
+It can also recreate older APIs that have already been removed:
+
+.. literalinclude:: replicate-old-ones-with-nursery.py
+
+
 Nest as you like
 ----------------
 
