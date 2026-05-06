@@ -141,11 +141,17 @@ open_nursery
     async with open_nursery() as nursery:
         while True:
             touch = await 画面に指が触れられるのを待つ
-            nursery.start(指に沿って線を引く(touch))
-
-但しタスクの戻り値を得る方法は無いので別の形で値を受け渡してください。
+            task = nursery.start(指に沿って線を引く(touch))
 
 .. seealso:: :class:`asyncgui.Nursery`, `Trio関連の日本語記事`_
+
+また :func:`open_nursery` はこれまで出てきたAPI全てを実装できるほどに強力だったりもします。
+
+.. literalinclude:: replicate-with-nursery.py
+
+過去に存在した多くのAPIも以下のように実装できます。
+
+.. literalinclude:: replicate-old-ones-with-nursery.py
 
 
 例外処理

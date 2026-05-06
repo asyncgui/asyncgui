@@ -814,14 +814,6 @@ This is equivalent to :func:`trio_util.move_on_when`.
         print(f"async_fn completed with a return value of {task.result}.")
     else:
         print(f"async_fn was cancelled.")
-
-You can replicate the same behavior with :func:`open_nursery` as follows:
-
-.. code-block::
-
-    async with open_nursery() as nursery:
-        task = nursery.start(async_fn(), daemon=True, close_on_finish=True)
-        ...
 '''
 
 
@@ -840,14 +832,6 @@ This is equivalent to :func:`trio_util.run_and_cancelling`.
         print(f"async_fn completed with a return value of {task.result}.")
     else:
         print(f"async_fn was cancelled.")
-
-You can replicate the same behavior with :func:`open_nursery` as follows:
-
-.. code-block::
-
-    async with open_nursery() as nursery:
-        task = nursery.start(async_fn(), daemon=True)
-        ...
 '''
 
 
