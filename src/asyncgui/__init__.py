@@ -735,7 +735,7 @@ Runs multiple tasks concurrently, then waits for all of them to either complete 
 
 .. code-block::
 
-    tasks = await wait_any(async_fn0(), async_fn1(), async_fn2())
+    tasks = await wait_all(async_fn0(), async_fn1(), async_fn2())
     for i, task in enumerate(tasks):
         if task.finished:
             print(f"async_fn{i} completed with a return value of {task.result}.")
