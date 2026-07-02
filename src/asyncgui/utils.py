@@ -1,7 +1,7 @@
-from typing import Any
+from typing import Any, List
 
 from . import __init__ as asyncgui
-from .__init__ import ExclusiveEvent
+from .__init__ import TaskState, ExclusiveEvent, StatefulEvent, Event
 
 
 class StatefulEventWrapper:
@@ -69,3 +69,64 @@ class StatefulEventWrapper:
 
 
 StatefulExclusiveEvent = StatefulEventWrapper  # which it factually is
+
+
+class TaskWaiter:
+    """Object for awaiting on an asyncgui task and its result from outside.
+
+    It goes like
+
+        .. code-block::
+
+            task = asyncgui.start(my_coro())
+            await TaskWaiter(task)
+    """
+    __slots__ = ("_task", "_old_on_end", "_waiting_events", "__weakref__",)
+
+    def __init__(self, task):
+        # task should be a running task where we connect to:
+        self._task = task
+        task._suppresses_exc = True
+        # Someone else might be waiting on this task's result, get into the chain:
+        self._old_on_end = task._on_end
+        task._on_end = self._on_end
+        # These events are waiting on the task:
+        self._waiting_events: List[Event | StatefulEvent | ExclusiveEvent | StatefulEventWrapper] = []
+
+    def _on_end(self, task):
+        """Callback for the end of the task. Fire all listening events."""
+        if (old_on_end := self._old_on_end) is not None:
+            old_on_end(task)
+        for waiting_event in self._waiting_events:
+            waiting_event.fire()
+
+    # noinspection PyProtectedMember
+    def _return_result(self, default):
+        """Determine the result to return.
+        If there is no such result, return the sentinel value given by the caller so that they know they should wait."""
+        state = self._task._state
+        if state is TaskState.FINISHED:
+            return self._task._result
+        elif state is TaskState.CANCELLED:
+            if self._task._exc_caught is not None:
+                raise self._task._exc_caught
+            else:
+                raise asyncgui._Cancelled()
+        else:
+            return default
+
+    def __await__(self):
+        """Result of the task. If the task is not finished, we wait for it. """
+        sentinel = object()
+        ret = self._return_result(sentinel)
+        if ret is sentinel:
+            # not ready yet.
+            event = ExclusiveEvent()
+            self._waiting_events.append(event)
+            try:
+                yield from event.wait()
+            finally:
+                self._waiting_events.remove(event)
+                ret = self._return_result(sentinel)
+                assert ret is not sentinel, "We wrongly were notified about the task being ready."
+        return ret
