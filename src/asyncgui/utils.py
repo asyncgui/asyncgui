@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Awaitable, List
 
 from . import __init__ as asyncgui
 from .__init__ import TaskState, ExclusiveEvent, StatefulEvent, Event
@@ -110,6 +110,67 @@ class TaskWaiter:
         elif state is TaskState.CANCELLED:
             if self._task._exc_caught is not None:
                 raise self._task._exc_caught
+            else:
+                raise asyncgui._Cancelled()
+        else:
+            return default
+
+    def __await__(self):
+        """Result of the task. If the task is not finished, we wait for it. """
+        sentinel = object()
+        ret = self._return_result(sentinel)
+        if ret is sentinel:
+            # not ready yet.
+            event = ExclusiveEvent()
+            self._waiting_events.append(event)
+            try:
+                yield from event.wait()
+            finally:
+                self._waiting_events.remove(event)
+                ret = self._return_result(sentinel)
+                assert ret is not sentinel, "We wrongly were notified about the task being ready."
+        return ret
+
+
+class AwaitableTask(asyncgui.Task):
+    """Extended version of a Task which also contains the functionality of TaskWaiter.
+
+    It goes like
+
+        .. code-block::
+
+            task = asyncgui.start(AwaitableTask(my_coro()))
+            await task
+    But it won't work this way, because asyncgui.start() works the wrong way for it.
+    It should first check for isinstance(aw, Task) which also covers our case,
+    and only then check for isawaitable(aw).
+
+    The current way, the AwaitableTask() would be wrapped in a Task() which is not awaitable, defeating our purpose.
+    """
+    __slots__ = ('_waiting_events',)
+
+    def __init__(self, aw: Awaitable, /):
+        super().__init__(aw)
+        # These events are waiting on the task:
+        self._waiting_events: List[Event | StatefulEvent | ExclusiveEvent | StatefulEventWrapper] = []
+
+    async def _wrapper(self, aw, /):
+        try:
+            await super()._wrapper(aw)
+        finally:
+            for waiter in self._waiting_events:
+                waiter.fire()
+
+    # noinspection PyProtectedMember
+    def _return_result(self, default):
+        """Determine the result to return.
+        If there is no such result, return the sentinel value given by the caller so that they know they should wait."""
+        state = self._state
+        if state is TaskState.FINISHED:
+            return self._result
+        elif state is TaskState.CANCELLED:
+            if self._exc_caught is not None:
+                raise self._exc_caught
             else:
                 raise asyncgui._Cancelled()
         else:
