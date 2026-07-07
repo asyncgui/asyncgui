@@ -634,6 +634,24 @@ class StatefulEvent:
         return p
 
 
+@types.coroutine
+def atomic_step(callback):
+    '''
+    Official interface for making a tightly looped coroutine suspension
+
+    Contrary to any of the event types, this interface makes callbacks and other things more tight.
+
+    The callback is called with a callable, which in turn is intended to be called by the callback as soon
+    as the result is available.
+
+    (example pending)
+
+    The *args and **kwargs used for this are returned after the await as usual for asyncgui Events.
+    '''
+    # noinspection PyProtectedMember
+    return (yield lambda task: callback(task._step))
+
+
 # -----------------------------------------------------------------------------
 # Structured concurrency
 # -----------------------------------------------------------------------------
