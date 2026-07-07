@@ -14,7 +14,7 @@ __all__ = (
     # synchronization
     'Event', 'ExclusiveEvent', 'StatefulEvent', 'StatelessEvent',
 )
-from typing import Any, Union, TypeAlias
+from typing import Any, Union, TypeAlias, Tuple
 from collections.abc import (
     Iterable, Coroutine, Awaitable, AsyncIterator, Generator, Callable,
 )
@@ -525,6 +525,26 @@ class Event:
         finally:
             tasks[idx] = None
 
+    async def wait_args(self) -> Tuple[Any]:
+        '''
+        (experimental)
+
+        ``await event.wait_args()`` is equivalent to ``(await event.wait())[0]``.
+
+        :meta private:
+        '''
+        return (await self.wait())[0]
+
+    async def wait_args_0(self) -> Any:
+        '''
+        (experimental)
+
+        ``await event.wait_args_0()`` is equivalent to ``(await event.wait())[0][0]``.
+
+        :meta private:
+        '''
+        return (await self.wait())[0][0]
+
 
 StatelessEvent = Event
 '''
@@ -606,6 +626,26 @@ class StatefulEvent:
             return (yield tasks.append)
         finally:
             tasks[idx] = None
+
+    async def wait_args(self) -> Tuple[Any]:
+        '''
+        (experimental)
+
+        ``await event.wait_args()`` is equivalent to ``(await event.wait())[0]``.
+
+        :meta private:
+        '''
+        return (await self.wait())[0]
+
+    async def wait_args_0(self) -> Any:
+        '''
+        (experimental)
+
+        ``await event.wait_args_0()`` is equivalent to ``(await event.wait())[0][0]``.
+
+        :meta private:
+        '''
+        return (await self.wait())[0][0]
 
     @property
     def params(self) -> tuple:
