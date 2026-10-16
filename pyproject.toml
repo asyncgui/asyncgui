@@ -24,7 +24,7 @@ Repository = "https://github.com/asyncgui/asyncgui"
 [dependency-groups]
 dev = [
     "pytest>=7.0.1,<10",
-    "flake8>=6.0.0,<7",
+    "ruff>=0.17.1",
 ]
 doc = [
     "sphinx>=7.0.0,<8",
@@ -42,3 +42,26 @@ build-backend = "uv_build"
 [tool.pytest.ini_options]
 xfail_strict = true
 addopts = "--maxfail=4 --strict-markers"
+
+[tool.ruff]
+line-length = 119
+
+[tool.ruff.lint]
+ignore = [
+    "B006", "B008",
+    "E401", "E402", "I001",
+    # "PLW0211",
+    "PLR0206",
+    "PYI042", "PYI061",
+    "RUF010", "RUF013", "RUF022",
+    "SIM117",
+    "UP007",  # Unionを用いないとsphinxでエラーが起きる
+]
+extend-select = [
+    "E501", "Q000",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/test_*.py" = ["E501"]
+"tests/test_Task.py" = ["B018"]
+"tests/test_StatefulEvent.py" = ["B018"]
