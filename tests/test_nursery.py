@@ -109,7 +109,7 @@ def test_finish_a_child_and_a_daemon_fails():
             raise ZeroDivisionError
 
     async def async_fn(ctx):
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
                 ctx['nursery'] = nursery
                 ctx['daemon'] = nursery.start(fail_eventually(), daemon=True)
@@ -143,7 +143,7 @@ def test_finish_a_child_and_a_daemon_immediately_fails():
         pass
 
     async def async_fn(ctx):
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
                 ctx['nursery'] = nursery
                 ctx['daemon'] = nursery.start(fail_imm(), daemon=True)
@@ -237,7 +237,7 @@ def test_parent_fails():
             raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
                 nursery.start(fail_imm(), daemon=True)
                 nursery.start(fail_eventually(), daemon=True)

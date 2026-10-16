@@ -63,7 +63,7 @@ def test_one_child_fails_immediately():
     import asyncgui as ag
 
     async def main():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             await ag.wait_any(fail_immediately())
         child_exceptions = excinfo.value.exceptions
         assert len(child_exceptions) == 1
@@ -77,7 +77,7 @@ def test_multiple_children_fail_immediately():
     import asyncgui as ag
 
     async def main():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             await ag.wait_any(fail_immediately(), fail_immediately())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
@@ -118,7 +118,7 @@ def test_one_child_fails_soon():
     import asyncgui as ag
 
     async def main(e):
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             await ag.wait_any(fail_soon(e))
         child_exceptions = excinfo.value.exceptions
         assert len(child_exceptions) == 1
@@ -139,7 +139,7 @@ def test_multiple_children_fail_soon():
     import asyncgui as ag
 
     async def main(e):
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             await ag.wait_any(fail_soon(e), fail_soon(e))
         child_exceptions = excinfo.value.exceptions
         assert len(child_exceptions) == 1
@@ -160,7 +160,7 @@ def test_multiple_children_fail():
     import asyncgui as ag
 
     async def main(e):
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             await ag.wait_any(fail_soon(e), fail_on_cancel())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
 
@@ -195,7 +195,7 @@ def test_必ず例外を起こす子_を複数持つ親を中断():
     TS = ag.TaskState
 
     async def main():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             await ag.wait_any(fail_on_cancel(), fail_on_cancel())
         assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
         await ag.sleep_forever()
@@ -218,7 +218,7 @@ def test_必ず例外を起こす子_を複数持つ親を中断_2():
     main_task = ag.Task(main())
     ag.start(main_task)
     assert main_task.state is TS.STARTED
-    with pytest.raises(ag.ExceptionGroup) as excinfo:
+    with pytest.raises(ExceptionGroup) as excinfo:
         main_task.cancel()
     assert [ZeroDivisionError, ZeroDivisionError] == [type(e) for e in excinfo.value.exceptions]
     assert main_task.state is TS.CANCELLED
@@ -277,7 +277,7 @@ def test_error_on_scoped_cancel():
     async def main():
         task = await ag.current_task()
         with task._open_cancel_scope() as scope:
-            with pytest.raises(ag.ExceptionGroup) as exc_info:
+            with pytest.raises(ExceptionGroup) as exc_info:
                 scope.cancel()
                 await ag.wait_any(fail_on_cancel())
             assert [ZeroDivisionError, ] == [type(e) for e in exc_info.value.exceptions]
