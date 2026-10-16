@@ -25,10 +25,6 @@ from functools import cached_property, partial
 import enum
 from contextlib import asynccontextmanager, contextmanager, AbstractAsyncContextManager
 
-# The following components are used from other libraries, even though they are not listed in __all__
-# and thier names start with an underscore. Do not remove or rename them.
-#
-# _current_task, _sleep_forever, _wait_args, _wait_args_0
 
 # -----------------------------------------------------------------------------
 # Core
@@ -349,16 +345,6 @@ def sleep_forever(_f=_sleep_forever):
         await sleep_forever()
     '''
     yield _f
-
-
-@types.coroutine
-def _wait_args(_f=_sleep_forever):
-    return (yield _f)[0]
-
-
-@types.coroutine
-def _wait_args_0(_f=_sleep_forever):
-    return (yield _f)[0][0]
 
 
 dummy_task = Task(sleep_forever())
