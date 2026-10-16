@@ -51,7 +51,7 @@ The same applies to :meth:`trio.Nursery.start` and :meth:`trio.Nursery.start_soo
 (This has "soon" in its name so it's obvious).
 
 The same issue arises when they resume tasks.
-:meth:`asyncio.Event.set` and :meth:`trio.Event.set` don't immediately resume the tasks waiting for it to happen.
+:meth:`asyncio.Event.set` and :meth:`trio.Event.set` don't immediately resume the tasks waiting for the event.
 They schedule the tasks to *eventually* resume, thus, the following test fails.
 
 .. code-block::
@@ -118,16 +118,16 @@ Immediacy
 The problem mentioned above doesn't occur in ``asyncgui`` because:
 
 * :func:`asyncgui.start` and :meth:`asyncgui.Nursery.start` immediately start a task.
-* :meth:`asyncgui.Event.fire` immediately resumes the tasks waiting for it to happen.
+* :meth:`asyncgui.Event.fire` immediately resumes the tasks waiting for the event.
 
-All other APIs work that way as well.
+The same principle applies to all other APIs as well.
 
 No main loop
 -------------
 
-The coexistence problem I mentioned earlier doesn't occur in ``asyncgui`` because it doesn't own a main loop.
-Instead, ``asyncgui`` runs by piggybacking on another main loop, such as one from a GUI library.
-To achieve this, however, you need to wrap the callback-style APIs associated with the main loop it piggybacks.
+The coexistence problem I mentioned at the beginning doesn't occur in ``asyncgui`` because it doesn't own a main loop.
+Instead, ``asyncgui`` piggybacks on an existing main loop, such as one provided by a GUI library.
+To achieve this, however, you may need to wrap the timer API that runs on the underlying main loop.
 I'll explain this further in the :doc:`usage` section.
 
 .. note::
@@ -142,7 +142,7 @@ No global state
 Although it wasn't originally intended, ``asyncgui`` ended up having no global state. All states are represented as:
 
 * `closure variables <https://docs.python.org/3/glossary.html#term-closure-variable>`__
-* local variables declared in coroutines/generators
+* local variables declared inside the body of coroutines/generators
 * instance attributes
 
 not:
