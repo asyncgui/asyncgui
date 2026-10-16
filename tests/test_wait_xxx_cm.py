@@ -15,7 +15,7 @@ def test_bg_fails_immediately(any_cm):
         raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(fail_imm()):
                 pytest.fail()
             pytest.fail()
@@ -34,7 +34,7 @@ def test_bg_fails_while_fg_is_suspended(any_cm):
         raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(fail_soon()) as bg_task:
                 assert bg_task.state is TS.STARTED
                 await ag.sleep_forever()
@@ -58,7 +58,7 @@ def test_bg_fails_while_fg_is_running(any_cm):
         raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(fail_soon()) as bg_task:
                 assert bg_task.state is TS.STARTED
                 bg_task._step()
@@ -76,7 +76,7 @@ def test_fg_fails_while_bg_is_suspended(any_cm):
     import asyncgui as ag
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(ag.sleep_forever()) as bg_task:
                 raise ZeroDivisionError
             pytest.fail()
@@ -96,7 +96,7 @@ def test_fg_fails_while_bg_is_running(any_cm):
         fg_task._step()
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(bg_func()) as bg_task:
                 await ag.sleep_forever()
                 raise ZeroDivisionError
@@ -119,7 +119,7 @@ def test_fg_fails_after_bg_finishes(any_cm):
         pass
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(finish_imm()) as bg_task:
                 raise ZeroDivisionError
             pytest.fail()
@@ -141,7 +141,7 @@ def test_fg_fails_then_bg_fails_1(any_cm):
             raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(fail_eventually()):
                 raise ZeroDivisionError
             pytest.fail()
@@ -161,7 +161,7 @@ def test_fg_fails_then_bg_fails_3(any_cm):
         raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(bg_func()):
                 await ag.sleep_forever()
                 raise ZeroDivisionError
@@ -184,7 +184,7 @@ def test_bg_fails_then_fg_fails_1(any_cm):
         raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(fail_soon()) as bg_task:
                 bg_task._step()
                 raise ZeroDivisionError
@@ -204,7 +204,7 @@ def test_bg_fails_then_fg_fails_2(any_cm):
         raise ZeroDivisionError
 
     async def async_fn():
-        with pytest.raises(ag.ExceptionGroup) as excinfo:
+        with pytest.raises(ExceptionGroup) as excinfo:
             async with any_cm(fail_soon()):
                 try:
                     await ag.sleep_forever()
@@ -240,7 +240,7 @@ def test_both_fail_on_cancel(any_cm):
 
     fg_task = ag.start(async_fn())
     assert not fg_task.cancelled
-    with pytest.raises(ag.ExceptionGroup) as excinfo:
+    with pytest.raises(ExceptionGroup) as excinfo:
         fg_task.cancel()
     assert [ZeroDivisionError, ] * 2 == [type(exc) for exc in excinfo.value.exceptions]
     assert fg_task.cancelled
@@ -263,7 +263,7 @@ def test_bg_fails_on_cancel(any_cm):
 
     fg_task = ag.start(async_fn())
     assert not fg_task.cancelled
-    with pytest.raises(ag.ExceptionGroup) as excinfo:
+    with pytest.raises(ExceptionGroup) as excinfo:
         fg_task.cancel()
     assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
     assert fg_task.cancelled
@@ -283,7 +283,7 @@ def test_fg_fails_on_cancel(any_cm):
 
     fg_task = ag.start(async_fn())
     assert not fg_task.cancelled
-    with pytest.raises(ag.ExceptionGroup) as excinfo:
+    with pytest.raises(ExceptionGroup) as excinfo:
         fg_task.cancel()
     assert [ZeroDivisionError, ] == [type(exc) for exc in excinfo.value.exceptions]
     assert fg_task.cancelled

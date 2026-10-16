@@ -1,6 +1,6 @@
 __all__ = (
     # core (exceptions)
-    'ExceptionGroup', 'BaseExceptionGroup', 'InvalidStateError', 'Cancelled',
+    "InvalidStateError", "Cancelled",
 
     # core
     'Aw_or_Task', 'start', 'Task', 'TaskState',
@@ -20,7 +20,6 @@ from collections.abc import (
 )
 import types
 from inspect import getcoroutinestate, CORO_CREATED, CORO_SUSPENDED, isawaitable
-import sys
 from functools import cached_property, partial
 import enum
 from contextlib import asynccontextmanager, contextmanager, AbstractAsyncContextManager
@@ -29,11 +28,6 @@ from contextlib import asynccontextmanager, contextmanager, AbstractAsyncContext
 # -----------------------------------------------------------------------------
 # Core
 # -----------------------------------------------------------------------------
-
-if sys.version_info < (3, 11):
-    from exceptiongroup import BaseExceptionGroup, ExceptionGroup
-else:
-    from builtins import BaseExceptionGroup, ExceptionGroup
 
 potential_bug_msg = \
     r"You might have just found a bug in the library. Please create a minimal reproducible " \
