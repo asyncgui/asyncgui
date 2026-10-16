@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_current_task():
     import asyncgui as ag
     finished = False
@@ -27,5 +24,5 @@ def test_sleep_forever():
 
     task = ag.start(main())
     assert not task.finished
-    task._step(1, 2, python='awesome', rust='awesome')
+    task._step(1, 2, python="awesome", rust="awesome")
     assert task.finished

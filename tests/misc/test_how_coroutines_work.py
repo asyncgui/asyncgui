@@ -22,7 +22,7 @@ async def await_n_times(n):
 
 
 class Test_CORO_CREATED:
-    @p('n, state', [(0, CORO_CLOSED), (1, CORO_SUSPENDED)])
+    @p("n, state", [(0, CORO_CLOSED), (1, CORO_SUSPENDED)])
     def test_send_None(self, n, state):
         coro = await_n_times(n)
         with pytest.raises(StopIteration) if n == 0 else nullcontext():
@@ -52,8 +52,8 @@ class Test_CORO_CREATED:
 
 
 class Test_CORO_SUSPENDED:
-    @p('n, state', [(1, CORO_CLOSED), (2, CORO_SUSPENDED)])
-    @p('value', [None, 'non-None'])
+    @p("n, state", [(1, CORO_CLOSED), (2, CORO_SUSPENDED)])
+    @p("value", [None, "non-None"])
     def test_send(self, n, state, value):
         coro = await_n_times(n)
         coro.send(None)
@@ -62,7 +62,7 @@ class Test_CORO_SUSPENDED:
             coro.send(value)
         assert getcoroutinestate(coro) == state
 
-    @p('n', [1, 2])
+    @p("n", [1, 2])
     def test_throw(self, n):
         coro = await_n_times(n)
         coro.send(None)
@@ -71,7 +71,7 @@ class Test_CORO_SUSPENDED:
             coro.throw(ZeroDivisionError)
         assert getcoroutinestate(coro) == CORO_CLOSED
 
-    @p('n, state', [(1, CORO_CLOSED), (2, CORO_SUSPENDED)])
+    @p("n, state", [(1, CORO_CLOSED), (2, CORO_SUSPENDED)])
     def test_throw_and_caught(self, n, state):
         async def await_n_times(n):
             assert n >= 1
@@ -89,7 +89,7 @@ class Test_CORO_SUSPENDED:
             coro.throw(ZeroDivisionError)
         assert getcoroutinestate(coro) == state
 
-    @p('n', [1, 2])
+    @p("n", [1, 2])
     def test_close(self, n):
         coro = await_n_times(n)
         coro.send(None)
@@ -109,7 +109,7 @@ class Test_CORO_CLOSED:
         assert getcoroutinestate(coro) == CORO_CLOSED
         return coro
 
-    @p('value', [None, 'non-None'])
+    @p("value", [None, "non-None"])
     def test_send(self, coro, value):
         with pytest.raises(RuntimeError):
             coro.send(value)

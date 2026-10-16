@@ -3,16 +3,16 @@ __all__ = (
     "InvalidStateError", "Cancelled",
 
     # core
-    'Aw_or_Task', 'start', 'Task', 'TaskState',
-    'dummy_task', 'current_task', 'sleep_forever',
+    "Aw_or_Task", "start", "Task", "TaskState",
+    "dummy_task", "current_task", "sleep_forever",
 
     # structured concurrency
-    'wait_all', 'wait_any',
-    'move_on_when', 'run_as_daemon',
-    'open_nursery', 'Nursery',
+    "wait_all", "wait_any",
+    "move_on_when", "run_as_daemon",
+    "open_nursery", "Nursery",
 
     # synchronization
-    'Event', 'ExclusiveEvent', 'StatefulEvent', 'StatelessEvent',
+    "Event", "ExclusiveEvent", "StatefulEvent", "StatelessEvent",
 )
 from typing import Any, Union, TypeAlias
 from collections.abc import (
@@ -96,9 +96,8 @@ class TaskState(enum.Enum):
 
 class Task:
     __slots__ = (
-        '_root_coro', '_root_coro_send', '_state', '_result', '_on_end',
-        '_exc_caught', '_suppresses_exc',
-        '_cancel_disabled', '_current_depth', '_requested_cancel_level',
+        "_cancel_disabled", "_current_depth", "_exc_caught", "_on_end", "_requested_cancel_level",
+        "_result", "_root_coro", "_root_coro_send", "_state", "_suppresses_exc",
     )
 
     def __init__(self, aw: Awaitable, /):
@@ -115,7 +114,7 @@ class Task:
         self._suppresses_exc = False
 
     def __str__(self):
-        return f'Task(state={self._state.name})'
+        return f"Task(state={self._state.name})"
 
     @property
     def root_coro(self) -> Coroutine:
@@ -165,7 +164,7 @@ class Task:
             self._exc_caught = e
             if not self._suppresses_exc:
                 raise
-        except:  # noqa: E722
+        except:
             self._state = TaskState.CANCELLED
             raise
         else:
@@ -234,7 +233,7 @@ class Task:
             self._cancel_if_needed()
 
     class CancelScope:
-        __slots__ = ("_task", "_depth", "done", )
+        __slots__ = ("_depth", "_task", "done")
 
         def __init__(self, task, depth):
             self._task = task
@@ -394,7 +393,7 @@ class ExclusiveEvent:
     .. versionchanged:: 0.10.1
         This is now weak-referenceable.
     '''
-    __slots__ = ("_waiting_task", "__weakref__", )
+    __slots__ = ("__weakref__", "_waiting_task")
 
     def __init__(self):
         self._waiting_task = None
@@ -479,7 +478,7 @@ class Event:
         This is now weak-referenceable.
     '''
 
-    __slots__ = ("_waiting_tasks", "__weakref__", )
+    __slots__ = ("__weakref__", "_waiting_tasks")
 
     def __init__(self):
         self._waiting_tasks = []
@@ -549,7 +548,7 @@ class StatefulEvent:
     .. versionchanged:: 0.10.0
         This is now weak-referenceable.
     '''
-    __slots__ = ("_waiting_tasks", "_params", "__weakref__", )
+    __slots__ = ("__weakref__", "_params", "_waiting_tasks")
 
     def __init__(self):
         self._params = None
@@ -630,7 +629,7 @@ class Counter:
         attempt to wait, the program would silently break.
     '''
 
-    __slots__ = ('_waiting_task', '_value', )
+    __slots__ = ("_value", "_waiting_task")
 
     def __init__(self, initial_value=0, /):
         self._value = initial_value
@@ -757,7 +756,7 @@ async def _wait_xxx_cm(debug_msg, on_child_end, aw: Aw_or_Task):
             bg_task._suppresses_exc = True
             start(bg_task)
             yield bg_task
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         fg_exc = e
     finally:
         bg_task.cancel()
@@ -834,7 +833,7 @@ class Nursery:
     When it closes, the nursery cancels any remaining child tasks.
     '''
 
-    __slots__ = ("_closed", "_children", "_scope", "_counters", "_gc_in_every", "_n_until_gc", )
+    __slots__ = ("_children", "_closed", "_counters", "_gc_in_every", "_n_until_gc", "_scope")
 
     def __init__(self, scope, counter, daemon_counter, gc_in_every):
         self._gc_in_every = self._n_until_gc = gc_in_every
@@ -914,7 +913,7 @@ async def open_nursery(*, _gc_in_every=1000) -> AsyncIterator[Nursery]:
             nursery = Nursery(scope, counter, daemon_counter, _gc_in_every)
             yield nursery
             await counter.wait_for_zero()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         exc = e
     finally:
         nursery._closed = True

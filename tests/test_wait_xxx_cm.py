@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture(scope='module', params=("move_on_when",  "run_as_daemon", ))
+@pytest.fixture(scope="module", params=("move_on_when",  "run_as_daemon", ))
 def any_cm(request):
     import asyncgui
     return getattr(asyncgui, request.param)
