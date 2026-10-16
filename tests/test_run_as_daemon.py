@@ -54,7 +54,7 @@ def test_bg_finishes_while_fg_is_suspended():
     assert fg_task.state is TS.FINISHED
 
 
-@pytest.mark.parametrize('bg_cancel', (True, False, ))
+@pytest.mark.parametrize("bg_cancel", (True, False, ))
 def test_fg_finishes_while_bg_is_running(bg_cancel):
     import asyncgui as ag
     TS = ag.TaskState

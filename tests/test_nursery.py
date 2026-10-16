@@ -7,13 +7,13 @@ def test_one_child():
 
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
-            ctx['nursery'] = nursery
-            ctx['child'] = nursery.start(ag.sleep_forever())
+            ctx["nursery"] = nursery
+            ctx["child"] = nursery.start(ag.sleep_forever())
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    child = ctx['child']
+    nursery = ctx["nursery"]
+    child = ctx["child"]
     assert root.state is TS.STARTED
     assert child.state is TS.STARTED
     assert not nursery.closed
@@ -29,14 +29,14 @@ def test_one_daemon():
 
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
-            ctx['nursery'] = nursery
-            ctx['daemon'] = nursery.start(ag.sleep_forever(), daemon=True)
+            ctx["nursery"] = nursery
+            ctx["daemon"] = nursery.start(ag.sleep_forever(), daemon=True)
             await ag.sleep_forever()
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    daemon = ctx['daemon']
+    nursery = ctx["nursery"]
+    daemon = ctx["daemon"]
     assert root.state is TS.STARTED
     assert daemon.state is TS.STARTED
     assert not nursery.closed
@@ -52,15 +52,15 @@ def test_finish_a_child_while_a_daemon_is_alive():
 
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
-            ctx['nursery'] = nursery
-            ctx['daemon'] = nursery.start(ag.sleep_forever(), daemon=True)
-            ctx['child'] = nursery.start(ag.sleep_forever())
+            ctx["nursery"] = nursery
+            ctx["daemon"] = nursery.start(ag.sleep_forever(), daemon=True)
+            ctx["child"] = nursery.start(ag.sleep_forever())
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    daemon = ctx['daemon']
-    child = ctx['child']
+    nursery = ctx["nursery"]
+    daemon = ctx["daemon"]
+    child = ctx["child"]
     assert root.state is TS.STARTED
     assert daemon.state is TS.STARTED
     assert child.state is TS.STARTED
@@ -78,15 +78,15 @@ def test_cancel_a_child_while_a_daemon_is_alive():
 
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
-            ctx['nursery'] = nursery
-            ctx['daemon'] = nursery.start(ag.sleep_forever(), daemon=True)
-            ctx['child'] = nursery.start(ag.sleep_forever())
+            ctx["nursery"] = nursery
+            ctx["daemon"] = nursery.start(ag.sleep_forever(), daemon=True)
+            ctx["child"] = nursery.start(ag.sleep_forever())
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    daemon = ctx['daemon']
-    child = ctx['child']
+    nursery = ctx["nursery"]
+    daemon = ctx["daemon"]
+    child = ctx["child"]
     assert root.state is TS.STARTED
     assert daemon.state is TS.STARTED
     assert child.state is TS.STARTED
@@ -111,16 +111,16 @@ def test_finish_a_child_and_a_daemon_fails():
     async def async_fn(ctx):
         with pytest.raises(ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
-                ctx['nursery'] = nursery
-                ctx['daemon'] = nursery.start(fail_eventually(), daemon=True)
-                ctx['child'] = nursery.start(ag.sleep_forever())
+                ctx["nursery"] = nursery
+                ctx["daemon"] = nursery.start(fail_eventually(), daemon=True)
+                ctx["child"] = nursery.start(ag.sleep_forever())
             assert [ZeroDivisionError, ] == [type(e) for e in excinfo.value.exceptions]
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    daemon = ctx['daemon']
-    child = ctx['child']
+    nursery = ctx["nursery"]
+    daemon = ctx["daemon"]
+    child = ctx["child"]
     assert root.state is TS.STARTED
     assert daemon.state is TS.STARTED
     assert child.state is TS.STARTED
@@ -145,18 +145,18 @@ def test_finish_a_child_and_a_daemon_immediately_fails():
     async def async_fn(ctx):
         with pytest.raises(ExceptionGroup) as excinfo:
             async with ag.open_nursery() as nursery:
-                ctx['nursery'] = nursery
-                ctx['daemon'] = nursery.start(fail_imm(), daemon=True)
-                ctx['child'] = nursery.start(do_nothing())
+                ctx["nursery"] = nursery
+                ctx["daemon"] = nursery.start(fail_imm(), daemon=True)
+                ctx["child"] = nursery.start(do_nothing())
                 await ag.sleep_forever()
                 pytest.fail()
             assert [ZeroDivisionError, ] == [type(e) for e in excinfo.value.exceptions]
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    daemon = ctx['daemon']
-    child = ctx['child']
+    nursery = ctx["nursery"]
+    daemon = ctx["daemon"]
+    child = ctx["child"]
     assert root.state is TS.FINISHED
     assert daemon.state is TS.CANCELLED
     assert child.state is TS.FINISHED
@@ -173,15 +173,15 @@ def test_close_nursery():
 
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
-            ctx['nursery'] = nursery
-            ctx['child1'] = nursery.start(ag.sleep_forever())
-            ctx['child2'] = nursery.start(child2_func(nursery))
+            ctx["nursery"] = nursery
+            ctx["child1"] = nursery.start(ag.sleep_forever())
+            ctx["child2"] = nursery.start(child2_func(nursery))
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    child1 = ctx['child1']
-    child2 = ctx['child2']
+    nursery = ctx["nursery"]
+    child1 = ctx["child1"]
+    child2 = ctx["child2"]
     assert root.state is TS.STARTED
     assert child1.state is TS.STARTED
     assert child2.state is TS.STARTED
@@ -199,15 +199,15 @@ def test_two_children():
 
     async def async_fn(ctx):
         async with ag.open_nursery() as nursery:
-            ctx['nursery'] = nursery
-            ctx['child1'] = nursery.start(ag.sleep_forever())
-            ctx['child2'] = nursery.start(ag.sleep_forever())
+            ctx["nursery"] = nursery
+            ctx["child1"] = nursery.start(ag.sleep_forever())
+            ctx["child2"] = nursery.start(ag.sleep_forever())
 
     ctx = {}
     root = ag.start(async_fn(ctx))
-    nursery = ctx['nursery']
-    child1 = ctx['child1']
-    child2 = ctx['child2']
+    nursery = ctx["nursery"]
+    child1 = ctx["child1"]
+    child2 = ctx["child2"]
     assert root.state is TS.STARTED
     assert child1.state is TS.STARTED
     assert child2.state is TS.STARTED
@@ -258,15 +258,15 @@ def test_garbage_collection():
 
     async def async_fn(ctx):
         async with ag.open_nursery(_gc_in_every=3) as nursery:
-            ctx['nursery'] = nursery
+            ctx["nursery"] = nursery
             nursery.start(ag.sleep_forever())
             nursery.start(do_nothing())
-            nursery.start(ctx['e'].wait())
+            nursery.start(ctx["e"].wait())
 
     ctx = {}
-    ctx['e'] = e = ag.Event()
+    ctx["e"] = e = ag.Event()
     root = ag.start(async_fn(ctx))
-    nursery: ag.Nursery = ctx['nursery']
+    nursery: ag.Nursery = ctx["nursery"]
     assert len(nursery._children) == 3
     nursery.start(do_nothing())  # GC-ed
     assert len(nursery._children) == 3

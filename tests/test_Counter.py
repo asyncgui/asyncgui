@@ -72,7 +72,7 @@ def test_cancel():
     async def async_fn(ctx, c):
         task = await ag.current_task()
         with task._open_cancel_scope() as scope:
-            ctx['scope'] = scope
+            ctx["scope"] = scope
             await c.wait_for_zero()
             pytest.fail()
         await ag.sleep_forever()
@@ -82,7 +82,7 @@ def test_cancel():
     c.increase()
     task = ag.start(async_fn(ctx, c))
     assert task.state is TS.STARTED
-    ctx['scope'].cancel()
+    ctx["scope"].cancel()
     assert task.state is TS.STARTED
     c.decrease()
     assert task.state is TS.STARTED

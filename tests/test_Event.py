@@ -36,7 +36,7 @@ def test_cancel():
     async def async_fn(ctx, e):
         task = await ag.current_task()
         with task._open_cancel_scope() as scope:
-            ctx['scope'] = scope
+            ctx["scope"] = scope
             await e.wait()
             pytest.fail()
         await ag.sleep_forever()
@@ -45,7 +45,7 @@ def test_cancel():
     e = ag.Event()
     task = ag.start(async_fn(ctx, e))
     assert task.state is TS.STARTED
-    ctx['scope'].cancel()
+    ctx["scope"].cancel()
     assert task.state is TS.STARTED
     e.fire()
     assert task.state is TS.STARTED
@@ -59,12 +59,12 @@ def test_complicated_cancel():
 
     async def async_fn_1(ctx, e):
         await e.wait()
-        ctx['scope'].cancel()
+        ctx["scope"].cancel()
 
     async def async_fn_2(ctx, e):
         task = await ag.current_task()
         with task._open_cancel_scope() as scope:
-            ctx['scope'] = scope
+            ctx["scope"] = scope
             await e.wait()
             pytest.fail()
         await ag.sleep_forever()
@@ -90,31 +90,31 @@ def test_value_passing():
     async def async_fn1(e):
         args, kwargs = await e.wait()
         assert args == (2, )
-        assert kwargs == {'crow': 'raven', }
+        assert kwargs == {"crow": "raven", }
 
         args, kwargs = await e.wait()
         assert args == (3, )
-        assert kwargs == {'toad': 'frog', }
+        assert kwargs == {"toad": "frog", }
 
     async def async_fn2(e):
         args, kwargs = await e.wait()
         assert args == (3, )
-        assert kwargs == {'toad': 'frog', }
+        assert kwargs == {"toad": "frog", }
 
     e = ag.Event()
-    e.fire(1, crocodile='alligator')
+    e.fire(1, crocodile="alligator")
 
     task1 = ag.start(async_fn1(e))
     assert task1.state is TS.STARTED
 
-    e.fire(2, crow='raven')
+    e.fire(2, crow="raven")
     assert task1.state is TS.STARTED
 
     task2 = ag.start(async_fn2(e))
     assert task1.state is TS.STARTED
     assert task2.state is TS.STARTED
 
-    e.fire(3, toad='frog')
+    e.fire(3, toad="frog")
     assert task1.state is TS.FINISHED
     assert task2.state is TS.FINISHED
 

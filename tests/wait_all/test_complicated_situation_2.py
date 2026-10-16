@@ -8,18 +8,18 @@ import pytest
 async def child_a(ctx):
     from inspect import getcoroutinestate, CORO_RUNNING
     import asyncgui as ag
-    await ctx['e_begin'].wait()
-    await ctx['e'].wait()
-    assert getcoroutinestate(ctx['task_b'].root_coro) == CORO_RUNNING
-    ctx['main_task'].cancel()
-    what = ctx['what_a_should_do']
-    if what == 'nothing':
+    await ctx["e_begin"].wait()
+    await ctx["e"].wait()
+    assert getcoroutinestate(ctx["task_b"].root_coro) == CORO_RUNNING
+    ctx["main_task"].cancel()
+    what = ctx["what_a_should_do"]
+    if what == "nothing":
         return
-    elif what == 'suspend':
+    elif what == "suspend":
         await ag.sleep_forever()
-    elif what == 'fail':
+    elif what == "fail":
         raise ZeroDivisionError
-    elif what == 'cancel_self':
+    elif what == "cancel_self":
         task_a = await ag.current_task()
         task_a.cancel()
         await ag.sleep_forever()
@@ -29,38 +29,38 @@ async def child_a(ctx):
 
 async def child_b(ctx):
     try:
-        await ctx['e_begin'].wait()
-        ctx['e'].fire()
+        await ctx["e_begin"].wait()
+        ctx["e"].fire()
     finally:
-        if ctx['should_b_fail']:
+        if ctx["should_b_fail"]:
             raise ZeroDivisionError
 
 
 async def child_c(ctx):
     try:
-        await ctx['e_begin'].wait()
+        await ctx["e_begin"].wait()
     finally:
-        if ctx['should_c_fail']:
+        if ctx["should_c_fail"]:
             raise ZeroDivisionError
 
 
 p = pytest.mark.parametrize
-@p('starts_immediately', (True, False, ))
-@p('what_a_should_do', 'nothing suspend fail cancel_self'.split())
-@p('should_b_fail', (True, False, ))
-@p('should_c_fail', (True, False, ))
+@p("starts_immediately", (True, False, ))
+@p("what_a_should_do", ["nothing", "suspend", "fail", "cancel_self"])
+@p("should_b_fail", (True, False, ))
+@p("should_c_fail", (True, False, ))
 def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, should_c_fail):
     import asyncgui as ag
 
     ctx = {
-        'e_begin': ag.StatefulEvent(),
-        'e': ag.StatefulEvent(),
-        'what_a_should_do': what_a_should_do,
-        'should_b_fail': should_b_fail,
-        'should_c_fail': should_c_fail,
+        "e_begin": ag.StatefulEvent(),
+        "e": ag.StatefulEvent(),
+        "what_a_should_do": what_a_should_do,
+        "should_b_fail": should_b_fail,
+        "should_c_fail": should_c_fail,
     }
     n_exceptions = 0
-    if what_a_should_do == 'fail':
+    if what_a_should_do == "fail":
         n_exceptions += 1
     if should_b_fail:
         n_exceptions += 1
@@ -69,7 +69,7 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
 
     async def main(ctx):
         task_a = ag.Task(child_a(ctx))
-        task_b = ctx['task_b'] = ag.Task(child_b(ctx))
+        task_b = ctx["task_b"] = ag.Task(child_b(ctx))
         task_c = ag.Task(child_c(ctx))
         if n_exceptions:
             with pytest.raises(ExceptionGroup) as excinfo:
@@ -80,10 +80,10 @@ def test_complicated_case(starts_immediately, what_a_should_do, should_b_fail, s
             await ag.wait_all(task_a, task_b, task_c)
 
     if starts_immediately:
-        ctx['e_begin'].fire()
-    ctx['main_task'] = main_task = ag.Task(main(ctx))
+        ctx["e_begin"].fire()
+    ctx["main_task"] = main_task = ag.Task(main(ctx))
     ag.start(main_task)
     if not starts_immediately:
-        ctx['e_begin'].fire()
+        ctx["e_begin"].fire()
     assert main_task._cancel_requested
     assert main_task.cancelled

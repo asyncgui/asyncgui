@@ -226,7 +226,7 @@ def test_reuse_the_internal_one():
         scope = task._open_cancel_scope()
         with scope:
             pass
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             with scope:
                 pass
 
@@ -234,8 +234,8 @@ def test_reuse_the_internal_one():
     assert task.finished
 
 
-@pytest.mark.parametrize('inside', (True, False, ))
-@pytest.mark.parametrize('outside', (True, False, ))
+@pytest.mark.parametrize("inside", (True, False, ))
+@pytest.mark.parametrize("outside", (True, False, ))
 def test_cancel_does_not_affect_the_next_scope(inside, outside):
     import asyncgui as ag
 

@@ -7,12 +7,12 @@ def test_wait_fire_wait():
     async def async_fn():
         args, kwargs = await e.wait()
         assert args == (1, )
-        assert kwargs == {'one': 'ONE', }
+        assert kwargs == {"one": "ONE", }
 
     e = ag.ExclusiveEvent()
     task = ag.start(async_fn())
     assert not task.finished
-    e.fire(1, one='ONE')
+    e.fire(1, one="ONE")
     assert task.finished
 
 
@@ -22,13 +22,13 @@ def test_fire_wait_fire():
     async def async_fn():
         args, kwargs = await e.wait()
         assert args == (2, )
-        assert kwargs == {'two': 'TWO', }
+        assert kwargs == {"two": "TWO", }
 
     e = ag.ExclusiveEvent()
-    e.fire(1, one='ONE')
+    e.fire(1, one="ONE")
     task = ag.start(async_fn())
     assert not task.finished
-    e.fire(2, two='TWO')
+    e.fire(2, two="TWO")
     assert task.finished
 
 
@@ -56,7 +56,7 @@ def test_cancel():
     async def async_fn(ctx):
         task = await ag.current_task()
         with task._open_cancel_scope() as scope:
-            ctx['scope'] = scope
+            ctx["scope"] = scope
             await e.wait()
             pytest.fail()
         await ag.sleep_forever()
@@ -65,9 +65,9 @@ def test_cancel():
     e = ag.ExclusiveEvent()
     task = ag.start(async_fn(ctx))
     assert task.state is TS.STARTED
-    ctx['scope'].cancel()
+    ctx["scope"].cancel()
     assert task.state is TS.STARTED
-    e.fire(None, python='awesome')
+    e.fire(None, python="awesome")
     assert task.state is TS.STARTED
     task._step()
     assert task.state is TS.FINISHED
@@ -79,7 +79,7 @@ def test_wait_args():
     e = ag.ExclusiveEvent()
     task = ag.start(e.wait_args())
     assert not task.finished
-    e.fire(1, 2, one='ONE')
+    e.fire(1, 2, one="ONE")
     assert task.result == (1, 2, )
 
 
@@ -89,7 +89,7 @@ def test_wait_args_0():
     e = ag.ExclusiveEvent()
     task = ag.start(e.wait_args_0())
     assert not task.finished
-    e.fire(1, 2, one='ONE')
+    e.fire(1, 2, one="ONE")
     assert task.result == 1
 
 

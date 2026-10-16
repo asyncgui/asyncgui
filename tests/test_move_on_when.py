@@ -4,8 +4,8 @@
 
 import pytest
 
-fg_sleep = pytest.mark.parametrize('fg_sleep', (True, False, ), ids=('fg_sleep', ''))
-bg_sleep = pytest.mark.parametrize('bg_sleep', (True, False, ), ids=('bg_sleep', ''))
+fg_sleep = pytest.mark.parametrize("fg_sleep", (True, False, ), ids=("fg_sleep", ""))
+bg_sleep = pytest.mark.parametrize("bg_sleep", (True, False, ), ids=("bg_sleep", ""))
 
 @fg_sleep
 def test_bg_finishes_immediately(fg_sleep):
