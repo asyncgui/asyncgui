@@ -45,7 +45,8 @@ Kivy_ や Toga_ に関しては自身でasyncライブラリに対応してく�
     asyncio.run(main())
 
 このテストは通りません。何故なら :func:`asyncio.create_task` は即座にタスクを立ち上げるわけではなく"いずれ"立ち上がるよう予約するからです。
-:meth:`asyncio.TaskGroup.create_task` や :meth:`trio.Nursery.start` や :meth:`trio.Nursery.start_soon` も同様です (最後のは"soon"がついているので当たり前ですが)。
+:meth:`asyncio.TaskGroup.create_task` や :meth:`trio.Nursery.start` や :meth:`trio.Nursery.start_soon` も同様です
+(最後のは"soon"がついているので寧ろそうあるべきかも)。
 
 再開する機能に関しても同じで :meth:`asyncio.Event.wait` や :meth:`trio.Event.wait` で停まっているタスクは ``Event.set()``
 が呼ばれた時に即座に再開するわけではなく"いずれ"再開するよう予約されます。
@@ -116,8 +117,7 @@ asyncguiの特徴
 * :func:`asyncgui.start` と :meth:`asyncgui.Nursery.start` は即座にタスクを立ち上げ
 * :meth:`asyncgui.Event.fire` は即座にタスクを再開するからです。
 
-また他の機能も全て即座にタスクを開始/再開します。
-ようするに ``asyncgui`` の全ての機能がそのように動くという事です。
+他の機能も全てそのように動きます。
 
 メインループを持たない
 -------------------------

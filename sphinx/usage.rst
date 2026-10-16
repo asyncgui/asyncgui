@@ -162,8 +162,8 @@ And ``asyncgui`` has an API specifically designed for this purpose.
         args, kwargs = await e.wait()  # B
 
 :class:`asyncgui.ExclusiveEvent` has two advantages over :class:`asyncio.Event`.
-One, you don't need to use a lambda because :meth:`asyncgui.ExclusiveEvent.fire` can take any arguments (line A).
-Two, you can receive the arguments passed to that method (line B).
+First, you don't need to use a lambda because :meth:`asyncgui.ExclusiveEvent.fire` accepts arbitrary arguments (line A).
+Second, you can receive those arguments when the event is fired (line B).
 
 Let's implement our API with this.
 
