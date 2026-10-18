@@ -14,8 +14,6 @@
 
 ## Installation
 
-Pin the minor version.
-
 ```text
 pip install "asyncgui>=1,<2"
 ```
